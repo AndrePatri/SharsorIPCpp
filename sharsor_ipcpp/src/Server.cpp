@@ -1,48 +1,62 @@
 #include "Server.hpp"
-#include <boost/interprocess/managed_shared_memory.hpp>
 #include <iostream>
 #include <Eigen/Dense>
+#include <cstring> // for std::strerror()
 
-using namespace boost::interprocess;
-using Eigen::Map;
-using Eigen::MatrixXf;
+using namespace SharsorIPCpp;
 
-Server::Server(std::size_t rows, std::size_t cols)
-    : rows_(rows), cols_(cols)
-    // Check if shared memory already exists and remove it
-    if(shared_memory_object::remove("MySharedMemory")) {
-        std::cout << "Server: Old shared memory removed." << std::endl;
-    }
+Server::Server(int rows, int cols, std::string memname)
+    : rows_(rows), cols_(cols), _shared_mem_name(memname),
+      tensor_view_(nullptr, rows, cols)
+{
+    std::size_t data_size = sizeof(float) * rows_ * cols_;
+
+    Tensor tensor_copy_ = Tensor::Zero(rows_, cols_);
 
     // Create shared memory
-    managed_shared_memory shm(create_only, "MySharedMemory", sizeof(float) * rows_ * cols_ * 2); // Sufficient space
+    shm_fd_ = shm_open(_shared_mem_name.c_str(), O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    if (shm_fd_ == -1) {
+        throw std::runtime_error("Cannot create shared memory: " + std::string(std::strerror(errno)));
+    }
 
-    // Allocate array in the shared memory and get the raw pointer
-    float* myArray = shm.construct<float>("MyArray")[rows_ * cols_]();
+    // Set size
+    if (ftruncate(shm_fd_, data_size) == -1) {
+        throw std::runtime_error("Cannot set shared memory size: " + std::string(std::strerror(errno)));
+    }
 
-    // Initialize the Eigen::Map after having the valid pointer
-    memory_matrix_ = Map<MatrixXf, 0, Eigen::Stride<0,0>>(myArray, rows_, cols_);
+    // Map the shared memory
+    float* matrix_data = static_cast<float*>(mmap(nullptr, data_size,
+                                                    PROT_READ | PROT_WRITE,
+                                                    MAP_SHARED, shm_fd_, 0));
+    if (matrix_data == MAP_FAILED) {
+        throw std::runtime_error("Cannot map shared memory: " + std::string(std::strerror(errno)));
+    }
+
+    new (&tensor_view_) MMap(matrix_data, rows_, cols_);
 }
 
 Server::~Server() {
-    // Removal of the shared memory should be done when no longer needed by any process
-    // If this is the owner process, it might be done here.
-    shared_memory_object::remove("MySharedMemory");
+    shm_unlink(_shared_mem_name.c_str());
 }
 
-void Server::fillMemory() {
-    // Directly fill the memory_matrix_ with random values
-    memory_matrix_ = MatrixXf::Random(rows_, cols_);
-    std::cout << "Server: Memory filled with random values:\n" << memory_matrix_ << std::endl;
-}
-
-void Server::writeMemory(const MatrixXf& data) {
+void Server::writeMemory(const Tensor& data) {
     if(data.rows() != rows_ || data.cols() != cols_) {
         throw std::runtime_error("Data dimensions mismatch");
     }
-    memory_matrix_ = data;
+
+    tensor_view_.block(0, 0, rows_, cols_) = data;
 }
 
-void Server::run() {
-    // Implementation of run...
+const MMap& Server::getTensorView() {
+
+    return tensor_view_;
+
+}
+
+const Tensor& Server::getTensorCopy() {
+
+    tensor_copy_ = tensor_view_;
+
+    return tensor_copy_;
+
 }

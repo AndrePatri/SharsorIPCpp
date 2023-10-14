@@ -1,23 +1,43 @@
 #pragma once
 
 #include <Eigen/Dense>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <stdexcept> // For std::runtime_error
+#include <string>
+#include <stdexcept>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-class Server {
-public:
-    Server(std::size_t rows, std::size_t cols);
-    ~Server();
+namespace SharsorIPCpp{
 
-    void writeMemory(const Eigen::MatrixXf& data);
-    void run();
-    void fillMemory();
+  using Tensor = Eigen::MatrixXf;
+  using MMap = Eigen::Map<Tensor>;
 
-private:
-    std::size_t rows_;
-    std::size_t cols_;
+  class Server {
 
-    bool running_{true};
+    public:
+        Server(int rows, int cols, std::string memname = "MySharedMemory");
+        ~Server();
 
-    Eigen::Map<Eigen::MatrixXf> memory_matrix_;
-};
+        void writeMemory(const Tensor& data);
+
+        //  read only getter
+        const MMap& getTensorView();
+
+        // read only getter
+        const Tensor& getTensorCopy();
+
+    private:
+        int rows_;
+        int cols_;
+
+        MMap tensor_view_;
+
+        Tensor tensor_copy_;
+
+        std::string _shared_mem_name;
+        int shm_fd_; // shared memory file descriptor
+  };
+
+}
+
+

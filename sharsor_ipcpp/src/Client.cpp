@@ -9,6 +9,7 @@
 using namespace boost::interprocess;
 using Eigen::Map;
 using Eigen::MatrixXf;
+using Eigen::MatrixXd;
 
 Client::Client(std::size_t rows, std::size_t cols) : rows_(rows), cols_(cols) {}
 
