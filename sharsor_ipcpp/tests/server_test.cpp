@@ -1,55 +1,82 @@
 #include "Server.hpp"
 #include <iostream>
-#include <thread>
 #include <chrono>
+#include <vector>
+#include <limits>
 #include <Eigen/Dense>
+#include <cstdlib>
 
 using namespace SharsorIPCpp;
 
 int main() {
-    int rows = 100;
-    int cols = 60;
-    Server server(rows, cols, "SharedMemTest");
+    int rows = 100; // Specify the number of rows in the matrix
+    int cols = 60; // Specify the number of columns in the matrix
+    int iterations = 100000; // Number of iterations to perform
 
-    std::cout << "Server: Running. Press ENTER to exit...\n";
+    // Create a Server instance
+    Server server(rows, cols);
+
+    // Initialize a vector to store read and write times
+    std::vector<double> readTimes;
+    std::vector<double> writeTimes;
+
+    const MMap& tensorView = server.getTensorView();
 
     Tensor tensor_copy = Tensor::Zero(rows, cols);
 
-    // init. here for profiling
-    auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    for (int i = 0; i < iterations; ++i) {
+        // Generate a random Eigen MatrixXf with the same dimensions as the shared memory
+        Tensor myData(rows, cols);
+        myData.setRandom(); // Fills the matrix with random values
 
-    while (true) {
+        // Measure the write time
+        auto startWrite = std::chrono::high_resolution_clock::now();
+        server.writeMemory(myData);
+        auto endWrite = std::chrono::high_resolution_clock::now();
+        double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
+        writeTimes.push_back(writeTime);
 
-        // Generate new random data
-        Tensor data = Tensor::Random(rows, cols);
-
-        // Write new data
-        start = std::chrono::high_resolution_clock::now();
-
-        server.writeMemory(data);
-
-        end = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Server: Write took " << duration.count() << "us\n";
-
-        // Read data
-        start = std::chrono::high_resolution_clock::now();
-
+        // Measure the read time
+        auto startRead = std::chrono::high_resolution_clock::now();
         tensor_copy = server.getTensorCopy();
+        auto endRead = std::chrono::high_resolution_clock::now();
+        double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
+        readTimes.push_back(readTime);
 
-        end = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Server: Read took " << duration.count() << "us\n";
+        // You can perform operations on tensorView as needed
 
-        // Sleep
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));  // Adjust the rate as per requirement
-
-        std::cout << tensor_copy  << std::endl;
-//        std::cout << server.getTensorView() << std::endl;
-        std::cout << "###############" << std::endl;
+        // Print the shared memory data for the first iteration
+//        std::cout << "Shared Memory Data:" << std::endl;
+//        std::cout << tensorView.block(0, 0, 1, 1) << std::endl;
     }
+
+    // Calculate and print the average read and write times
+    double averageReadTime = 0;
+    double averageWriteTime = 0;
+    double maxReadTime = std::numeric_limits<double>::min();
+    double maxWriteTime = std::numeric_limits<double>::min();
+
+    for (int i = 0; i < iterations; ++i) {
+        averageReadTime += readTimes[i];
+        averageWriteTime += writeTimes[i];
+
+        if (readTimes[i] > maxReadTime) {
+            maxReadTime = readTimes[i];
+        }
+
+        if (writeTimes[i] > maxWriteTime) {
+            maxWriteTime = writeTimes[i];
+        }
+    }
+
+    averageReadTime /= iterations;
+    averageWriteTime /= iterations;
+
+    std::cout << "Average Read (with copy) Time: " << averageReadTime << " nanoseconds" << std::endl;
+    std::cout << "Average Write Time: " << averageWriteTime << " nanoseconds" << std::endl;
+    std::cout << "Maximum Read (with copy) Time: " << maxReadTime << " nanoseconds" << std::endl;
+    std::cout << "Maximum Write Time: " << maxWriteTime << " nanoseconds" << std::endl;
 
     return 0;
 }
+
