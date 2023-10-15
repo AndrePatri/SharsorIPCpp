@@ -15,7 +15,10 @@ namespace SharsorIPCpp{
   class Server {
 
     public:
-        Server(int rows, int cols, std::string memname = "MySharedMemory");
+        Server(int rows,
+               int cols,
+               std::string memname = "MySharedMemory");
+
         ~Server();
 
         void writeMemory(const Tensor& data);

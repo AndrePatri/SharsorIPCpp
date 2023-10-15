@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(LIBRARY_NAME SharedMemoryIPCpp)
+set(LIBRARY_NAME SharsorIPCpp)
 project(${LIBRARY_NAME})
 
 # Set C++ standard
@@ -13,9 +13,11 @@ add_library(${LIBRARY_NAME} STATIC
 )
 
 target_include_directories(${LIBRARY_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/${LIBRARY_NAME}
 )
 
+message(STATUS ${CMAKE_CURRENT_SOURCE_DIR}/include/${LIBRARY_NAME}
+    )
 target_link_libraries(${LIBRARY_NAME} PUBLIC
     Eigen3::Eigen
     rt  # Link against the real-time library
