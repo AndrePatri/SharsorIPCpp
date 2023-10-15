@@ -1,10 +1,13 @@
 #include "Server.hpp"
 #include <iostream>
 #include <Eigen/Dense>
-#include <cstring> // for std::strerror()
+#include <cstring>
 #include <typeinfo>
+#include <ctime>
 
 namespace SharsorIPCpp {
+
+    using LogType = Journal::LogType;
 
     // Define a type trait to check if a given type is a valid DType
     template <typename Scalar>
@@ -19,17 +22,20 @@ namespace SharsorIPCpp {
     template <typename Scalar>
     Server<Scalar>::Server(int n_rows,
                    int n_cols,
-                   std::string memname,
-                   std::string name_space)
+                   std::string basename,
+                   std::string name_space,
+                   bool verbose)
         : n_rows(n_rows),
           n_cols(n_cols),
-          _shared_mem_name(memname),
-          _namespace{name_space},
+          _mem_config(basename, name_space),
+          _verbose(verbose),
           _tensor_view(nullptr,
                        n_rows,
                        n_rows),
           _journal(Journal(GetThisName()))
     {
+
+        CheckMem(); // checks if memory was already allocated
 
         static_assert(IsValidDType<Scalar>::value, "Invalid data type provided.");
 
@@ -37,21 +43,35 @@ namespace SharsorIPCpp {
         std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
 
         // Create shared memory
-        _shm_fd = shm_open(_shared_mem_name.c_str(),
+        _shm_fd = shm_open(_mem_config.mem_path.c_str(),
                            O_CREAT | O_RDWR,
                            S_IRUSR | S_IWUSR);
 
         if (_shm_fd == -1) {
 
-            throw std::runtime_error("Cannot create shared memory: " +
-                                     std::string(std::strerror(errno)));
+            _journal.log(__FUNCTION__,
+                         "Could not create shared memory.",
+                         LogType::EXCEP);
+
         }
 
         // Set size
         if (ftruncate(_shm_fd, data_size) == -1) {
 
-            throw std::runtime_error("Cannot set shared memory size: " +
-                                     std::string(std::strerror(errno)));
+            _journal.log(__FUNCTION__,
+                         "Could not set shared memory size.",
+                         LogType::EXCEP);
+
+        }
+
+        if (_verbose) {
+
+            std::string info = std::string("Opened shared memory at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
 
         }
 
@@ -61,28 +81,296 @@ namespace SharsorIPCpp {
                                                         MAP_SHARED, _shm_fd, 0));
         if (matrix_data == MAP_FAILED) {
 
-            throw std::runtime_error("Cannot map shared memory: " +
-                                     std::string(std::strerror(errno)));
+            _journal.log(__FUNCTION__,
+                         "Could not map memory size.",
+                         LogType::EXCEP);
+
         }
 
         new (&_tensor_view) MMap<Scalar>(matrix_data, n_rows, n_cols);
 
         _tensor_copy = Tensor<Scalar>::Zero(n_rows, n_cols);
+
+        if (_verbose) {
+
+            std::string info = std::string("Mapped shared memory at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
+
+        }
     }
 
     template <typename Scalar>
     Server<Scalar>::~Server() {
 
-        shm_unlink(_shared_mem_name.c_str());
+        if (!_terminated) {
+
+            Close();
+        }
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::Close()
+    {
+
+        CleanUp();
+
+        if (_verbose) {
+
+            std::string info = std::string("Closed Server at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
+
+        }
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::CleanUp()
+    {
+
+        if (!_terminated) {
+
+//            if (_tensor_view.data() != nullptr) {
+//                munmap(_tensor_view.data(), sizeof(Scalar) * n_rows * n_cols);
+//                _tensor_view = MMap<Scalar>(nullptr,
+//                                            n_rows,
+//                                            n_cols); // Reset the MMap
+//            }
+
+            shm_unlink(_mem_config.mem_path.c_str());
+
+            if (_verbose) {
+
+                std::string info = std::string("Unlinked from memory at ") +
+                        _mem_config.mem_path;
+
+                _journal.log(__FUNCTION__,
+                     info,
+                     LogType::INFO);
+
+            }
+
+            close(_shm_fd);
+
+            if (_verbose) {
+
+                std::string info = std::string("Closed file descriptor for ") +
+                        _mem_config.mem_path;
+
+                _journal.log(__FUNCTION__,
+                     info,
+                     LogType::INFO);
+
+            }
+
+            Stop();
+
+            if (_verbose) {
+
+                std::string info = std::string("Server stopped");
+
+                _journal.log(__FUNCTION__,
+                     info,
+                     LogType::INFO);
+
+            }
+
+            _terminated = true;
+
+        }
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::Run()
+    {
+
+        InitSem(); // open the semaphore
+
+        std::string info = std::string("Acquiring Server semaphore at ") +
+                _mem_config.mem_path_server_sem;
+
+        _journal.log(__FUNCTION__,
+                     info,
+                     LogType::INFO);
+
+        // Acquire the semaphore
+        if (semWait(_srvr_sem, 1.0) == -1) {
+
+            // Handle semaphore acquisition error
+
+            Stop();
+
+            Close(); // close server
+
+            _journal.log(__FUNCTION__,
+                         "Failed to acquire semaphore at",
+                         LogType::EXCEP);
+
+        }
+
+        // Set the running flag to true
+        _running = true;
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::InitSem()
+    {
+
+        _srvr_sem = sem_open(_mem_config.mem_path_server_sem.c_str(),
+                        O_CREAT,
+                        S_IRUSR | S_IWUSR,
+                        1);
+
+        if (_srvr_sem == SEM_FAILED) {
+            // Handle semaphore creation error
+
+            std::string error =
+                    std::string("Failed to open semaphore");
+
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP);
+
+        }
+        else {
+
+            if (_verbose) {
+
+                std::string info = std::string("Opened semaphore at ") +
+                        _mem_config.mem_path_server_sem;
+
+                _journal.log(__FUNCTION__,
+                     info,
+                     LogType::INFO);
+
+            }
+        }
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::CloseSems()
+    {
+
+        sem_close(_srvr_sem); // close semaphore
+        sem_unlink(_mem_config.mem_path_server_sem.c_str()); // unlink semaphore
+
+        if (_verbose) {
+
+            std::string info = std::string("Closed and unlinked Server semaphore at ") +
+                    _mem_config.mem_path_server_sem;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
+
+        }
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::Stop()
+    {
+
+        // Release the semaphore
+        if (sem_post(_srvr_sem) == -1) {
+            // Handle semaphore release error
+
+            CloseSems();
+
+            _journal.log(__FUNCTION__,
+                         "Failed to release semaphore.",
+                         LogType::EXCEP);
+
+        }
+
+        if (_verbose) {
+
+            std::string info = std::string("Released Server semaphore at ") +
+                    _mem_config.mem_path_server_sem;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
+
+        }
+
+        CloseSems();
+
+        _running = false;
+
+
+    }
+
+    template <typename Scalar>
+    int Server<Scalar>::semWait(sem_t* sem,
+                                int timeout_seconds) {
+
+        struct timespec timeout;
+
+        clock_gettime(CLOCK_REALTIME, &timeout);
+
+        timeout.tv_sec += timeout_seconds;
+
+        while (true) {
+            int result = sem_timedwait(sem, &timeout);
+
+            if (result == 0) {
+                // Successfully acquired the semaphore.
+                return 0;
+            } else if (result == -1 && errno == ETIMEDOUT) {
+                // Timeout occurred.
+                return -1;
+            } else if (result == -1 && errno != EINTR) {
+                // Other error occurred (excluding interrupt).
+                return errno;
+            }
+            // Handle EINTR (interrupted by a signal), and continue waiting.
+        }
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::CheckMem()
+    {
+
+        _shm_fd = shm_open(_mem_config.mem_path.c_str(), O_RDWR, 0);
+
+        if (_shm_fd != -1) {
+            // Shared memory already exists, so we need to clean it up
+
+            std::string warn = std::string("Shared memory at ") +
+                    _mem_config.mem_path + std::string(" already exists.\n")+
+                    std::string("Clearning it up...");
+
+            _journal.log(__FUNCTION__,
+                 warn,
+                 LogType::WARN);
+
+            CleanUp();
+
+            _terminated = false;
+        }
+
+        if (_shm_fd == -1) {
+            // Shared mem does not exist
+
+            close(_shm_fd);// close the file descriptor
+            // opened for checking existence
+        }
 
     }
 
     template <typename Scalar>
     std::string Server<Scalar>::GetThisName()
     {
-        const std::type_info& info = typeid(*this);
 
-        return std::string(info.name());
+        return _this_name;
     }
 
     template <typename Scalar>
@@ -90,15 +378,53 @@ namespace SharsorIPCpp {
 
         if(data.rows() != n_rows || data.cols() != n_cols) {
 
-            throw std::runtime_error("Data dimensions mismatch");
+            std::string error =
+                    std::string("Data dimension mismatch. ") +
+                    std::string("Expected a tensor of size ") +
+                    std::to_string(n_rows) + std::string("x") + std::to_string(n_cols) +
+                    std::string(", but provided tensor is ") +
+                    std::to_string(data.rows()) + std::string("x") + std::to_string(data.cols());
+
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP);
 
         }
 
-        _tensor_view.block(0, 0, n_rows, n_cols) = data;
+        if (_running) {
+
+            _tensor_view.block(0, 0, n_rows, n_cols) = data;
+
+        }
+        else {
+
+            if (_verbose) {
+
+                std::string error = std::string("Server is not running. ") +
+                        std::string("Did you remember to call the Run() method?");
+
+                _journal.log(__FUNCTION__,
+                     error,
+                     LogType::EXCEP);
+            }
+        }
+
+
     }
 
     template <typename Scalar>
     const MMap<Scalar>& Server<Scalar>::getTensorView() {
+
+        if (!_running) {
+
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the Run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP);
+
+        }
 
         return _tensor_view;
 
@@ -106,6 +432,17 @@ namespace SharsorIPCpp {
 
     template <typename Scalar>
     const Tensor<Scalar> &Server<Scalar>::getTensorCopy() {
+
+        if (!_running) {
+
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the Run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP);
+
+        }
 
         _tensor_copy = _tensor_view;
 

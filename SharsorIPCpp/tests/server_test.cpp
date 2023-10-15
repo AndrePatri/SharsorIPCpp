@@ -6,8 +6,10 @@
 #include <vector>
 #include <limits>
 #include <Eigen/Dense>
+#include <csignal>
 
 using namespace SharsorIPCpp;
+
 
 void check_comp_type()
 {
@@ -41,11 +43,12 @@ protected:
     ServerTestDouble() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols),
+                   server(rows, cols,
+                          "Sharsor", "Tests",
+                          true),
                    tensor_copy(rows, cols) {
 
-        // Constructor code (if needed)
-
+        server.Run();
     }
 
     void SetUp() override {
@@ -56,7 +59,7 @@ protected:
 
     void TearDown() override {
 
-        // Cleanup code (if needed)
+        server.Close();
 
     }
 
@@ -70,14 +73,16 @@ protected:
 
 class ServerTestFloat : public ::testing::Test {
 protected:
+
     ServerTestFloat() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols),
+                   server(rows, cols,
+                          "Sharsor", "Tests",
+                          true),
                    tensor_copy(rows, cols) {
 
-        // Constructor code (if needed)
-
+        server.Run();
     }
 
     void SetUp() override {
@@ -88,7 +93,7 @@ protected:
 
     void TearDown() override {
 
-        // Cleanup code (if needed)
+        server.Close();
 
     }
 
@@ -105,10 +110,12 @@ protected:
     ServerTestInt() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols),
+                   server(rows, cols,
+                          "Sharsor", "Tests",
+                          true),
                    tensor_copy(rows, cols) {
 
-        // Constructor code (if needed)
+        server.Run();
 
     }
 
@@ -120,7 +127,7 @@ protected:
 
     void TearDown() override {
 
-        // Cleanup code (if needed)
+        server.Close();
 
     }
 
@@ -137,10 +144,12 @@ protected:
     ServerTestBool() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols),
+                   server(rows, cols,
+                          "Sharsor", "Tests",
+                          true),
                    tensor_copy(rows, cols) {
 
-        // Constructor code (if needed)
+        server.Run();
 
     }
 
@@ -151,6 +160,8 @@ protected:
     }
 
     void TearDown() override {
+
+        server.Close();
 
         // Cleanup code (if needed)
 
@@ -266,7 +277,6 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
     // satisfying the expected performance
 }
-
 
 TEST_F(ServerTestInt, WriteReadBenchmark) {
 

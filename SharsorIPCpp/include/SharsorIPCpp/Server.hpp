@@ -6,9 +6,12 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <csignal>
 
 #include "Journal.hpp"
 #include "DTypes.hpp"
+#include "SharedMemConfig.hpp"
 
 namespace SharsorIPCpp{
 
@@ -25,8 +28,9 @@ namespace SharsorIPCpp{
 
             Server(int n_rows,
                    int n_cols,
-                   std::string memname = "MySharedMemory",
-                   std::string name_space = "");
+                   std::string basename = "MySharedMemory",
+                   std::string name_space = "",
+                   bool verbose = false);
 
             ~Server();
 
@@ -41,12 +45,25 @@ namespace SharsorIPCpp{
             int n_rows;
             int n_cols;
 
+            void Run();
+            void Stop();
+            void Close();
+
         private:
+
+            bool _verbose = false;
+
+            bool _terminated = false;
+
+            bool _running = false;
 
             int _shm_fd; // shared memory file descriptor
 
-            std::string _shared_mem_name;
-            std::string _namespace;
+            std::string _this_name = "SharsorIPCpp::Server";
+
+            SharedMemConfig _mem_config;
+
+            sem_t* _srvr_sem;
 
             Journal _journal;
 
@@ -55,6 +72,17 @@ namespace SharsorIPCpp{
             MMap<Scalar> _tensor_view;
 
             std::string GetThisName();
+
+            void CleanUp();
+
+            void CheckMem();
+
+            void InitSem();
+
+            void CloseSems();
+
+            int semWait(sem_t* sem,
+                        int timeout_seconds);
 
     };
 

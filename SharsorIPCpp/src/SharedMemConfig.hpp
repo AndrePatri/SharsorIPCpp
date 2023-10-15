@@ -2,19 +2,18 @@
 #define SHAREDMEMCONFIG_HPP
 
 #include <string>
-#include "Journal.hpp"
 #include "MemDefs.hpp"
 
-_namespace SharsorIPCpp{
+namespace SharsorIPCpp{
 
     class SharedMemConfig {
 
     public:
 
-        SharedMemConfig(const std::string& _name,
-                        const std::string& _name_space = "")
-            : __name(_name),
-              _namespace(_name_space) {
+        SharedMemConfig(const std::string& name,
+                        const std::string& name_space = "")
+            : _name(name),
+              _namespace(name_space) {
 
             mem_path = "/" + _namespace + _name;
 
@@ -44,8 +43,6 @@ _namespace SharsorIPCpp{
 
         std::string _name;
         std::string _namespace;
-
-        Journal _journal;
 
     };
 

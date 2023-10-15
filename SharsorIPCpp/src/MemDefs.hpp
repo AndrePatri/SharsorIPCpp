@@ -1,7 +1,7 @@
 #ifndef MEMDEFS_H
 #define MEMDEFS_H
 
-using namespace SharsorIPCpp{
+namespace SharsorIPCpp{
 
     class MemDef {
 
@@ -9,45 +9,34 @@ using namespace SharsorIPCpp{
 
             static std::string sharedSrvrNRowsName() {
 
-                return _sharedSrvrNRowsName;
+                return std::string("sharedSrvrNRows");
 
             }
 
             static std::string sharedSrvrNColsName() {
 
-                return _sharedSrvrNColsName;
+                return std::string("sharedSrvrNCols");
 
             }
 
             static std::string sharedClientsCountName() {
 
-                return _sharedClientsCountName;
+                return std::string("sharedClientsCount");
 
             }
 
             static std::string sharedSemSrvrName() {
 
-                return _sharedSemSrvrName;
+                return std::string("sharedSemSrvr");
 
             }
 
             static std::string sharedSemClientsCountName() {
 
-                return _sharedSemClientsCountName;
+                return std::string("sharedSemClientsCount");
 
             }
 
-        private:
-
-            std::string _sharedSrvrNRowsName = "sharedSrvrNRows";
-
-            std::string _sharedSrvrNColsName = "sharedSrvrNCols";
-
-            std::string _sharedClientsCountName = "sharedClientsCount";
-
-            std::string _sharedSemSrvrName = "sharedSemSrvr";
-
-            std::string _sharedSemClientsCountName = "sharedSemClientsCount";
         };
 
 }
