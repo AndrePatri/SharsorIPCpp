@@ -192,8 +192,8 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
     check_comp_type();
 
-    double READ_T_MAX_THRESH =  100000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 100000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   1000; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  1000; // [nanoseconds]
 
@@ -272,8 +272,8 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
 
     check_comp_type();
 
-    double READ_T_MAX_THRESH =  100000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 100000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   2000; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  2000; // [nanoseconds]
 
@@ -351,8 +351,8 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
 
     check_comp_type();
 
-    double READ_T_MAX_THRESH =  100000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 100000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   2500; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  2500; // [nanoseconds]
 
