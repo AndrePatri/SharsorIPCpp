@@ -11,13 +11,16 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="128.3215mm"
-   height="125.67567mm"
-   viewBox="0 0 128.3215 125.67567"
+   width="132.60695mm"
+   height="129.05984mm"
+   viewBox="0 0 132.60695 129.05985"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="icon.svg">
+   sodipodi:docname="icon.svg"
+   inkscape:export-filename="/home/apatrizi/RL_ws/hhcm/src/SharsorIPCpp/docs/icon.png"
+   inkscape:export-xdpi="20"
+   inkscape:export-ydpi="20">
   <defs
      id="defs2">
     <linearGradient
@@ -57,8 +60,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="222.50107"
-     inkscape:cy="283.86435"
+     inkscape:cx="229.65009"
+     inkscape:cy="290.87622"
      inkscape:document-units="mm"
      inkscape:current-layer="g2701"
      showgrid="true"
@@ -72,8 +75,8 @@
     <inkscape:grid
        type="xygrid"
        id="grid815"
-       originx="-33.735081"
-       originy="-136.92258" />
+       originx="-31.843567"
+       originy="-135.06736" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -91,10 +94,19 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-33.735082,-34.401744)">
+     transform="translate(-31.843568,-32.872791)">
     <g
        id="g2701"
        transform="matrix(0,1,1,0,1.8097813,-3.6934667)">
+      <rect
+         style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.53100002;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+         id="rect2936"
+         width="132.60695"
+         height="129.05984"
+         x="30.033787"
+         y="36.566257"
+         transform="matrix(0,1,1,0,0,0)"
+         ry="14.812094" />
       <g
          id="g2697"
          transform="matrix(-0.12201588,0,0,0.12201588,119.77522,-14.312618)">
@@ -112,7 +124,8 @@
            transform="matrix(0,2.1684336,-2.1684336,0,951.36595,102.46893)" />
       </g>
       <g
-         id="g2913">
+         id="g2913"
+         transform="translate(0.16313259,0.25120688)">
         <rect
            ry="7.9639578"
            y="74.75"
