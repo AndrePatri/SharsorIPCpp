@@ -1,4 +1,6 @@
 #include "Server.hpp"
+#include "Journal.hpp"
+
 #include <gtest/gtest.h>
 #include <chrono>
 #include <vector>
@@ -20,7 +22,7 @@ void check_comp_type()
         #else
 
             message = std::string("[Info]: Library was compiled in Release mode. ") +
-                std::string("This will ensure meaningful benchmarking results.\n");
+                std::string("This is good and will ensure meaningful benchmarking results.\n");
 
         #endif
 
@@ -65,6 +67,26 @@ protected:
     Tensor tensor_copy;
 
 };
+
+TEST_F(ServerTest, TestJournal) {
+
+    std::string classname = "Server";
+
+    Journal journal(classname);
+
+    journal.log("DoSomething", "A warning occurred. You can probably ignore this.",
+                Journal::LogType::WARN);
+    journal.log("DoSomething", "This is some info.",
+                Journal::LogType::INFO);
+    journal.log("DoSomething", "These are statistics.",
+                Journal::LogType::STAT);
+
+    EXPECT_THROW({
+            journal.log("DoSomething", "An exception occurred!!",
+                        Journal::LogType::EXCEP);
+        }, std::runtime_error) << "Expected a std::runtime_error to be thrown.";
+
+}
 
 TEST_F(ServerTest, WriteReadBenchmark) {
 
@@ -134,12 +156,12 @@ TEST_F(ServerTest, WriteReadBenchmark) {
     // Perform assertions using GTest
 
     // reading
-    ASSERT_LT(averageReadTime, READ_T_AVRG_THRESH); // we check the maximim
-    ASSERT_LT(maxReadTime, READ_T_MAX_THRESH); // we check that we are
+    ASSERT_LT(averageReadTime, READ_T_AVRG_THRESH);
+    ASSERT_LT(maxReadTime, READ_T_MAX_THRESH);
 
     // writing
-    ASSERT_LT(averageWriteTime, WRITE_T_AVRG_THRESH); // we check that we are
-    ASSERT_LT(maxWriteTime, WRITE_T_MAX_THRESH); // we check that we are
+    ASSERT_LT(averageWriteTime, WRITE_T_AVRG_THRESH);
+    ASSERT_LT(maxWriteTime, WRITE_T_MAX_THRESH);
 
 
     // satisfying the expected performance

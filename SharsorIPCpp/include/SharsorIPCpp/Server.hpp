@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "Journal.hpp"
+
 namespace SharsorIPCpp{
 
   using Tensor = Eigen::MatrixXf;
@@ -15,9 +17,11 @@ namespace SharsorIPCpp{
   class Server {
 
     public:
-        Server(int rows,
-               int cols,
-               std::string memname = "MySharedMemory");
+
+        Server(int n_rows,
+               int n_cols,
+               std::string memname = "MySharedMemory",
+               std::string name_space = "");
 
         ~Server();
 
@@ -29,16 +33,24 @@ namespace SharsorIPCpp{
         // read only getter
         const Tensor& getTensorCopy();
 
+        int n_rows;
+        int n_cols;
+
     private:
-        int rows_;
-        int cols_;
 
-        MMap tensor_view_;
-
-        Tensor tensor_copy_;
+        int _shm_fd; // shared memory file descriptor
 
         std::string _shared_mem_name;
-        int shm_fd_; // shared memory file descriptor
+        std::string _namespace;
+
+        Journal _journal;
+
+        Tensor _tensor_copy;
+
+        MMap _tensor_view;
+
+        std::string GetThisName();
+
   };
 
 }
