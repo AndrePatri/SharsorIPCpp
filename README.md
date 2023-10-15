@@ -1,4 +1,5 @@
-### SharsorIPCpp &nbsp;&nbsp;&nbsp;&nbsp;<img src="docs/icon.svg" alt="icon.svg" width="150" height="150" style="vertical-align: middle;">
+### SharsorIPCpp &nbsp;&nbsp;&nbsp;&nbsp;
+<img src="docs/icon.svg" alt="icon.svg" width="150" height="150" style="vertical-align: middle;">
 
 Shared Tensors through Inter Process Communication on C++ for POSIX-compatible OS.
 
