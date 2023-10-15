@@ -8,50 +8,55 @@
 #include <unistd.h>
 
 #include "Journal.hpp"
+#include "DTypes.hpp"
 
 namespace SharsorIPCpp{
 
-  using Tensor = Eigen::MatrixXf;
-  using MMap = Eigen::Map<Tensor>;
+    template <typename Scalar>
+    using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
 
-  class Server {
+    template <typename Scalar>
+    using MMap = Eigen::Map<Tensor<Scalar>>;
 
-    public:
+    template <typename Scalar>
+    class Server {
 
-        Server(int n_rows,
-               int n_cols,
-               std::string memname = "MySharedMemory",
-               std::string name_space = "");
+        public:
 
-        ~Server();
+            Server(int n_rows,
+                   int n_cols,
+                   std::string memname = "MySharedMemory",
+                   std::string name_space = "");
 
-        void writeMemory(const Tensor& data);
+            ~Server();
 
-        //  read only getter
-        const MMap& getTensorView();
+            void writeMemory(const Tensor<Scalar>& data);
 
-        // read only getter
-        const Tensor& getTensorCopy();
+            //  read only getter
+            const MMap<Scalar>& getTensorView();
 
-        int n_rows;
-        int n_cols;
+            // read only getter
+            const Tensor<Scalar>& getTensorCopy();
 
-    private:
+            int n_rows;
+            int n_cols;
 
-        int _shm_fd; // shared memory file descriptor
+        private:
 
-        std::string _shared_mem_name;
-        std::string _namespace;
+            int _shm_fd; // shared memory file descriptor
 
-        Journal _journal;
+            std::string _shared_mem_name;
+            std::string _namespace;
 
-        Tensor _tensor_copy;
+            Journal _journal;
 
-        MMap _tensor_view;
+            Tensor<Scalar> _tensor_copy;
 
-        std::string GetThisName();
+            MMap<Scalar> _tensor_view;
 
-  };
+            std::string GetThisName();
+
+    };
 
 }
 
