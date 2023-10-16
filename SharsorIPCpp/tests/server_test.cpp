@@ -530,6 +530,19 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
 }
 
 int main(int argc, char** argv) {
+
+    // Set the GTEST_FILTER environment variable to specify the tests to run.
+    // You can list multiple tests or test suites separated by a colon.
+    // This example runs two test cases: ServerTestDouble.WriteReadBenchmark and AnotherTestSuite.*
+
+    ::testing::GTEST_FLAG(filter) =
+            "JournalTest.TestJournal";
+
+    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
