@@ -33,6 +33,11 @@ namespace SharsorIPCpp{
                                 INFO,
                                 STAT};
 
+            enum class VLevel {V0, // nothing except errors
+                    V1, // only warnings
+                    V2, // warning + statistics
+                    V3}; // warning + statistics + additional info
+
             Journal(const std::string& classname) :
                 _classname(classname) {
             }

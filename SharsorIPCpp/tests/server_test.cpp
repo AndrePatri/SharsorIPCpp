@@ -10,6 +10,12 @@
 
 using namespace SharsorIPCpp;
 
+using VLevel = Journal::VLevel;
+
+static std::string name_space = "SrvrTests";
+
+static Journal journal("ServerTests");
+
 void check_comp_type()
 {
     std::string message;
@@ -18,23 +24,26 @@ void check_comp_type()
 
         #ifdef _RELWITHDEBINFO
 
-            message = std::string("[Warning]: SharsorIPCpp was compiled in RelWithDebInfo mode. ") +
+            message = std::string("SharsorIPCpp was compiled in RelWithDebInfo mode. ") +
                     std::string("For meaninful results, you should compile it in Release mode.\n");
         #else
 
-            message = std::string("[Info]: Library was compiled in Release mode. ") +
+            message = std::string("SharsorIPCpp was compiled in Release mode. ") +
                 std::string("This is good and will ensure meaningful benchmarking results.\n");
 
         #endif
 
     #else
 
-        message = std::string("[Warning]: SharsorIPCpp was compiled in Debug mode. ") +
+        message = std::string("SharsorIPCpp was compiled in Debug mode. ") +
             std::string("For meaninful results, you should compile it in Release mode.\n");
 
     #endif
 
-    std::cout << message << std::endl;
+    journal.log("check_comp_type",
+                message,
+                Journal::LogType::STAT);
+
 }
 
 class JournalTest: public ::testing::Test {
@@ -58,8 +67,10 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Test",
-                          true),
+                          "Sharsor",
+                          name_space,
+                          true,
+                          VLevel::V3),
                    tensor_copy(rows, cols) {
 
         server.run();
@@ -92,8 +103,9 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Test",
-                          true),
+                          "Sharsor", name_space,
+                          true,
+                          VLevel::V3),
                    tensor_copy(rows, cols) {
 
         server.run();
@@ -125,8 +137,9 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Test",
-                          true),
+                          "Sharsor", name_space,
+                          true,
+                          VLevel::V3),
                    tensor_copy(rows, cols) {
 
         server.run();
@@ -159,8 +172,9 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Test",
-                          true),
+                          "Sharsor", name_space,
+                          true,
+                          VLevel::V3),
                    tensor_copy(rows, cols) {
 
         server.run();
@@ -190,12 +204,6 @@ protected:
 };
 
 TEST_F(JournalTest, TestJournal) {
-
-    std::string classname = "Server";
-
-    Journal journal(classname);
-
-    std::cout << ""  << std::endl;
 
     journal.log("DoSomething", "A warning occurred. You can probably ignore this.",
                 Journal::LogType::WARN);
@@ -538,9 +546,9 @@ int main(int argc, char** argv) {
     ::testing::GTEST_FLAG(filter) =
             "JournalTest.TestJournal";
 
-    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
     ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
 
     ::testing::InitGoogleTest(&argc, argv);

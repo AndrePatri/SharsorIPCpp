@@ -24,88 +24,42 @@ namespace SharsorIPCpp {
                    int n_cols,
                    std::string basename,
                    std::string name_space,
-                   bool verbose)
+                   bool verbose,
+                   VLevel vlevel,
+                   bool force_reconnection)
         : n_rows(n_rows),
           n_cols(n_cols),
           _mem_config(basename, name_space),
           _verbose(verbose),
+          _vlevel(vlevel),
+          _force_reconnection(force_reconnection),
           _tensor_view(nullptr,
                        n_rows,
                        n_rows),
           _journal(Journal(_getThisName()))
     {
 
-        _checkMem(); // checks if memory was already allocated
-
         static_assert(IsValidDType<Scalar>::value, "Invalid data type provided.");
 
-        // Determine the size based on the Scalar type
-        std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
+        if (_verbose &&
+            _vlevel > VLevel::V1) {
 
-        // Create shared memory
-        _shm_fd = shm_open(_mem_config.mem_path.c_str(),
-                           O_CREAT | O_RDWR,
-                           S_IRUSR | S_IWUSR);
-
-        if (_shm_fd == -1) {
-
-            _journal.log(__FUNCTION__,
-                         "Could not create shared memory.",
-                         LogType::EXCEP);
-
-        }
-
-        // Set size
-        if (ftruncate(_shm_fd, data_size) == -1) {
-
-            _journal.log(__FUNCTION__,
-                         "Could not set shared memory size.",
-                         LogType::EXCEP);
-
-        }
-
-        if (_verbose) {
-
-            std::string info = std::string("Opened shared memory at ") +
+            std::string info = std::string("Initializing Server at ") +
                     _mem_config.mem_path;
 
             _journal.log(__FUNCTION__,
                  info,
-                 LogType::INFO);
+                 LogType::STAT);
 
         }
 
-        // Map the shared memory
-        Scalar* matrix_data = static_cast<Scalar*>(mmap(nullptr, data_size,
-                                                        PROT_READ | PROT_WRITE,
-                                                        MAP_SHARED, _shm_fd, 0));
-        if (matrix_data == MAP_FAILED) {
+        _initSems(); // creates necessary semaphores
 
-            _journal.log(__FUNCTION__,
-                         "Could not map memory size.",
-                         LogType::EXCEP);
+        _checkMem(); // checks if memory was already allocated
 
-        }
+        _initMem(); // initializes shared data
 
-        new (&_tensor_view) MMap<Scalar>(matrix_data, n_rows, n_cols);
-
-        _tensor_copy = Tensor<Scalar>::Zero(n_rows, n_cols);
-
-        if (_verbose) {
-
-            std::string info = std::string("Mapped shared memory at ") +
-                    _mem_config.mem_path;
-
-            _journal.log(__FUNCTION__,
-                 info,
-                 LogType::INFO);
-
-        }
-
-        // Create necessary semaphores
-        _initSems();
-
-        _terminated = false;
+        _terminated = false; // just in case
     }
 
     template <typename Scalar>
@@ -115,6 +69,7 @@ namespace SharsorIPCpp {
 
             close();
         }
+
     }
 
     template <typename Scalar>
@@ -159,16 +114,17 @@ namespace SharsorIPCpp {
 
         stop(); // stop server if running
 
-        _cleanUpMem();
+        _cleanUpAll(); // cleans up all memory, semaphores included (if necessary)
 
-        if (_verbose) {
+        if (_verbose &&
+            _vlevel > VLevel::V1) {
 
-            std::string info = std::string("Closed Server at ") +
+            std::string info = std::string("Closed server at ") +
                     _mem_config.mem_path;
 
             _journal.log(__FUNCTION__,
                  info,
-                 LogType::INFO);
+                 LogType::STAT);
 
         }
     }
@@ -198,15 +154,13 @@ namespace SharsorIPCpp {
         }
         else {
 
-            if (_verbose) {
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the Run() method?");
 
-                std::string error = std::string("Server is not running. ") +
-                        std::string("Did you remember to call the Run() method?");
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP);
 
-                _journal.log(__FUNCTION__,
-                     error,
-                     LogType::EXCEP);
-            }
         }
 
 
@@ -260,13 +214,15 @@ namespace SharsorIPCpp {
 
             _closeSems(); // closing semaphores
 
-            if (_verbose) {
+            if (_verbose &&
+                _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Server stopped");
+                std::string info = std::string("Stopped server at ") +
+                        _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,
                      info,
-                     LogType::INFO);
+                     LogType::STAT);
 
             }
 
@@ -283,7 +239,8 @@ namespace SharsorIPCpp {
         // unlinking from shared memory data
         shm_unlink(_mem_config.mem_path.c_str());
 
-        if (_verbose) {
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Unlinked from memory at ") +
                     _mem_config.mem_path;
@@ -297,7 +254,8 @@ namespace SharsorIPCpp {
         // closing file descriptor
         ::close(_shm_fd);
 
-        if (_verbose) {
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Closed file descriptor for ") +
                     _mem_config.mem_path;
@@ -332,7 +290,8 @@ namespace SharsorIPCpp {
         }
         else {
 
-            if (_verbose) {
+            if (_verbose &&
+                    _vlevel > VLevel::V2) {
 
                 std::string info = std::string("Opened semaphore at ") +
                         _mem_config.mem_path_server_sem;
@@ -349,7 +308,8 @@ namespace SharsorIPCpp {
     void Server<Scalar>::_acquireSems()
     {
 
-        if (_verbose) {
+        if (_verbose && _n_sem_acq_fail == 0 &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Acquiring server semaphore at ") +
                     _mem_config.mem_path_server_sem;
@@ -363,15 +323,53 @@ namespace SharsorIPCpp {
         // Acquire the semaphore
         if (_semWait(_srvr_sem, 1.0) == -1) {
 
-            // Handle semaphore acquisition error
+            _n_sem_acq_fail++;
 
-            _journal.log(__FUNCTION__,
-                         "Failed to acquire semaphore at",
-                         LogType::EXCEP);
+            if (_n_sem_acq_fail > _n_acq_trials)
+            { // we exceeded the number of allowed trials
+
+                _journal.log(__FUNCTION__,
+                             "Failed to acquire semaphore at",
+                             LogType::EXCEP);
+
+            }
+
+            if (_verbose &&
+                    _vlevel > VLevel::V0) {
+
+                std::string warn = std::string("Semaphore acquisition at ") +
+                        _mem_config.mem_path_server_sem +
+                        std::string(" failed. Trying to acquire it again...");
+
+                _journal.log(__FUNCTION__,
+                             warn,
+                             LogType::WARN);
+
+            }
+
+            if (_force_reconnection) {
+
+                _releaseSems(); // we try to release it, so that if a previous server
+                // crashed, we now make the semaphore available for acquisition.
+            }
+
+            _acquireSems(); // recursive call. After _releaseSems(), this should now work
+
+            if (_verbose && _n_sem_acq_fail > 0 &&
+                    _vlevel > VLevel::V0) {
+
+                std::string warn = std::string("Done.");
+
+                _journal.log(__FUNCTION__,
+                     warn,
+                     LogType::WARN);
+
+            }
 
         }
 
-        if (_verbose) {
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Acquired server semaphore at ") +
                     _mem_config.mem_path_server_sem;
@@ -388,7 +386,8 @@ namespace SharsorIPCpp {
     void Server<Scalar>::_releaseSems()
     {
 
-        if (_verbose) {
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Releasing server semaphore at ") +
                         _mem_config.mem_path_server_sem;
@@ -408,7 +407,8 @@ namespace SharsorIPCpp {
                          LogType::EXCEP);
         }
 
-        if (_verbose) {
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Released server semaphore at ") +
                     _mem_config.mem_path_server_sem;
@@ -428,7 +428,8 @@ namespace SharsorIPCpp {
         sem_close(_srvr_sem); // close semaphore
         sem_unlink(_mem_config.mem_path_server_sem.c_str()); // unlink semaphore
 
-        if (_verbose) {
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
 
             std::string info = std::string("Closed and unlinked server semaphore at ") +
                     _mem_config.mem_path_server_sem;
@@ -464,7 +465,6 @@ namespace SharsorIPCpp {
                 // Other error occurred (excluding interrupt).
                 return errno;
             }
-            // Handle EINTR (interrupted by a signal), and continue waiting.
         }
     }
 
@@ -477,15 +477,31 @@ namespace SharsorIPCpp {
         if (_shm_fd != -1) {
             // Shared memory already exists, so we need to clean it up
 
-            std::string warn = std::string("Shared memory at ") +
-                    _mem_config.mem_path + std::string(" already exists.\n")+
-                    std::string("Clearning it up...");
+            if (_verbose &&
+                    _vlevel > VLevel::V0) {
 
-            _journal.log(__FUNCTION__,
-                 warn,
-                 LogType::WARN);
+                std::string warn = std::string("Shared memory at ") +
+                        _mem_config.mem_path + std::string(" already exists. ")+
+                        std::string("Clearning it up...");
+
+                _journal.log(__FUNCTION__,
+                     warn,
+                     LogType::WARN);
+
+            }
 
             _cleanUpMem();
+
+            if (_verbose &&
+                    _vlevel > VLevel::V0) {
+
+                std::string warn = std::string("Done.");
+
+                _journal.log(__FUNCTION__,
+                     warn,
+                     LogType::WARN);
+
+            }
 
             _terminated = false;
         }
@@ -495,6 +511,84 @@ namespace SharsorIPCpp {
 
             ::close(_shm_fd);// close the file descriptor
             // opened for checking existence
+        }
+
+    }
+
+
+    template <typename Scalar>
+    void Server<Scalar>::_initMem()
+    {
+
+        // Determine the size based on the Scalar type
+        std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
+
+        // Create shared memory
+        _shm_fd = shm_open(_mem_config.mem_path.c_str(),
+                           O_CREAT | O_RDWR,
+                           S_IRUSR | S_IWUSR);
+
+        if (_shm_fd == -1) {
+
+            std::string error = std::string("Could not create shared memory at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP);
+
+        }
+
+        // Set size
+        if (ftruncate(_shm_fd, data_size) == -1) {
+
+            std::string error = std::string("Could not set shared memory at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP);
+
+        }
+
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
+
+            std::string info = std::string("Opened shared memory at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
+
+        }
+
+        // Map the shared memory
+        Scalar* matrix_data = static_cast<Scalar*>(mmap(nullptr, data_size,
+                                                        PROT_READ | PROT_WRITE,
+                                                        MAP_SHARED, _shm_fd, 0));
+        if (matrix_data == MAP_FAILED) {
+
+            _journal.log(__FUNCTION__,
+                         "Could not map memory size.",
+                         LogType::EXCEP);
+
+        }
+
+        new (&_tensor_view) MMap<Scalar>(matrix_data, n_rows, n_cols);
+
+        _tensor_copy = Tensor<Scalar>::Zero(n_rows, n_cols);
+
+        if (_verbose &&
+                _vlevel > VLevel::V2) {
+
+            std::string info = std::string("Mapped shared memory at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::INFO);
+
         }
 
     }

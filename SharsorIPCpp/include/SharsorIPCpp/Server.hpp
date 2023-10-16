@@ -21,6 +21,8 @@ namespace SharsorIPCpp{
     template <typename Scalar>
     using MMap = Eigen::Map<Tensor<Scalar>>;
 
+    using VLevel = Journal::VLevel;
+
     template <typename Scalar>
     class Server {
 
@@ -30,7 +32,9 @@ namespace SharsorIPCpp{
                    int n_cols,
                    std::string basename = "MySharedMemory",
                    std::string name_space = "",
-                   bool verbose = false);
+                   bool verbose = false,
+                   VLevel vlevel = VLevel::V0,
+                   bool force_reconnection = false);
 
             ~Server();
 
@@ -59,9 +63,16 @@ namespace SharsorIPCpp{
 
             bool _running = false;
 
+            bool _force_reconnection = false;
+
             int _shm_fd; // shared memory file descriptor
 
+            int _n_sem_acq_fail = 0;
+            int _n_acq_trials = 10;
+
             std::string _this_name = "SharsorIPCpp::Server";
+
+            VLevel _vlevel = VLevel::V0; // minimal debug info
 
             SharedMemConfig _mem_config;
 
@@ -75,11 +86,11 @@ namespace SharsorIPCpp{
 
             std::string _getThisName();
 
-            void _cleanUpAll();
+            void _checkMem();
+
+            void _initMem();
 
             void _cleanUpMem();
-
-            void _checkMem();
 
             void _initSems();
 
@@ -88,6 +99,8 @@ namespace SharsorIPCpp{
             void _releaseSems();
 
             void _closeSems();
+
+            void _cleanUpAll();
 
             int _semWait(sem_t* sem,
                         int timeout_seconds);
