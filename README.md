@@ -1,7 +1,11 @@
-### SharsorIPCpp &nbsp;&nbsp;&nbsp;&nbsp;
-<img src="docs/icon.svg" alt="icon.svg" width="150" height="150" style="vertical-align: middle;">
+<div style="text-align: center;">
+  <h3 style="display: inline; margin: 0 auto;">SharsorIPCpp</h3>
+</div>
+<div style="text-align: center;padding: 10px 0;">
+  <img src="docs/icon.svg" alt="icon.svg" width="150" height="150" style="vertical-align: middle;">
+</div>
 
-Shared Tensors through Inter Process Communication on C++ for POSIX-compatible OS.
+Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
 External dependencies: 
 - **Eigen3**: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```.
