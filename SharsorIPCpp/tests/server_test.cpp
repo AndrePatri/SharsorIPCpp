@@ -10,7 +10,6 @@
 
 using namespace SharsorIPCpp;
 
-
 void check_comp_type()
 {
     std::string message;
@@ -38,13 +37,28 @@ void check_comp_type()
     std::cout << message << std::endl;
 }
 
+class JournalTest: public ::testing::Test {
+protected:
+    JournalTest(){
+
+    }
+
+    void SetUp() override {
+
+    }
+
+    void TearDown() override {
+
+    }
+};
+
 class ServerTestDouble : public ::testing::Test {
 protected:
     ServerTestDouble() : rows(100),
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Tests",
+                          "Sharsor", "Test",
                           true),
                    tensor_copy(rows, cols) {
 
@@ -78,7 +92,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Tests",
+                          "Sharsor", "Test",
                           true),
                    tensor_copy(rows, cols) {
 
@@ -111,7 +125,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Tests",
+                          "Sharsor", "Test",
                           true),
                    tensor_copy(rows, cols) {
 
@@ -145,7 +159,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server(rows, cols,
-                          "Sharsor", "Tests",
+                          "Sharsor", "Test",
                           true),
                    tensor_copy(rows, cols) {
 
@@ -175,7 +189,7 @@ protected:
 
 };
 
-TEST_F(ServerTestDouble, TestJournal) {
+TEST_F(JournalTest, TestJournal) {
 
     std::string classname = "Server";
 
