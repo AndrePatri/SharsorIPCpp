@@ -1,6 +1,9 @@
 ### <center> SharsorIPCpp </center>
 
-![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only)
+<img src="docs/icon-light.svg" alt="GitHub-Mark-Light" width="150" height="150" style="vertical-align: middle;" class="darkmode-only">
+
+<img src="docs/icon-dark.svg" alt="GitHub-Mark-Light" width="150" height="150" style="vertical-align: middle;" class="lightmode-only">
+
 
 Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
