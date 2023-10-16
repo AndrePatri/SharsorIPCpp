@@ -48,7 +48,7 @@ protected:
                           true),
                    tensor_copy(rows, cols) {
 
-        server.Run();
+        server.run();
     }
 
     void SetUp() override {
@@ -59,7 +59,7 @@ protected:
 
     void TearDown() override {
 
-        server.Close();
+        server.close();
 
     }
 
@@ -82,7 +82,7 @@ protected:
                           true),
                    tensor_copy(rows, cols) {
 
-        server.Run();
+        server.run();
     }
 
     void SetUp() override {
@@ -93,7 +93,7 @@ protected:
 
     void TearDown() override {
 
-        server.Close();
+        server.close();
 
     }
 
@@ -115,7 +115,7 @@ protected:
                           true),
                    tensor_copy(rows, cols) {
 
-        server.Run();
+        server.run();
 
     }
 
@@ -127,7 +127,7 @@ protected:
 
     void TearDown() override {
 
-        server.Close();
+        server.close();
 
     }
 
@@ -149,7 +149,7 @@ protected:
                           true),
                    tensor_copy(rows, cols) {
 
-        server.Run();
+        server.run();
 
     }
 
@@ -161,7 +161,7 @@ protected:
 
     void TearDown() override {
 
-        server.Close();
+        server.close();
 
         // Cleanup code (if needed)
 

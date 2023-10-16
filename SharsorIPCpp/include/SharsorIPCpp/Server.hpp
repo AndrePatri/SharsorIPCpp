@@ -45,9 +45,11 @@ namespace SharsorIPCpp{
             int n_rows;
             int n_cols;
 
-            void Run();
-            void Stop();
-            void Close();
+            void run();
+            void stop();
+            void close();
+
+            bool isRunning();
 
         private:
 
@@ -71,17 +73,23 @@ namespace SharsorIPCpp{
 
             MMap<Scalar> _tensor_view;
 
-            std::string GetThisName();
+            std::string _getThisName();
 
-            void CleanUp();
+            void _cleanUpAll();
 
-            void CheckMem();
+            void _cleanUpMem();
 
-            void InitSem();
+            void _checkMem();
 
-            void CloseSems();
+            void _initSems();
 
-            int semWait(sem_t* sem,
+            void _acquireSems();
+
+            void _releaseSems();
+
+            void _closeSems();
+
+            int _semWait(sem_t* sem,
                         int timeout_seconds);
 
     };

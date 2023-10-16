@@ -8,7 +8,6 @@
 
 namespace SharsorIPCpp{
 
-
     namespace Colors {
         const std::string kRed = "\033[0;31m";
         const std::string kBoldRed = "\033[1;31m";
@@ -27,104 +26,104 @@ namespace SharsorIPCpp{
 
     class Journal {
 
-    public:
+        public:
 
-        enum class LogType {WARN,
-                            EXCEP,
-                            INFO,
-                            STAT};
+            enum class LogType {WARN,
+                                EXCEP,
+                                INFO,
+                                STAT};
 
-        Journal(const std::string& classname) :
-            _classname(classname) {
-        }
+            Journal(const std::string& classname) :
+                _classname(classname) {
+            }
 
-        void log(const std::string& methodname,
-                 const std::string& message,
-                 LogType log_type) {
+            void log(const std::string& methodname,
+                     const std::string& message,
+                     LogType log_type) {
 
-            // Map LogType to corresponding string
-            const char* logTypeStr = logTypeToString(log_type);
+                // Map LogType to corresponding string
+                const char* logTypeStr = logTypeToString(log_type);
 
-            if (log_type == LogType::EXCEP){
+                if (log_type == LogType::EXCEP){
 
-                std::string exception =
-                        Colors::kBoldRed +
-                        std::string("[") +
-                        _classname +
-                        std::string("]") +
-                        std::string("[") +
-                        methodname +
-                        std::string("]") +
-                        std::string("[") +
-                        logTypeStr +
-                        std::string("]: ") +
-                        message +
-                        std::string(", error code ") +
-                        std::string(std::strerror(errno)) +
-                        Colors::kEndl;
+                    std::string exception =
+                            Colors::kBoldRed +
+                            std::string("[") +
+                            _classname +
+                            std::string("]") +
+                            std::string("[") +
+                            methodname +
+                            std::string("]") +
+                            std::string("[") +
+                            logTypeStr +
+                            std::string("]: ") +
+                            message +
+                            std::string(", error code ") +
+                            std::string(std::strerror(errno)) +
+                            Colors::kEndl;
 
-                throw std::runtime_error(exception);
+                    throw std::runtime_error(exception);
+
+                }
+
+                if (log_type == LogType::WARN){
+
+                    std::printf("%s[%s][%s][%s]: %s%s\n",
+                            Colors::kBoldYellow.c_str(),
+                            _classname.c_str(),
+                            methodname.c_str(),
+                            logTypeStr,
+                            message.c_str(),
+                            Colors::kEndl.c_str());
+
+                }
+
+                if (log_type == LogType::INFO){
+
+                    std::printf("%s[%s][%s][%s]: %s%s\n",
+                            Colors::kBoldGreen.c_str(),
+                            _classname.c_str(),
+                            methodname.c_str(),
+                            logTypeStr,
+                            message.c_str(),
+                            Colors::kEndl.c_str());
+
+                }
+
+                if (log_type == LogType::STAT){
+
+                    std::printf("%s[%s][%s][%s]: %s%s\n",
+                            Colors::kBoldBlue.c_str(),
+                            _classname.c_str(),
+                            methodname.c_str(),
+                            logTypeStr,
+                            message.c_str(),
+                            Colors::kEndl.c_str());
+
+                }
+
 
             }
 
-            if (log_type == LogType::WARN){
+        private:
 
-                std::printf("%s[%s][%s][%s]: %s%s\n",
-                        Colors::kBoldYellow.c_str(),
-                        _classname.c_str(),
-                        methodname.c_str(),
-                        logTypeStr,
-                        message.c_str(),
-                        Colors::kEndl.c_str());
+            std::string _classname;
 
+            // Helper function to convert LogType to string
+            const char* logTypeToString(LogType log_type) {
+                switch (log_type) {
+                    case LogType::WARN:
+                        return "WARN";
+                    case LogType::EXCEP:
+                        return "EXCEP";
+                    case LogType::INFO:
+                        return "INFO";
+                    case LogType::STAT:
+                        return "STAT";
+                    default:
+                        return "~";
+                }
             }
-
-            if (log_type == LogType::INFO){
-
-                std::printf("%s[%s][%s][%s]: %s%s\n",
-                        Colors::kBoldGreen.c_str(),
-                        _classname.c_str(),
-                        methodname.c_str(),
-                        logTypeStr,
-                        message.c_str(),
-                        Colors::kEndl.c_str());
-
-            }
-
-            if (log_type == LogType::STAT){
-
-                std::printf("%s[%s][%s][%s]: %s%s\n",
-                        Colors::kBoldBlue.c_str(),
-                        _classname.c_str(),
-                        methodname.c_str(),
-                        logTypeStr,
-                        message.c_str(),
-                        Colors::kEndl.c_str());
-
-            }
-
-
-        }
-
-    private:
-
-        std::string _classname;
-
-        // Helper function to convert LogType to string
-        const char* logTypeToString(LogType log_type) {
-            switch (log_type) {
-                case LogType::WARN:
-                    return "WARN";
-                case LogType::EXCEP:
-                    return "EXCEP";
-                case LogType::INFO:
-                    return "INFO";
-                case LogType::STAT:
-                    return "STAT";
-                default:
-                    return "~";
-            }
-        }
     };
 
 }

@@ -27,13 +27,13 @@ namespace SharsorIPCpp{
 
             static std::string sharedSemSrvrName() {
 
-                return std::string("sharedSemSrvr");
+                return std::string("sharedSrvrSem");
 
             }
 
             static std::string sharedSemClientsCountName() {
 
-                return std::string("sharedSemClientsCount");
+                return std::string("sharedClientsCountSem");
 
             }
 
