@@ -1,10 +1,7 @@
-<div style="text-align: center;">
-  <h3 style="display: inline; margin: 0 auto;">SharsorIPCpp</h3>
-</div>
-<div style="text-align: center; padding: 10px 0;">
-  <img src="docs/icon-light.svg" alt="icon.svg" width="150" height="150" style="vertical-align: middle;"
-       srcset="docs/icon-dark.svg 2x" />
-</div>
+### <center> SharsorIPCpp </center>
+
+![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only)
+
 Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
 External dependencies: 
