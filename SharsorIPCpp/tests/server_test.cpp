@@ -1,12 +1,12 @@
-#include "Server.hpp"
-#include "Journal.hpp"
-
 #include <gtest/gtest.h>
 #include <chrono>
 #include <vector>
 #include <limits>
 #include <Eigen/Dense>
 #include <csignal>
+
+#include <SharsorIPCpp/Server.hpp>
+#include <SharsorIPCpp/Journal.hpp>
 
 using namespace SharsorIPCpp;
 
@@ -63,17 +63,19 @@ protected:
 
 class ServerTestDouble : public ::testing::Test {
 protected:
+
     ServerTestDouble() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols,
-                          "Sharsor",
-                          name_space,
-                          true,
-                          VLevel::V3),
+                   server_ptr(new Server<double>(rows, cols,
+                                     "Sharsor", name_space,
+                                     true,
+                                     VLevel::V3,
+                                     false)),
                    tensor_copy(rows, cols) {
 
-        server.run();
+        server_ptr->run();
+
     }
 
     void SetUp() override {
@@ -84,14 +86,16 @@ protected:
 
     void TearDown() override {
 
-        server.close();
+        server_ptr->close();
+
+        // Cleanup code (if needed)
 
     }
 
     int rows;
     int cols;
     int iterations;
-    Server<double> server;
+    Server<double>::UniquePtr server_ptr;
     Tensor<double> tensor_copy;
 
 };
@@ -102,13 +106,15 @@ protected:
     ServerTestFloat() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols,
-                          "Sharsor", name_space,
-                          true,
-                          VLevel::V3),
+                   server_ptr(new Server<float>(rows, cols,
+                                     "Sharsor", name_space,
+                                     true,
+                                     VLevel::V3,
+                                     false)),
                    tensor_copy(rows, cols) {
 
-        server.run();
+        server_ptr->run();
+
     }
 
     void SetUp() override {
@@ -119,14 +125,16 @@ protected:
 
     void TearDown() override {
 
-        server.close();
+        server_ptr->close();
+
+        // Cleanup code (if needed)
 
     }
 
     int rows;
     int cols;
     int iterations;
-    Server<float> server;
+    Server<float>::UniquePtr server_ptr;
     Tensor<float> tensor_copy;
 
 };
@@ -136,13 +144,14 @@ protected:
     ServerTestInt() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols,
-                          "Sharsor", name_space,
-                          true,
-                          VLevel::V3),
+                   server_ptr(new Server<int>(rows, cols,
+                                     "Sharsor", name_space,
+                                     true,
+                                     VLevel::V3,
+                                     false)),
                    tensor_copy(rows, cols) {
 
-        server.run();
+        server_ptr->run();
 
     }
 
@@ -154,14 +163,16 @@ protected:
 
     void TearDown() override {
 
-        server.close();
+        server_ptr->close();
+
+        // Cleanup code (if needed)
 
     }
 
     int rows;
     int cols;
     int iterations;
-    Server<int> server;
+    Server<int>::UniquePtr server_ptr;
     Tensor<int> tensor_copy;
 
 };
@@ -171,13 +182,14 @@ protected:
     ServerTestBool() : rows(100),
                    cols(60),
                    iterations(1000000),
-                   server(rows, cols,
-                          "Sharsor", name_space,
-                          true,
-                          VLevel::V3),
+                   server_ptr(new Server<bool>(rows, cols,
+                                     "Sharsor", name_space,
+                                     true,
+                                     VLevel::V3,
+                                     false)),
                    tensor_copy(rows, cols) {
 
-        server.run();
+        server_ptr->run();
 
     }
 
@@ -189,7 +201,7 @@ protected:
 
     void TearDown() override {
 
-        server.close();
+        server_ptr->close();
 
         // Cleanup code (if needed)
 
@@ -198,7 +210,8 @@ protected:
     int rows;
     int cols;
     int iterations;
-    Server<bool> server;
+    Server<bool>::UniquePtr server_ptr;
+//    Server<bool> server;
     Tensor<bool> tensor_copy;
 
 };
@@ -233,7 +246,7 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<bool>& tensorView = server.getTensorView(); // its a reference
+    const MMap<bool>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
     std::cout << "\nBenchmarking performance with bool type...\n" << std::endl;
@@ -245,14 +258,14 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server.writeMemory(myData);
+        server_ptr->writeMemory(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server.getTensorCopy();
+        tensor_copy = server_ptr->getTensorCopy();
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -312,7 +325,7 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<int>& tensorView = server.getTensorView(); // its a reference
+    const MMap<int>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
     std::cout << "\nBenchmarking performance with int type...\n" << std::endl;
@@ -324,14 +337,14 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server.writeMemory(myData);
+        server_ptr->writeMemory(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server.getTensorCopy();
+        tensor_copy = server_ptr->getTensorCopy();
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -391,7 +404,7 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<float>& tensorView = server.getTensorView(); // its a reference
+    const MMap<float>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
     std::cout << "\nBenchmarking performance with float type...\n" << std::endl;
@@ -403,14 +416,14 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server.writeMemory(myData);
+        server_ptr->writeMemory(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server.getTensorCopy();
+        tensor_copy = server_ptr->getTensorCopy();
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -470,7 +483,7 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<double>& tensorView = server.getTensorView(); // its a reference
+    const MMap<double>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
     std::cout << "\nBenchmarking performance with double type...\n" << std::endl;
@@ -482,14 +495,14 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server.writeMemory(myData);
+        server_ptr->writeMemory(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server.getTensorCopy();
+        tensor_copy = server_ptr->getTensorCopy();
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -546,9 +559,9 @@ int main(int argc, char** argv) {
     ::testing::GTEST_FLAG(filter) =
             "JournalTest.TestJournal";
 
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
     ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
 
     ::testing::InitGoogleTest(&argc, argv);

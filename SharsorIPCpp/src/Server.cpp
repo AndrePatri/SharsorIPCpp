@@ -1,9 +1,10 @@
-#include "Server.hpp"
 #include <iostream>
 #include <Eigen/Dense>
 #include <cstring>
 #include <typeinfo>
 #include <ctime>
+
+#include <SharsorIPCpp/Server.hpp>
 
 namespace SharsorIPCpp {
 

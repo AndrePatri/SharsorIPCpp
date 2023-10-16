@@ -8,10 +8,12 @@
 #include <unistd.h>
 #include <semaphore.h>
 #include <csignal>
+#include <memory>
 
-#include "Journal.hpp"
-#include "DTypes.hpp"
-#include "SharedMemConfig.hpp"
+#include <SharedMemConfig.hpp>
+
+#include <SharsorIPCpp/Journal.hpp>
+#include <SharsorIPCpp/DTypes.hpp>
 
 namespace SharsorIPCpp{
 
@@ -27,6 +29,10 @@ namespace SharsorIPCpp{
     class Server {
 
         public:
+
+            typedef std::weak_ptr<Server> WeakPtr;
+            typedef std::shared_ptr<Server> Ptr;
+            typedef std::unique_ptr<Server> UniquePtr;
 
             Server(int n_rows,
                    int n_cols,
