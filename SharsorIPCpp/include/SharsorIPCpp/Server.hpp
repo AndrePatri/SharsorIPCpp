@@ -100,30 +100,13 @@ namespace SharsorIPCpp{
 
             std::string _getThisName();
 
-            void _checkMem(const std::string& mem_path,
-                            int& data_shm_fd);
-
-            void _cleanUpMem(const std::string& mem_path,
-                            int& data_shm_fd);
+            void _initMems();
 
             void _initSems();
-            void _initSem(const std::string& sem_path,
-                          sem_t*& output_sem);
-
-            void _acquireSem(const std::string& sem_path,
-                             sem_t *&sem);
-
-            void _releaseSem(const std::string& sem_path,
-                             sem_t*& sem);
 
             void _closeSems();
-            void _closeSem(const std::string& sem_path,
-                           sem_t*& sem);
 
             void _cleanUpAll();
-
-            int _semWait(sem_t* sem,
-                        int timeout_seconds);
 
     };
 

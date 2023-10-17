@@ -82,21 +82,24 @@ namespace SharsorIPCpp {
 
         _initSems(); // creates necessary semaphores
 
-        _acquireSem(_mem_config.mem_path_data_sem,
-                    _data_sem); // acquire shared data semaphore
+        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
+                                     _data_sem,
+                                     _n_acq_trials,
+                                     _n_sem_acq_fail,
+                                     _journal,
+                                     _force_reconnection,
+                                     _verbose,
+                                     _vlevel); // acquire shared data semaphore
         // Here to prevent access from any client (at this stage)
 
-        _checkMem(_mem_config.mem_path,
-                  _data_shm_fd); // checks if memory was already allocated
 
-        MemUtils::initMem<Scalar>(n_rows,
-                        n_cols,
-                        _mem_config.mem_path,
-                        _data_shm_fd,
-                        _tensor_view,
-                        _journal,
-                        _verbose,
-                        _vlevel); // initializes shared data
+        MemUtils::checkMem<Scalar>(_mem_config.mem_path,
+                                _data_shm_fd,
+                                _journal,
+                                _verbose,
+                                _vlevel); // checks if memory was already allocated
+
+        _initMem();
 
         _tensor_copy = Tensor<Scalar>::Zero(n_rows,
                                             n_cols); // used to hold
@@ -122,12 +125,21 @@ namespace SharsorIPCpp {
 
         if (!isRunning()) {
 
-            _acquireSem(_mem_config.mem_path_server_sem,
-                        _srvr_sem); // server semaphore
+            MemUtils::acquireSem<Scalar>(_mem_config.mem_path_server_sem,
+                                         _srvr_sem,
+                                         _n_acq_trials,
+                                         _n_sem_acq_fail,
+                                         _journal,
+                                         _force_reconnection,
+                                         _verbose,
+                                         _vlevel);
 
-            _releaseSem(_mem_config.mem_path_data_sem,
-                        _data_sem); // release data semaphore
-            // so that clients can connect
+            MemUtils::releaseSem<Scalar>(_mem_config.mem_path_data_sem,
+                                 _data_sem,
+                                 _journal,
+                                 _verbose,
+                                 _vlevel); // release data semaphore
+                    // so that clients can connect
 
             // set the running flag to true
             _running = true;
@@ -142,12 +154,12 @@ namespace SharsorIPCpp {
 
         if (isRunning()) {
 
-//            _acquireSem(_mem_config.mem_path_data_sem,
-//                        _data_sem); // acquire data semaphore
-            // clients won't be able to access the data
 
-            _releaseSem(_mem_config.mem_path_server_sem,
-                        _srvr_sem);
+            MemUtils::releaseSem<Scalar>(_mem_config.mem_path_server_sem,
+                        _srvr_sem,
+                        _journal,
+                        _verbose,
+                        _vlevel);
 
             _running = false;
         }
@@ -187,24 +199,11 @@ namespace SharsorIPCpp {
     template <typename Scalar>
     void Server<Scalar>::writeMemory(const Tensor<Scalar>& data) {
 
-        if(data.rows() != n_rows || data.cols() != n_cols) {
-
-            std::string error =
-                    std::string("Data dimension mismatch. ") +
-                    std::string("Expected a tensor of size ") +
-                    std::to_string(n_rows) + std::string("x") + std::to_string(n_cols) +
-                    std::string(", but provided tensor is ") +
-                    std::to_string(data.rows()) + std::string("x") + std::to_string(data.cols());
-
-            _journal.log(__FUNCTION__,
-                         error,
-                         LogType::EXCEP);
-
-        }
-
         if (_running) {
 
-            _tensor_view.block(0, 0, n_rows, n_cols) = data;
+            MemUtils::write(data,
+                            _tensor_view,
+                            _journal);
 
         }
         else {
@@ -217,7 +216,6 @@ namespace SharsorIPCpp {
                  LogType::EXCEP);
 
         }
-
 
     }
 
@@ -265,8 +263,11 @@ namespace SharsorIPCpp {
 
         if (!_terminated) {
 
-            _cleanUpMem(_mem_config.mem_path,
-                        _data_shm_fd); // closing shared
+            MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path,
+                                 _data_shm_fd,
+                                 _journal,
+                                 _verbose,
+                                 _vlevel);
 
             _closeSems(); // closing semaphores
 
@@ -289,302 +290,52 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::_cleanUpMem(const std::string& mem_path,
-                                    int& data_shm_fd)
+    void Server<Scalar>::_initMems()
     {
-        // Unlinking from shared memory data
-        shm_unlink(mem_path.c_str());
 
-        if (_verbose && _vlevel > VLevel::V2) {
-
-            std::string info = "Unlinked from memory at " + mem_path;
-
-            _journal.log(__FUNCTION__,
-                         info,
-                         LogType::INFO);
-        }
-
-        // Closing the file descriptor
-        ::close(data_shm_fd);
-
-        if (_verbose && _vlevel > VLevel::V2) {
-
-            std::string info = "Closed file descriptor for " + mem_path;
-
-            _journal.log(__FUNCTION__,
-                         info,
-                         LogType::INFO);
-        }
+        MemUtils::initMem<Scalar>(n_rows,
+                        n_cols,
+                        _mem_config.mem_path,
+                        _data_shm_fd,
+                        _tensor_view,
+                        _journal,
+                        _verbose,
+                        _vlevel); // initializes shared data
     }
 
     template <typename Scalar>
     void Server<Scalar>::_initSems()
     {
 
-        _initSem(_mem_config.mem_path_server_sem,
-                 _srvr_sem);
+        MemUtils::initSem<Scalar>(_mem_config.mem_path_server_sem,
+                                  _srvr_sem,
+                                  _journal,
+                                  _verbose,
+                                  _vlevel);
 
-        _initSem(_mem_config.mem_path_data_sem,
-                 _data_sem);
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_initSem(const std::string& sem_path,
-                                  sem_t*& output_sem)
-    {
-        output_sem = sem_open(sem_path.c_str(),
-                              O_CREAT, S_IRUSR | S_IWUSR,
-                              1);
-
-        if (output_sem == SEM_FAILED) {
-            // Handle semaphore creation error
-
-            std::string error = std::string("Failed to open semaphore");
-
-            _journal.log(__FUNCTION__,
-                error,
-                LogType::EXCEP);
-        }
-        else {
-
-            if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-                std::string info = std::string("Opened semaphore at ") + sem_path;
-
-                _journal.log(__FUNCTION__,
-                    info,
-                    LogType::INFO);
-            }
-        }
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_acquireSem(const std::string& sem_path,
-                                     sem_t*& sem)
-    {
-
-        if (_verbose && _n_sem_acq_fail == 0 &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Acquiring server semaphore at ") +
-                    sem_path;
-
-            _journal.log(__FUNCTION__,
-                         info,
-                         LogType::INFO);
-
-        }
-
-        // Acquire the semaphore
-        if (_semWait(sem, 1.0) == -1) {
-
-            _n_sem_acq_fail++;
-
-            if (_n_sem_acq_fail > _n_acq_trials)
-            { // we exceeded the number of allowed trials
-
-                _journal.log(__FUNCTION__,
-                             "Failed to acquire semaphore at",
-                             LogType::EXCEP);
-
-                _n_sem_acq_fail = 0; // reset counter
-
-            }
-
-            if (_verbose &&
-                    _vlevel > VLevel::V0) {
-
-                std::string warn = std::string("Semaphore acquisition at ") +
-                        sem_path +
-                        std::string(" failed. Trying to acquire it again...");
-
-                _journal.log(__FUNCTION__,
-                             warn,
-                             LogType::WARN);
-
-            }
-
-            if (_force_reconnection) {
-
-                _releaseSem(sem_path,
-                            sem); // we try to release it, so that if a previous server
-                // crashed, we now make the semaphore available for acquisition.
-            }
-
-            _acquireSem(sem_path,
-                        sem); // recursive call. After _releaseSems(), this should now work
-
-            if (_verbose && _n_sem_acq_fail > 0 &&
-                    _vlevel > VLevel::V0) {
-
-                std::string warn = std::string("Done.");
-
-                _journal.log(__FUNCTION__,
-                     warn,
-                     LogType::WARN);
-
-            }
-
-        }
-
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Acquired server semaphore at ") +
-                    sem_path;
-
-            _journal.log(__FUNCTION__,
-                         info,
-                         LogType::INFO);
-
-
-        }
-
-        _n_sem_acq_fail = 0; // reset counter
-
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_releaseSem(const std::string& sem_path,
-                                     sem_t*& sem)
-    {
-
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Releasing server semaphore at ") +
-                        sem_path;
-
-            _journal.log(__FUNCTION__,
-                         info,
-                         LogType::INFO);
-        }
-
-        // Release the semaphore
-        if (sem_post(sem) == -1) {
-
-            // Handle semaphore release error
-
-            _journal.log(__FUNCTION__,
-                         "Failed to release semaphore at",
-                         LogType::EXCEP);
-        }
-
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Released server semaphore at ") +
-                    sem_path;
-
-            _journal.log(__FUNCTION__,
-                         info,
-                         LogType::INFO);
-
-        }
+        MemUtils::initSem<Scalar>(_mem_config.mem_path_data_sem,
+                                  _data_sem,
+                                  _journal,
+                                  _verbose,
+                                  _vlevel);
 
     }
 
     template <typename Scalar>
     void Server<Scalar>::_closeSems()
     {
-        _closeSem(_mem_config.mem_path_server_sem, _srvr_sem);
-        _closeSem(_mem_config.mem_path_data_sem, _data_sem);
+        MemUtils::closeSem<Scalar>(_mem_config.mem_path_server_sem,
+                                   _srvr_sem,
+                                   _journal,
+                                   _verbose,
+                                   _vlevel);
 
-    }
+        MemUtils::closeSem<Scalar>(_mem_config.mem_path_data_sem,
+                                   _data_sem,
+                                   _journal,
+                                   _verbose,
+                                   _vlevel);
 
-    template <typename Scalar>
-    void Server<Scalar>::_closeSem(const std::string& sem_path,
-                                   sem_t *&sem)
-    {
-
-        sem_close(sem); // close semaphore
-
-        sem_unlink(sem_path.c_str()); // unlink semaphore
-
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Closed and unlinked server semaphore at ") +
-                    sem_path;
-
-            _journal.log(__FUNCTION__,
-                 info,
-                 LogType::INFO);
-
-        }
-
-    }
-
-    template <typename Scalar>
-    int Server<Scalar>::_semWait(sem_t* sem,
-                                int timeout_seconds) {
-
-        struct timespec timeout;
-
-        clock_gettime(CLOCK_REALTIME, &timeout);
-
-        timeout.tv_sec += timeout_seconds;
-
-        while (true) {
-
-            int result = sem_timedwait(sem, &timeout);
-
-            if (result == 0) {
-                // Successfully acquired the semaphore.
-                return 0;
-            } else if (result == -1 && errno == ETIMEDOUT) {
-                // Timeout occurred.
-                return -1;
-            } else if (result == -1 && errno != EINTR) {
-                // Other error occurred (excluding interrupt).
-                return errno;
-            }
-
-        }
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_checkMem(const std::string& mem_path,
-                                  int& data_shm_fd)
-    {
-        data_shm_fd = shm_open(mem_path.c_str(),
-                               O_RDWR,
-                               0);
-
-        if (data_shm_fd != -1) {
-            // Shared memory already exists, so we need to clean it up
-
-            if (_verbose &&
-                    _vlevel > VLevel::V0) {
-
-                std::string warn = "Shared memory at " + mem_path +
-                    " already exists. Clearing it up...";
-
-                _journal.log(__FUNCTION__,
-                             warn,
-                             LogType::WARN);
-            }
-
-            _cleanUpMem(mem_path,
-                        data_shm_fd);
-
-            if (_verbose &&
-                    _vlevel > VLevel::V0) {
-
-                std::string warn = "Cleanup Done.";
-
-                _journal.log(__FUNCTION__,
-                             warn,
-                             LogType::WARN);
-
-            }
-        }
-
-        if (data_shm_fd != -1) {
-            // Close the file descriptor opened for checking existence
-            ::close(data_shm_fd);
-        }
     }
 
     template <typename Scalar>
