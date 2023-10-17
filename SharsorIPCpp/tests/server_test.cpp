@@ -26,10 +26,19 @@ void check_comp_type()
 
             message = std::string("SharsorIPCpp was compiled in RelWithDebInfo mode. ") +
                     std::string("For meaninful results, you should compile it in Release mode.\n");
+
+            journal.log("check_comp_type",
+                        message,
+                        Journal::LogType::WARN);
+
         #else
 
             message = std::string("SharsorIPCpp was compiled in Release mode. ") +
                 std::string("This is good and will ensure meaningful benchmarking results.\n");
+
+            journal.log("check_comp_type",
+                        message,
+                        Journal::LogType::STAT);
 
         #endif
 
@@ -38,11 +47,11 @@ void check_comp_type()
         message = std::string("SharsorIPCpp was compiled in Debug mode. ") +
             std::string("For meaninful results, you should compile it in Release mode.\n");
 
-    #endif
+        journal.log("check_comp_type",
+                    message,
+                    Journal::LogType::WARN);
 
-    journal.log("check_comp_type",
-                message,
-                Journal::LogType::STAT);
+    #endif
 
 }
 
@@ -71,7 +80,7 @@ protected:
                                      "SharsorDouble", name_space,
                                      true,
                                      VLevel::V3,
-                                     false)),
+                                     true)),
                    tensor_copy(rows, cols) {
 
         server_ptr->run();
@@ -110,7 +119,7 @@ protected:
                                      "SharsorFloat", name_space,
                                      true,
                                      VLevel::V3,
-                                     false)),
+                                     true)),
                    tensor_copy(rows, cols) {
 
         server_ptr->run();
@@ -148,7 +157,7 @@ protected:
                                      "SharsorInt", name_space,
                                      true,
                                      VLevel::V3,
-                                     false)),
+                                     true)),
                    tensor_copy(rows, cols) {
 
         server_ptr->run();
@@ -186,7 +195,7 @@ protected:
                                      "SharsorBool", name_space,
                                      true,
                                      VLevel::V3,
-                                     false)),
+                                     true)),
                    tensor_copy(rows, cols) {
 
         server_ptr->run();

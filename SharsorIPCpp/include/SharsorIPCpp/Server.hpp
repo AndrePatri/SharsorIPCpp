@@ -12,6 +12,8 @@
 
 #include <SharedMemConfig.hpp>
 
+#include <MemUtils.hpp>
+
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
 
@@ -71,7 +73,7 @@ namespace SharsorIPCpp{
 
             bool _force_reconnection = false;
 
-            int _shm_fd; // shared memory file descriptor
+            int _data_shm_fd; // shared memory file descriptor
 
             int _n_sem_acq_fail = 0;
             int _n_acq_trials = 10;
@@ -90,24 +92,27 @@ namespace SharsorIPCpp{
             Tensor<Scalar> _tensor_copy; // copy (not view) of the tensor
 
             MMap<Scalar> _tensor_view; // view of the tensor
+            // auxiliary views
+            MMap<int> _n_rows_view;
+            MMap<int> _n_cols_view;
+            MMap<int> _n_clients_view;
+            MMap<int> _dtype_view;
 
             std::string _getThisName();
 
-            void _checkMem();
+            void _checkMem(const std::string& mem_path,
+                            int& data_shm_fd);
 
-            void _initMem();
-
-            void _cleanUpMem();
+            void _cleanUpMem(const std::string& mem_path,
+                            int& data_shm_fd);
 
             void _initSems();
             void _initSem(const std::string& sem_path,
                           sem_t*& output_sem);
 
-            void _acquireSems();
             void _acquireSem(const std::string& sem_path,
                              sem_t *&sem);
 
-            void _releaseSems();
             void _releaseSem(const std::string& sem_path,
                              sem_t*& sem);
 

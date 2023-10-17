@@ -4,6 +4,7 @@
 #include <typeinfo>
 #include <ctime>
 
+#include <MemUtils.hpp>
 #include <SharsorIPCpp/Server.hpp>
 
 namespace SharsorIPCpp {
@@ -36,7 +37,19 @@ namespace SharsorIPCpp {
           _force_reconnection(force_reconnection),
           _tensor_view(nullptr,
                        n_rows,
-                       n_rows),
+                       n_cols),
+          _n_rows_view(nullptr,
+                       1,
+                       1),
+          _n_cols_view(nullptr,
+                       1,
+                       1),
+          _n_clients_view(nullptr,
+                          1,
+                          1),
+          _dtype_view(nullptr,
+                      1,
+                      1),
           _journal(Journal(_getThisName()))
     {
 
@@ -69,11 +82,28 @@ namespace SharsorIPCpp {
 
         _initSems(); // creates necessary semaphores
 
-        _checkMem(); // checks if memory was already allocated
+        _acquireSem(_mem_config.mem_path_data_sem,
+                    _data_sem); // acquire shared data semaphore
+        // Here to prevent access from any client (at this stage)
 
-        _initMem(); // initializes shared data
+        _checkMem(_mem_config.mem_path,
+                  _data_shm_fd); // checks if memory was already allocated
+
+        MemUtils::initMem<Scalar>(n_rows,
+                        n_cols,
+                        _mem_config.mem_path,
+                        _data_shm_fd,
+                        _tensor_view,
+                        _journal,
+                        _verbose,
+                        _vlevel); // initializes shared data
+
+        _tensor_copy = Tensor<Scalar>::Zero(n_rows,
+                                            n_cols); // used to hold
+        // a copy of the shared tensor data
 
         _terminated = false; // just in case
+
     }
 
     template <typename Scalar>
@@ -92,7 +122,12 @@ namespace SharsorIPCpp {
 
         if (!isRunning()) {
 
-            _acquireSems(); // acquire all necessary semaphores
+            _acquireSem(_mem_config.mem_path_server_sem,
+                        _srvr_sem); // server semaphore
+
+            _releaseSem(_mem_config.mem_path_data_sem,
+                        _data_sem); // release data semaphore
+            // so that clients can connect
 
             // set the running flag to true
             _running = true;
@@ -107,7 +142,12 @@ namespace SharsorIPCpp {
 
         if (isRunning()) {
 
-            _releaseSems();
+//            _acquireSem(_mem_config.mem_path_data_sem,
+//                        _data_sem); // acquire data semaphore
+            // clients won't be able to access the data
+
+            _releaseSem(_mem_config.mem_path_server_sem,
+                        _srvr_sem);
 
             _running = false;
         }
@@ -128,7 +168,8 @@ namespace SharsorIPCpp {
 
         stop(); // stop server if running
 
-        _cleanUpAll(); // cleans up all memory, semaphores included (if necessary)
+        _cleanUpAll(); // cleans up all memory,
+        // semaphores included (if necessary)
 
         if (_verbose &&
             _vlevel > VLevel::V1) {
@@ -224,7 +265,8 @@ namespace SharsorIPCpp {
 
         if (!_terminated) {
 
-            _cleanUpMem(); // closing shared
+            _cleanUpMem(_mem_config.mem_path,
+                        _data_shm_fd); // closing shared
 
             _closeSems(); // closing semaphores
 
@@ -247,39 +289,32 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::_cleanUpMem()
+    void Server<Scalar>::_cleanUpMem(const std::string& mem_path,
+                                    int& data_shm_fd)
     {
+        // Unlinking from shared memory data
+        shm_unlink(mem_path.c_str());
 
-        // unlinking from shared memory data
-        shm_unlink(_mem_config.mem_path.c_str());
+        if (_verbose && _vlevel > VLevel::V2) {
 
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Unlinked from memory at ") +
-                    _mem_config.mem_path;
+            std::string info = "Unlinked from memory at " + mem_path;
 
             _journal.log(__FUNCTION__,
-                 info,
-                 LogType::INFO);
-
+                         info,
+                         LogType::INFO);
         }
 
-        // closing file descriptor
-        ::close(_shm_fd);
+        // Closing the file descriptor
+        ::close(data_shm_fd);
 
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
+        if (_verbose && _vlevel > VLevel::V2) {
 
-            std::string info = std::string("Closed file descriptor for ") +
-                    _mem_config.mem_path;
+            std::string info = "Closed file descriptor for " + mem_path;
 
             _journal.log(__FUNCTION__,
-                 info,
-                 LogType::INFO);
-
+                         info,
+                         LogType::INFO);
         }
-
     }
 
     template <typename Scalar>
@@ -322,18 +357,6 @@ namespace SharsorIPCpp {
                     LogType::INFO);
             }
         }
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_acquireSems()
-    {
-
-        _acquireSem(_mem_config.mem_path_server_sem,
-                    _srvr_sem); // server semaphore
-
-        _acquireSem(_mem_config.mem_path_data_sem,
-                    _data_sem); // shared data semaphore
-
     }
 
     template <typename Scalar>
@@ -419,18 +442,6 @@ namespace SharsorIPCpp {
         }
 
         _n_sem_acq_fail = 0; // reset counter
-
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_releaseSems()
-    {
-
-        _releaseSem(_mem_config.mem_path_server_sem,
-                    _srvr_sem);
-
-        _releaseSem(_mem_config.mem_path_data_sem,
-                    _data_sem);
 
     }
 
@@ -534,128 +545,46 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::_checkMem()
+    void Server<Scalar>::_checkMem(const std::string& mem_path,
+                                  int& data_shm_fd)
     {
+        data_shm_fd = shm_open(mem_path.c_str(),
+                               O_RDWR,
+                               0);
 
-        _shm_fd = shm_open(_mem_config.mem_path.c_str(), O_RDWR, 0);
-
-        if (_shm_fd != -1) {
+        if (data_shm_fd != -1) {
             // Shared memory already exists, so we need to clean it up
 
             if (_verbose &&
                     _vlevel > VLevel::V0) {
 
-                std::string warn = std::string("Shared memory at ") +
-                        _mem_config.mem_path + std::string(" already exists. ")+
-                        std::string("Clearning it up...");
+                std::string warn = "Shared memory at " + mem_path +
+                    " already exists. Clearing it up...";
 
                 _journal.log(__FUNCTION__,
-                     warn,
-                     LogType::WARN);
-
+                             warn,
+                             LogType::WARN);
             }
 
-            _cleanUpMem();
+            _cleanUpMem(mem_path,
+                        data_shm_fd);
 
             if (_verbose &&
                     _vlevel > VLevel::V0) {
 
-                std::string warn = std::string("Done.");
+                std::string warn = "Cleanup Done.";
 
                 _journal.log(__FUNCTION__,
-                     warn,
-                     LogType::WARN);
+                             warn,
+                             LogType::WARN);
 
             }
-
-            _terminated = false;
         }
 
-        if (_shm_fd == -1) {
-            // Shared mem does not exist
-
-            ::close(_shm_fd);// close the file descriptor
-            // opened for checking existence
+        if (data_shm_fd != -1) {
+            // Close the file descriptor opened for checking existence
+            ::close(data_shm_fd);
         }
-
-    }
-
-
-    template <typename Scalar>
-    void Server<Scalar>::_initMem()
-    {
-
-        // Determine the size based on the Scalar type
-        std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
-
-        // Create shared memory
-        _shm_fd = shm_open(_mem_config.mem_path.c_str(),
-                           O_CREAT | O_RDWR,
-                           S_IRUSR | S_IWUSR);
-
-        if (_shm_fd == -1) {
-
-            std::string error = std::string("Could not create shared memory at ") +
-                    _mem_config.mem_path;
-
-            _journal.log(__FUNCTION__,
-                         error,
-                         LogType::EXCEP);
-
-        }
-
-        // Set size
-        if (ftruncate(_shm_fd, data_size) == -1) {
-
-            std::string error = std::string("Could not set shared memory at ") +
-                    _mem_config.mem_path;
-
-            _journal.log(__FUNCTION__,
-                         error,
-                         LogType::EXCEP);
-
-        }
-
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Opened shared memory at ") +
-                    _mem_config.mem_path;
-
-            _journal.log(__FUNCTION__,
-                 info,
-                 LogType::INFO);
-
-        }
-
-        // Map the shared memory
-        Scalar* matrix_data = static_cast<Scalar*>(mmap(nullptr, data_size,
-                                                        PROT_READ | PROT_WRITE,
-                                                        MAP_SHARED, _shm_fd, 0));
-        if (matrix_data == MAP_FAILED) {
-
-            _journal.log(__FUNCTION__,
-                         "Could not map memory size.",
-                         LogType::EXCEP);
-
-        }
-
-        new (&_tensor_view) MMap<Scalar>(matrix_data, n_rows, n_cols);
-
-        _tensor_copy = Tensor<Scalar>::Zero(n_rows, n_cols);
-
-        if (_verbose &&
-                _vlevel > VLevel::V2) {
-
-            std::string info = std::string("Mapped shared memory at ") +
-                    _mem_config.mem_path;
-
-            _journal.log(__FUNCTION__,
-                 info,
-                 LogType::INFO);
-
-        }
-
     }
 
     template <typename Scalar>
