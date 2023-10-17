@@ -99,7 +99,7 @@ namespace SharsorIPCpp {
                                 _verbose,
                                 _vlevel); // checks if memory was already allocated
 
-        _initMem();
+        _initMems();
 
         _tensor_copy = Tensor<Scalar>::Zero(n_rows,
                                             n_cols); // used to hold
@@ -301,6 +301,45 @@ namespace SharsorIPCpp {
                         _journal,
                         _verbose,
                         _vlevel); // initializes shared data
+
+        // auxiliary data
+        MemUtils::initMem<int>(1,
+                        1,
+                        _mem_config.mem_path_nrows,
+                        _nrows_shm_fd,
+                        _n_rows_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
+        MemUtils::initMem<int>(1,
+                        1,
+                        _mem_config.mem_path_ncols,
+                        _ncols_shm_fd,
+                        _n_cols_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
+        MemUtils::initMem<int>(1,
+                        1,
+                        _mem_config.mem_path_clients_counter,
+                        _n_clients_shm_fd,
+                        _n_clients_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
+        MemUtils::initMem<int>(1,
+                        1,
+                        _mem_config.mem_path_dtype,
+                        _dtype_shm_fd,
+                        _dtype_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
+
     }
 
     template <typename Scalar>

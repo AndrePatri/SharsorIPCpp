@@ -74,6 +74,10 @@ namespace SharsorIPCpp{
             bool _force_reconnection = false;
 
             int _data_shm_fd; // shared memory file descriptor
+            int _nrows_shm_fd,
+                _ncols_shm_fd,
+                _n_clients_shm_fd,
+                _dtype_shm_fd;
 
             int _n_sem_acq_fail = 0;
             int _n_acq_trials = 10;
@@ -93,10 +97,10 @@ namespace SharsorIPCpp{
 
             MMap<Scalar> _tensor_view; // view of the tensor
             // auxiliary views
-            MMap<int> _n_rows_view;
-            MMap<int> _n_cols_view;
-            MMap<int> _n_clients_view;
-            MMap<int> _dtype_view;
+            MMap<int> _n_rows_view,
+                      _n_cols_view,
+                      _n_clients_view,
+                      _dtype_view;
 
             std::string _getThisName();
 
