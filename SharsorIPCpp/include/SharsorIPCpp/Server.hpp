@@ -20,14 +20,6 @@
 namespace SharsorIPCpp{
 
     template <typename Scalar>
-    using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-
-    template <typename Scalar>
-    using MMap = Eigen::Map<Tensor<Scalar>>;
-
-    using VLevel = Journal::VLevel;
-
-    template <typename Scalar>
     class Server {
 
         public:

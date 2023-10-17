@@ -584,9 +584,9 @@ int main(int argc, char** argv) {
     ::testing::GTEST_FLAG(filter) =
             "JournalTest.TestJournal";
 
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
     ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
 
     ::testing::InitGoogleTest(&argc, argv);

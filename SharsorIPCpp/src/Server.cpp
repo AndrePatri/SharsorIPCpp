@@ -9,18 +9,6 @@
 
 namespace SharsorIPCpp {
 
-    using LogType = Journal::LogType;
-
-    // Define a type trait to check if a given type is a valid DType
-    template <typename Scalar>
-    struct IsValidDType {
-        static constexpr bool value =
-            std::is_same<Scalar, typename DTypeToCppType<DType::Float>::type>::value ||
-            std::is_same<Scalar, typename DTypeToCppType<DType::Double>::type>::value ||
-            std::is_same<Scalar, typename DTypeToCppType<DType::Int>::type>::value ||
-            std::is_same<Scalar, typename DTypeToCppType<DType::Bool>::type>::value;
-    };
-
     template <typename Scalar>
     Server<Scalar>::Server(int n_rows,
                    int n_cols,
@@ -53,7 +41,7 @@ namespace SharsorIPCpp {
           _journal(Journal(_getThisName()))
     {
 
-        static_assert(IsValidDType<Scalar>::value, "Invalid data type provided.");
+        static_assert(MemUtils::IsValidDType<Scalar>::value, "Invalid data type provided.");
 
         if (_force_reconnection &&
                 _verbose &&

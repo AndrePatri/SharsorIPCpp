@@ -11,6 +11,7 @@
 #include <csignal>
 #include <memory>
 
+#include <SharsorIPCpp/DTypes.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 
 namespace SharsorIPCpp{
@@ -26,6 +27,16 @@ namespace SharsorIPCpp{
     using LogType = Journal::LogType;
 
     namespace MemUtils{
+
+        // Define a type trait to check if a given type is a valid DType
+        template <typename Scalar>
+        struct IsValidDType {
+            static constexpr bool value =
+                std::is_same<Scalar, typename DTypeToCppType<DType::Float>::type>::value ||
+                std::is_same<Scalar, typename DTypeToCppType<DType::Double>::type>::value ||
+                std::is_same<Scalar, typename DTypeToCppType<DType::Int>::type>::value ||
+                std::is_same<Scalar, typename DTypeToCppType<DType::Bool>::type>::value;
+        };
 
         template <typename Scalar>
         void initMem(
