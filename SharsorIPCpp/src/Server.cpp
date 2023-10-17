@@ -42,6 +42,19 @@ namespace SharsorIPCpp {
 
         static_assert(IsValidDType<Scalar>::value, "Invalid data type provided.");
 
+        if (_force_reconnection &&
+                _verbose &&
+                _vlevel > VLevel::V1)
+        {
+            std::string warn = std::string("Server will be initialized with force_reconnection to true. ") +
+                    std::string("This can cause destructive behaviour if trying to run two servers concurrently on the ") +
+                    std::string("same memory.");
+
+            _journal.log(__FUNCTION__,
+                 warn,
+                 LogType::WARN);
+        }
+
         if (_verbose &&
             _vlevel > VLevel::V1) {
 
@@ -273,34 +286,40 @@ namespace SharsorIPCpp {
     void Server<Scalar>::_initSems()
     {
 
-        _srvr_sem = sem_open(_mem_config.mem_path_server_sem.c_str(),
-                        O_CREAT,
-                        S_IRUSR | S_IWUSR,
-                        1);
+        _initSem(_mem_config.mem_path_server_sem,
+                 _srvr_sem);
 
-        if (_srvr_sem == SEM_FAILED) {
+        _initSem(_mem_config.mem_path_data_sem,
+                 _data_sem);
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_initSem(const std::string& sem_path,
+                                  sem_t*& output_sem)
+    {
+        output_sem = sem_open(sem_path.c_str(),
+                              O_CREAT, S_IRUSR | S_IWUSR,
+                              1);
+
+        if (output_sem == SEM_FAILED) {
             // Handle semaphore creation error
 
-            std::string error =
-                    std::string("Failed to open semaphore");
+            std::string error = std::string("Failed to open semaphore");
 
             _journal.log(__FUNCTION__,
-                         error,
-                         LogType::EXCEP);
-
+                error,
+                LogType::EXCEP);
         }
         else {
 
             if (_verbose &&
-                    _vlevel > VLevel::V2) {
+                _vlevel > VLevel::V2) {
 
-                std::string info = std::string("Opened semaphore at ") +
-                        _mem_config.mem_path_server_sem;
+                std::string info = std::string("Opened semaphore at ") + sem_path;
 
                 _journal.log(__FUNCTION__,
-                     info,
-                     LogType::INFO);
-
+                    info,
+                    LogType::INFO);
             }
         }
     }
@@ -309,11 +328,24 @@ namespace SharsorIPCpp {
     void Server<Scalar>::_acquireSems()
     {
 
+        _acquireSem(_mem_config.mem_path_server_sem,
+                    _srvr_sem); // server semaphore
+
+        _acquireSem(_mem_config.mem_path_data_sem,
+                    _data_sem); // shared data semaphore
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_acquireSem(const std::string& sem_path,
+                                     sem_t*& sem)
+    {
+
         if (_verbose && _n_sem_acq_fail == 0 &&
                 _vlevel > VLevel::V2) {
 
             std::string info = std::string("Acquiring server semaphore at ") +
-                    _mem_config.mem_path_server_sem;
+                    sem_path;
 
             _journal.log(__FUNCTION__,
                          info,
@@ -322,7 +354,7 @@ namespace SharsorIPCpp {
         }
 
         // Acquire the semaphore
-        if (_semWait(_srvr_sem, 1.0) == -1) {
+        if (_semWait(sem, 1.0) == -1) {
 
             _n_sem_acq_fail++;
 
@@ -333,13 +365,15 @@ namespace SharsorIPCpp {
                              "Failed to acquire semaphore at",
                              LogType::EXCEP);
 
+                _n_sem_acq_fail = 0; // reset counter
+
             }
 
             if (_verbose &&
                     _vlevel > VLevel::V0) {
 
                 std::string warn = std::string("Semaphore acquisition at ") +
-                        _mem_config.mem_path_server_sem +
+                        sem_path +
                         std::string(" failed. Trying to acquire it again...");
 
                 _journal.log(__FUNCTION__,
@@ -350,11 +384,13 @@ namespace SharsorIPCpp {
 
             if (_force_reconnection) {
 
-                _releaseSems(); // we try to release it, so that if a previous server
+                _releaseSem(sem_path,
+                            sem); // we try to release it, so that if a previous server
                 // crashed, we now make the semaphore available for acquisition.
             }
 
-            _acquireSems(); // recursive call. After _releaseSems(), this should now work
+            _acquireSem(sem_path,
+                        sem); // recursive call. After _releaseSems(), this should now work
 
             if (_verbose && _n_sem_acq_fail > 0 &&
                     _vlevel > VLevel::V0) {
@@ -373,13 +409,16 @@ namespace SharsorIPCpp {
                 _vlevel > VLevel::V2) {
 
             std::string info = std::string("Acquired server semaphore at ") +
-                    _mem_config.mem_path_server_sem;
+                    sem_path;
 
             _journal.log(__FUNCTION__,
                          info,
                          LogType::INFO);
 
+
         }
+
+        _n_sem_acq_fail = 0; // reset counter
 
     }
 
@@ -387,11 +426,24 @@ namespace SharsorIPCpp {
     void Server<Scalar>::_releaseSems()
     {
 
+        _releaseSem(_mem_config.mem_path_server_sem,
+                    _srvr_sem);
+
+        _releaseSem(_mem_config.mem_path_data_sem,
+                    _data_sem);
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_releaseSem(const std::string& sem_path,
+                                     sem_t*& sem)
+    {
+
         if (_verbose &&
                 _vlevel > VLevel::V2) {
 
             std::string info = std::string("Releasing server semaphore at ") +
-                        _mem_config.mem_path_server_sem;
+                        sem_path;
 
             _journal.log(__FUNCTION__,
                          info,
@@ -399,7 +451,7 @@ namespace SharsorIPCpp {
         }
 
         // Release the semaphore
-        if (sem_post(_srvr_sem) == -1) {
+        if (sem_post(sem) == -1) {
 
             // Handle semaphore release error
 
@@ -412,7 +464,7 @@ namespace SharsorIPCpp {
                 _vlevel > VLevel::V2) {
 
             std::string info = std::string("Released server semaphore at ") +
-                    _mem_config.mem_path_server_sem;
+                    sem_path;
 
             _journal.log(__FUNCTION__,
                          info,
@@ -425,15 +477,25 @@ namespace SharsorIPCpp {
     template <typename Scalar>
     void Server<Scalar>::_closeSems()
     {
+        _closeSem(_mem_config.mem_path_server_sem, _srvr_sem);
+        _closeSem(_mem_config.mem_path_data_sem, _data_sem);
 
-        sem_close(_srvr_sem); // close semaphore
-        sem_unlink(_mem_config.mem_path_server_sem.c_str()); // unlink semaphore
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_closeSem(const std::string& sem_path,
+                                   sem_t *&sem)
+    {
+
+        sem_close(sem); // close semaphore
+
+        sem_unlink(sem_path.c_str()); // unlink semaphore
 
         if (_verbose &&
                 _vlevel > VLevel::V2) {
 
             std::string info = std::string("Closed and unlinked server semaphore at ") +
-                    _mem_config.mem_path_server_sem;
+                    sem_path;
 
             _journal.log(__FUNCTION__,
                  info,
@@ -454,6 +516,7 @@ namespace SharsorIPCpp {
         timeout.tv_sec += timeout_seconds;
 
         while (true) {
+
             int result = sem_timedwait(sem, &timeout);
 
             if (result == 0) {
@@ -466,6 +529,7 @@ namespace SharsorIPCpp {
                 // Other error occurred (excluding interrupt).
                 return errno;
             }
+
         }
     }
 

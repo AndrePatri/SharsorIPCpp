@@ -82,13 +82,14 @@ namespace SharsorIPCpp{
 
             SharedMemConfig _mem_config;
 
-            sem_t* _srvr_sem;
+            sem_t* _srvr_sem; // semaphore for servers uniqueness
+            sem_t* _data_sem; // semaphore for safe data access
 
-            Journal _journal;
+            Journal _journal; // for rt-friendly logging
 
-            Tensor<Scalar> _tensor_copy;
+            Tensor<Scalar> _tensor_copy; // copy (not view) of the tensor
 
-            MMap<Scalar> _tensor_view;
+            MMap<Scalar> _tensor_view; // view of the tensor
 
             std::string _getThisName();
 
@@ -99,12 +100,20 @@ namespace SharsorIPCpp{
             void _cleanUpMem();
 
             void _initSems();
+            void _initSem(const std::string& sem_path,
+                          sem_t*& output_sem);
 
             void _acquireSems();
+            void _acquireSem(const std::string& sem_path,
+                             sem_t *&sem);
 
             void _releaseSems();
+            void _releaseSem(const std::string& sem_path,
+                             sem_t*& sem);
 
             void _closeSems();
+            void _closeSem(const std::string& sem_path,
+                           sem_t*& sem);
 
             void _cleanUpAll();
 

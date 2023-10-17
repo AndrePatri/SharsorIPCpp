@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
 find_package(pybind11 REQUIRED)
 
+find_package(Eigen REQUIRED)
+
+# backends (at least one of them needs to be found)
+find_package(Torch QUIET)
+
+find_package(NumPy QUIET)
+
 #add_compile_options(-std=c++17)
 
 message(STATUS "Compiling python bindings for ${LIBRARY_NAME}")
@@ -14,7 +21,9 @@ execute_process(
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 pybind11_add_module(PySharsorIPC pysharsor_ip.cpp)
-target_link_libraries(PySharsorIPC PUBLIC SharsorIPCpp)
+target_link_libraries(PySharsorIPC PUBLIC SharsorIPCpp
+    ${TORCH_LIBRARIES}
+    ${NUMPY_LIBRARIES})
 
 install(TARGETS PySharsorIPC
             DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME})

@@ -17,27 +17,32 @@ namespace SharsorIPCpp{
 
             mem_path = "/" + _namespace + _name;
 
-            mem_path_nrows = "/" + _namespace + _name + "_" + MemDef::sharedSrvrNRowsName();
+            mem_path_nrows = "/" + _namespace + _name + "_" + MemDef::sharedTensorNRowsName();
 
-            mem_path_ncols = "/" + _namespace + _name + "_" + MemDef::sharedSrvrNColsName();
+            mem_path_ncols = "/" + _namespace + _name + "_" + MemDef::sharedTensorNColsName();
 
-            mem_path_clients_counter = "/" + _namespace + _name + "_" + MemDef::sharedClientsCountName();
+            mem_path_dtype = "/" + _namespace + _name + "_" + MemDef::sharedTensorDTypeName();
 
-            mem_path_server_sem = "/" + _namespace + _name + "_" + MemDef::sharedSemSrvrName();
+            mem_path_clients_counter = "/" + _namespace + _name + "_" + MemDef::ClientsCountName();
 
-            mem_path_clients_n_sem = "/" + _namespace + _name + "_" + MemDef::sharedSemClientsCountName();
+            mem_path_server_sem = "/" + _namespace + _name + "_" + MemDef::SrvrSemName();
 
-            mem_path_clients_semaphore = "/" + _namespace + _name + "_" + MemDef::sharedSemClientsCountName();
+            mem_path_data_sem = "/" + _namespace + _name + "_" + MemDef::DataSemName();
 
         }
 
+        // shared data path
         std::string mem_path;
+
+        // auxiliary data
         std::string mem_path_nrows;
         std::string mem_path_ncols;
+        std::string mem_path_dtype;
         std::string mem_path_clients_counter;
+
+        // semaphores
         std::string mem_path_server_sem;
-        std::string mem_path_clients_n_sem;
-        std::string mem_path_clients_semaphore;
+        std::string mem_path_data_sem;
 
     private:
 

@@ -12,7 +12,7 @@ using namespace SharsorIPCpp;
 
 using VLevel = Journal::VLevel;
 
-static std::string name_space = "SrvrTests";
+static std::string name_space = "ServerTst";
 
 static Journal journal("ServerTests");
 
@@ -68,7 +68,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server_ptr(new Server<double>(rows, cols,
-                                     "Sharsor", name_space,
+                                     "SharsorDouble", name_space,
                                      true,
                                      VLevel::V3,
                                      false)),
@@ -107,7 +107,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server_ptr(new Server<float>(rows, cols,
-                                     "Sharsor", name_space,
+                                     "SharsorFloat", name_space,
                                      true,
                                      VLevel::V3,
                                      false)),
@@ -145,7 +145,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server_ptr(new Server<int>(rows, cols,
-                                     "Sharsor", name_space,
+                                     "SharsorInt", name_space,
                                      true,
                                      VLevel::V3,
                                      false)),
@@ -183,7 +183,7 @@ protected:
                    cols(60),
                    iterations(1000000),
                    server_ptr(new Server<bool>(rows, cols,
-                                     "Sharsor", name_space,
+                                     "SharsorBool", name_space,
                                      true,
                                      VLevel::V3,
                                      false)),
@@ -249,7 +249,8 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
     const MMap<bool>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
-    std::cout << "\nBenchmarking performance with bool type...\n" << std::endl;
+    journal.log("ServerTestBool", "\nBenchmarking performance with bool type...\n",
+                Journal::LogType::STAT);
 
     for (int i = 0; i < iterations; ++i) {
 
@@ -270,6 +271,9 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
     }
+
+    journal.log("ServerTestBool", "\nrunning post-processing steps...\n",
+                Journal::LogType::STAT);
 
     // some post-processing
     double averageReadTime = 0;
@@ -328,7 +332,8 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
     const MMap<int>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
-    std::cout << "\nBenchmarking performance with int type...\n" << std::endl;
+    journal.log("ServerTestInt", "\nBenchmarking performance with int type...\n",
+                Journal::LogType::STAT);
 
     for (int i = 0; i < iterations; ++i) {
 
@@ -349,6 +354,9 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
     }
+
+    journal.log("ServerTestInt", "\nrunning post-processing steps...\n",
+                Journal::LogType::STAT);
 
     // some post-processing
     double averageReadTime = 0;
@@ -407,7 +415,8 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
     const MMap<float>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
-    std::cout << "\nBenchmarking performance with float type...\n" << std::endl;
+    journal.log("ServerTestInt", "\nBenchmarking performance with float type...\n",
+                Journal::LogType::STAT);
 
     for (int i = 0; i < iterations; ++i) {
 
@@ -428,6 +437,9 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
     }
+
+    journal.log("ServerTestInt", "\nrunning post-processing steps...\n",
+                Journal::LogType::STAT);
 
     // some post-processing
     double averageReadTime = 0;
@@ -486,7 +498,8 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
     const MMap<double>& tensorView = server_ptr->getTensorView(); // its a reference
     // we only need to get it once
 
-    std::cout << "\nBenchmarking performance with double type...\n" << std::endl;
+    journal.log("ServerTestDouble", "\nBenchmarking performance with double type...\n",
+                Journal::LogType::STAT);
 
     for (int i = 0; i < iterations; ++i) {
 
@@ -507,6 +520,9 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
     }
+
+    journal.log("ServerTestDouble", "\nrunning post-processing steps...\n",
+                Journal::LogType::STAT);
 
     // some post-processing
     double averageReadTime = 0;

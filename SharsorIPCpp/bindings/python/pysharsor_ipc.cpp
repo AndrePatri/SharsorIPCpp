@@ -2,6 +2,9 @@
 
 #include <Server.hpp>
 #include <pybind11/eigen.h>
+#include <Eigen/Dense>
+
+#include <torch/torch.h>
 
 namespace py = pybind11;
 

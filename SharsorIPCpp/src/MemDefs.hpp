@@ -7,33 +7,39 @@ namespace SharsorIPCpp{
 
         public:
 
-            static std::string sharedSrvrNRowsName() {
+            static std::string sharedTensorNRowsName() {
 
-                return std::string("sharedSrvrNRows");
-
-            }
-
-            static std::string sharedSrvrNColsName() {
-
-                return std::string("sharedSrvrNCols");
+                return std::string("sharedTensorNRows");
 
             }
 
-            static std::string sharedClientsCountName() {
+            static std::string sharedTensorNColsName() {
 
-                return std::string("sharedClientsCount");
-
-            }
-
-            static std::string sharedSemSrvrName() {
-
-                return std::string("sharedSrvrSem");
+                return std::string("sharedTensorNCols");
 
             }
 
-            static std::string sharedSemClientsCountName() {
+            static std::string sharedTensorDTypeName() {
 
-                return std::string("sharedClientsCountSem");
+                return std::string("sharedTensorDType");
+
+            }
+
+            static std::string ClientsCountName() {
+
+                return std::string("clientsCount");
+
+            }
+
+            static std::string SrvrSemName() {
+
+                return std::string("srvrSem");
+
+            }
+
+            static std::string DataSemName() {
+
+                return std::string("dataSem");
 
             }
 
