@@ -17,8 +17,9 @@ The library is also shipped with Python bindings with both Numpy or PyTorch supp
 - **Eigen**
 
 ToDo:
-- [ ] add ncols, nrows, dtype, nclients as shared data of type int 
-- [ ] add semaphore for data: when any kind of shared data has to be modified, this has to be acquired (either by the server or the client). The data semaphore will be held by the server, up to the point when the run() has finished. Also, when stopping the server, the semaphore is owned back y the server.
+- [x] add ncols, nrows, dtype, nclients as shared data of type int 
+- [x] add semaphore for data: when any kind of shared data has to be modified, this has to be acquired (either by the server or the client). The data semaphore will be held by the server, up to the point when the run() has finished. Also, when stopping the server, the semaphore is owned back y the server.
+- [x] separate common utils between server and client
 - [ ] write client: tries to acquire the data semaphore, read ncols, nrows,dtype, gets a memory view, increments the clients counter
 - [ ] write python bindings: expose both a torch and numpy view of the tensors
 - [ ] deploy on Anaconda   
