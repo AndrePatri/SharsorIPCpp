@@ -339,6 +339,10 @@ namespace SharsorIPCpp {
                         _verbose,
                         _vlevel);
 
+        _n_rows_view(0, 0) = n_rows;
+        _n_cols_view(0, 0) = n_cols;
+        _n_clients_view(0, 0) = 0;
+        _dtype_view(0, 0) = sizeof(Scalar);
 
     }
 
