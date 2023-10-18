@@ -401,7 +401,8 @@ namespace SharsorIPCpp {
 
         _n_rows_view(0, 0) = n_rows;
         _n_cols_view(0, 0) = n_cols;
-        _n_clients_view(0, 0) = 0;
+        _n_clients_view(0, 0) = 0; // to be improved
+        // (what happens when server crashes and clients remain appended?)
         _isrunning_view(0, 0) = 0;
 
         _dtype_view(0, 0) = sizeof(Scalar);
