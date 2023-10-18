@@ -15,9 +15,7 @@ namespace SharsorIPCpp {
                    std::string name_space,
                    bool verbose,
                    VLevel vlevel)
-        : n_rows(n_rows),
-          n_cols(n_cols),
-          _mem_config(basename, name_space),
+        : _mem_config(basename, name_space),
           _verbose(verbose),
           _vlevel(vlevel),
           _tensor_view(nullptr,
@@ -38,8 +36,7 @@ namespace SharsorIPCpp {
           _isrunning_view(nullptr,
                           1,
                           1),
-          _journal(Journal(_getThisName())),
-          _timer(Timer())
+          _journal(Journal(_getThisName()))
     {
 
         static_assert(MemUtils::IsValidDType<Scalar>::value,
@@ -75,6 +72,8 @@ namespace SharsorIPCpp {
 
         }
 
+        _initMetaMem(); // initializes meta-memory
+
         _waitForServer();  // waits until server is properly initialized
 
         _initSems(); // creates necessary semaphores
@@ -83,10 +82,10 @@ namespace SharsorIPCpp {
         // (at this point is actually guaranteed to be free anyway)
         _acquireData();
 
-        _initMetaMem(); // initializes meta-memory
-
         _checkDType(); // checks data type consistency
 
+        n_rows = _n_rows_view(0, 0);
+        n_cols = _n_cols_view(0, 0);
         _n_clients_view(0, 0) = _n_clients_view(0, 0) + 1; // increase clients counter
 
         // we have now all the info to create the shared tensor
@@ -249,7 +248,8 @@ namespace SharsorIPCpp {
 
             }
 
-            _timer.clock_msleep(1.0);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
         }
     }
 
@@ -426,9 +426,6 @@ namespace SharsorIPCpp {
                         _journal,
                         _verbose,
                         _vlevel);
-
-        n_rows = _n_rows_view(0, 0);
-        n_cols = _n_cols_view(0, 0);
 
     }
 

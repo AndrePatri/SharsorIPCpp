@@ -10,6 +10,8 @@
 
 #include <test_utils.hpp>
 
+int n_iterations = 1000000;
+
 using namespace SharsorIPCpp;
 
 using VLevel = Journal::VLevel;
@@ -38,7 +40,7 @@ protected:
 
     ServerTestDouble() : rows(100),
                    cols(60),
-                   iterations(1000000),
+                   iterations(n_iterations),
                    server_ptr(new Server<double>(rows, cols,
                                      "SharsorDouble", name_space,
                                      true,
@@ -77,7 +79,7 @@ protected:
 
     ServerTestFloat() : rows(100),
                    cols(60),
-                   iterations(1000000),
+                   iterations(n_iterations),
                    server_ptr(new Server<float>(rows, cols,
                                      "SharsorFloat", name_space,
                                      true,
@@ -115,7 +117,7 @@ class ServerTestInt : public ::testing::Test {
 protected:
     ServerTestInt() : rows(100),
                    cols(60),
-                   iterations(1000000),
+                   iterations(n_iterations),
                    server_ptr(new Server<int>(rows, cols,
                                      "SharsorInt", name_space,
                                      true,
@@ -153,7 +155,7 @@ class ServerTestBool : public ::testing::Test {
 protected:
     ServerTestBool() : rows(100),
                    cols(60),
-                   iterations(1000000),
+                   iterations(n_iterations),
                    server_ptr(new Server<bool>(rows, cols,
                                      "SharsorBool", name_space,
                                      true,
@@ -544,14 +546,15 @@ int main(int argc, char** argv) {
     // You can list multiple tests or test suites separated by a colon.
     // This example runs two test cases: ServerTestDouble.WriteReadBenchmark and AnotherTestSuite.*
 
-    ::testing::GTEST_FLAG(filter) =
-            "JournalTest.TestJournal";
+//    ::testing::GTEST_FLAG(filter) =
+//            "JournalTest.TestJournal";
 
-    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
 
+    ::testing::GTEST_FLAG(filter) = ":ServerTestBool.WriteReadBenchmark";
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

@@ -9,6 +9,7 @@ namespace SharsorIPCpp {
 
     namespace TimeUtils {
 
+        template <typename Scalar>
         class PerfSleep {
 
             public:

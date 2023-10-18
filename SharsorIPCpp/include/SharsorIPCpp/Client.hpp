@@ -9,18 +9,17 @@
 #include <semaphore.h>
 #include <csignal>
 #include <memory>
+#include <thread>
+#include <chrono>
 
 #include <SharedMemConfig.hpp>
 
 #include <MemUtils.hpp>
-#include <TimeUtils.hpp>
 
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
 
 namespace SharsorIPCpp{
-
-    using Timer = TimeUtils::PerfSleep;
 
     template <typename Scalar>
     class Client {
@@ -88,8 +87,6 @@ namespace SharsorIPCpp{
             sem_t* _data_sem; // semaphore for safe data access
 
             Journal _journal; // for rt-friendly logging
-
-            Timer _timer;
 
             Tensor<Scalar> _tensor_copy; // copy (not view) of the tensor
 
