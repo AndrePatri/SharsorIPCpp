@@ -38,6 +38,9 @@ namespace SharsorIPCpp {
           _dtype_view(nullptr,
                       1,
                       1),
+          _isrunning_view(nullptr,
+                      1,
+                      1),
           _journal(Journal(_getThisName()))
     {
 
@@ -131,6 +134,7 @@ namespace SharsorIPCpp {
 
             // set the running flag to true
             _running = true;
+            _isrunning_view(0, 0) = 1; // for the clients
 
         }
 
@@ -142,6 +146,8 @@ namespace SharsorIPCpp {
 
         if (isRunning()) {
 
+            _running = false;
+            _isrunning_view(0, 0) = 0; // for the clients
 
             MemUtils::releaseSem<Scalar>(_mem_config.mem_path_server_sem,
                         _srvr_sem,
@@ -149,7 +155,6 @@ namespace SharsorIPCpp {
                         _verbose,
                         _vlevel);
 
-            _running = false;
         }
 
     }
@@ -168,7 +173,7 @@ namespace SharsorIPCpp {
 
         stop(); // stop server if running
 
-        _cleanUpAll(); // cleans up all memory,
+        _cleanMems(); // cleans up all memory,
         // semaphores included (if necessary)
 
         if (_verbose &&
@@ -185,19 +190,38 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::writeMemory(const Tensor<Scalar>& data) {
+    int Server<Scalar>::getNClients() {
+
+        _acquireData();
+
+        n_clients = _n_clients_view(0, 0);
+
+        _releaseData();
+
+        return n_clients;
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::writeMemory(const Tensor<Scalar>& data,
+                                     int row,
+                                     int col) {
 
         if (_running) {
 
+            _acquireData(); // prevent access to the data
+
             MemUtils::write(data,
                             _tensor_view,
+                            row, col,
                             _journal);
+
+            _releaseData();
 
         }
         else {
 
             std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the Run() method?");
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
@@ -213,7 +237,7 @@ namespace SharsorIPCpp {
         if (!_running) {
 
             std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the Run() method?");
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
@@ -231,7 +255,7 @@ namespace SharsorIPCpp {
         if (!_running) {
 
             std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the Run() method?");
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
@@ -239,14 +263,61 @@ namespace SharsorIPCpp {
 
         }
 
+        _acquireData(); // prevent access to the data
+
         _tensor_copy = _tensor_view;
+
+        _releaseData();
 
         return _tensor_copy;
 
     }
 
     template <typename Scalar>
-    void Server<Scalar>::_cleanUpAll()
+    void Server<Scalar>::_cleanMetaMem()
+    {
+        // closing file descriptors and also unlinking
+        // memory
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_nrows,
+                             _nrows_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_ncols,
+                             _ncols_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_clients_counter,
+                             _n_clients_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_dtype,
+                             _dtype_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_isrunning,
+                             _isrunning_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_cleanMems()
     {
 
         if (!_terminated) {
@@ -256,6 +327,8 @@ namespace SharsorIPCpp {
                                  _journal,
                                  _verbose,
                                  _vlevel);
+
+            _cleanMetaMem();
 
             _closeSems(); // closing semaphores
 
@@ -278,19 +351,9 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::_initMems()
+    void Server<Scalar>::_initMetaMem()
     {
 
-        MemUtils::initMem<Scalar>(n_rows,
-                        n_cols,
-                        _mem_config.mem_path,
-                        _data_shm_fd,
-                        _tensor_view,
-                        _journal,
-                        _verbose,
-                        _vlevel); // initializes shared data
-
-        // auxiliary data
         MemUtils::initMem<int>(1,
                         1,
                         _mem_config.mem_path_nrows,
@@ -327,10 +390,39 @@ namespace SharsorIPCpp {
                         _verbose,
                         _vlevel);
 
+        MemUtils::initMem<bool>(1,
+                        1,
+                        _mem_config.mem_path_isrunning,
+                        _isrunning_shm_fd,
+                        _isrunning_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
         _n_rows_view(0, 0) = n_rows;
         _n_cols_view(0, 0) = n_cols;
         _n_clients_view(0, 0) = 0;
+        _isrunning_view(0, 0) = 0;
+
         _dtype_view(0, 0) = sizeof(Scalar);
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_initMems()
+    {
+
+        MemUtils::initMem<Scalar>(n_rows,
+                        n_cols,
+                        _mem_config.mem_path,
+                        _data_shm_fd,
+                        _tensor_view,
+                        _journal,
+                        _verbose,
+                        _vlevel); // initializes shared data
+
+        // auxiliary data
+        _initMetaMem();
 
     }
 
@@ -353,19 +445,51 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
+    void Server<Scalar>::_acquireData()
+    {
+
+        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
+                                     _data_sem,
+                                     _n_acq_trials,
+                                     _n_sem_acq_fail,
+                                     _journal,
+                                     _force_reconnection,
+                                     false, // no verbosity (this is called very frequently)
+                                     _vlevel);
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::_releaseData()
+    {
+
+        MemUtils::releaseSem<Scalar>(_mem_config.mem_path_data_sem,
+                             _data_sem,
+                             _journal,
+                             false, // no verbosity (this is called very frequently)
+                             _vlevel);
+
+    }
+
+    template <typename Scalar>
     void Server<Scalar>::_closeSems()
     {
+        // closes semaphores and also unlinks it
+        // Other processes who had it open can still use it, but no new
+        // process can access it
         MemUtils::closeSem<Scalar>(_mem_config.mem_path_server_sem,
                                    _srvr_sem,
                                    _journal,
                                    _verbose,
-                                   _vlevel);
+                                   _vlevel,
+                                   true);
 
         MemUtils::closeSem<Scalar>(_mem_config.mem_path_data_sem,
                                    _data_sem,
                                    _journal,
                                    _verbose,
-                                   _vlevel);
+                                   _vlevel,
+                                   true);
 
     }
 
@@ -376,7 +500,7 @@ namespace SharsorIPCpp {
         return _this_name;
     }
 
-    // explicit instantiations for specific types
+    // explicit instantiations for specific supported types
     template class Server<double>;
     template class Server<float>;
     template class Server<int>;

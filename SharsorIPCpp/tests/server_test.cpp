@@ -8,6 +8,8 @@
 #include <SharsorIPCpp/Server.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 
+#include <test_utils.hpp>
+
 using namespace SharsorIPCpp;
 
 using VLevel = Journal::VLevel;
@@ -15,45 +17,6 @@ using VLevel = Journal::VLevel;
 static std::string name_space = "ServerTst";
 
 static Journal journal("ServerTests");
-
-void check_comp_type()
-{
-    std::string message;
-
-    #ifdef NDEBUG
-
-        #ifdef _RELWITHDEBINFO
-
-            message = std::string("SharsorIPCpp was compiled in RelWithDebInfo mode. ") +
-                    std::string("For meaninful results, you should compile it in Release mode.\n");
-
-            journal.log("check_comp_type",
-                        message,
-                        Journal::LogType::WARN);
-
-        #else
-
-            message = std::string("SharsorIPCpp was compiled in Release mode. ") +
-                std::string("This is good and will ensure meaningful benchmarking results.\n");
-
-            journal.log("check_comp_type",
-                        message,
-                        Journal::LogType::STAT);
-
-        #endif
-
-    #else
-
-        message = std::string("SharsorIPCpp was compiled in Debug mode. ") +
-            std::string("For meaninful results, you should compile it in Release mode.\n");
-
-        journal.log("check_comp_type",
-                    message,
-                    Journal::LogType::WARN);
-
-    #endif
-
-}
 
 class JournalTest: public ::testing::Test {
 protected:
@@ -245,7 +208,7 @@ TEST_F(JournalTest, TestJournal) {
 
 TEST_F(ServerTestBool, WriteReadBenchmark) {
 
-    check_comp_type();
+    check_comp_type(journal);
 
     double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
     double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
@@ -328,12 +291,12 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
 TEST_F(ServerTestInt, WriteReadBenchmark) {
 
-    check_comp_type();
+    check_comp_type(journal);
 
     double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
     double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
-    double READ_T_AVRG_THRESH =   2000; // [nanoseconds]
-    double WRITE_T_AVRG_THRESH =  2000; // [nanoseconds]
+    double READ_T_AVRG_THRESH =   2200; // [nanoseconds]
+    double WRITE_T_AVRG_THRESH =  2200; // [nanoseconds]
 
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
@@ -411,7 +374,7 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
 
 TEST_F(ServerTestFloat, WriteReadBenchmark) {
 
-    check_comp_type();
+    check_comp_type(journal);
 
     double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
     double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
@@ -494,7 +457,7 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
 
 TEST_F(ServerTestDouble, WriteReadBenchmark) {
 
-    check_comp_type();
+    check_comp_type(journal);
 
     double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
     double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time

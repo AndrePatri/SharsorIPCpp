@@ -10,8 +10,7 @@
 namespace SharsorIPCpp {
 
     template <typename Scalar>
-    Client<Scalar>::Client(int n_rows,
-                   int n_cols,
+    Client<Scalar>::Client(
                    std::string basename,
                    std::string name_space,
                    bool verbose,
@@ -36,47 +35,16 @@ namespace SharsorIPCpp {
           _dtype_view(nullptr,
                       1,
                       1),
-          _journal(Journal(_getThisName()))
+          _isrunning_view(nullptr,
+                          1,
+                          1),
+          _journal(Journal(_getThisName())),
+          _timer(Timer())
     {
 
-        static_assert(MemUtils::IsValidDType<Scalar>::value, "Invalid data type provided.");
+        static_assert(MemUtils::IsValidDType<Scalar>::value,
+                "Invalid data type provided.");
 
-        if (_verbose &&
-            _vlevel > VLevel::V1) {
-
-            std::string info = std::string("Initializing Client at ") +
-                    _mem_config.mem_path;
-
-            _journal.log(__FUNCTION__,
-                 info,
-                 LogType::STAT);
-
-        }
-
-        _initSems(); // creates necessary semaphores
-
-        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
-                                     _data_sem,
-                                     _n_acq_trials,
-                                     _n_sem_acq_fail,
-                                     _journal,
-                                     false,
-                                     _verbose,
-                                     _vlevel); // acquire shared data semaphore
-        // Here to prevent access from any client (at this stage)
-
-
-        MemUtils::checkMem<Scalar>(_mem_config.mem_path,
-                                _data_shm_fd,
-                                _journal,
-                                _verbose,
-                                _vlevel); // checks if memory was already allocated
-
-        _initMems();
-
-        _tensor_copy = Tensor<Scalar>::Zero(n_rows,
-                                            n_cols); // used to hold
-        // a copy of the shared tensor data
 
         _terminated = false; // just in case
 
@@ -93,10 +61,76 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    bool Client<Scalar>::isRunning()
+    void Client<Scalar>::attach()
+    {
+        if (_verbose &&
+            _vlevel > VLevel::V1) {
+
+            std::string info = std::string("Initializing Client at ") +
+                    _mem_config.mem_path;
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::STAT);
+
+        }
+
+        _waitForServer();  // waits until server is properly initialized
+
+        _initSems(); // creates necessary semaphores
+
+        // acquire shared data semaphore or waits for it
+        // (at this point is actually guaranteed to be free anyway)
+        _acquireData();
+
+        _initMetaMem(); // initializes meta-memory
+
+        _checkDType(); // checks data type consistency
+
+        _n_clients_view(0, 0) = _n_clients_view(0, 0) + 1; // increase clients counter
+
+        // we have now all the info to create the shared tensor
+        MemUtils::initMem<Scalar>(n_rows,
+                        n_cols,
+                        _mem_config.mem_path,
+                        _data_shm_fd,
+                        _tensor_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
+        _tensor_copy = Tensor<Scalar>::Zero(n_rows,
+                                            n_cols); // used to hold
+        // a copy of the shared tensor data
+
+        // releasing data semaphore so that other clients/the server can access the tensor
+        _releaseData();
+
+        _attached = true;
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::detach()
+    {
+        if (_attached) {
+
+            _acquireData();
+
+            _n_clients_view(0, 0) = _n_clients_view(0, 0) - 1; // increase clients counter
+
+            // releasing data semaphore so that other clients/the server can access the tensor
+            _releaseData();
+
+            _attached = false;
+
+        }
+    }
+
+    template <typename Scalar>
+    bool Client<Scalar>::isAttached()
     {
 
-        return _running;
+        return _attached;
 
     }
 
@@ -104,7 +138,9 @@ namespace SharsorIPCpp {
     void Client<Scalar>::close()
     {
 
-        _cleanUpAll(); // cleans up all memory,
+        detach(); // detach from server if not attached
+
+        _cleanMems(); // cleans up all memory,
         // semaphores included (if necessary)
 
         if (_verbose &&
@@ -121,19 +157,26 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Client<Scalar>::writeMemory(const Tensor<Scalar>& data) {
+    void Client<Scalar>::writeMemory(const Tensor<Scalar>& data,
+                                     int row,
+                                     int col) {
 
-        if (_running) {
+        if (_attached) {
+
+            _acquireData();
 
             MemUtils::write(data,
                             _tensor_view,
+                            row, col,
                             _journal);
+
+            _releaseData();
 
         }
         else {
 
-            std::string error = std::string("Client is not running. ") +
-                    std::string("Did you remember to call the Run() method?");
+            std::string error = std::string("Client is not registered to the Server. ") +
+                    std::string("Did you remember to call the attach() method?");
 
             _journal.log(__FUNCTION__,
                  error,
@@ -146,10 +189,13 @@ namespace SharsorIPCpp {
     template <typename Scalar>
     const MMap<Scalar>& Client<Scalar>::getTensorView() {
 
-        if (!_running) {
+        // note: this is dangerous since it allows modification to the data without
+        // any synchronization, but can be useful to interface with other libraries (i.e. Torch, Numpy)
 
-            std::string error = std::string("Client is not running. ") +
-                    std::string("Did you remember to call the Run() method?");
+        if (!_attached) {
+
+            std::string error = std::string("Client is not registered to the Server. ") +
+                    std::string("Did you remember to call attach attach() method?");
 
             _journal.log(__FUNCTION__,
                  error,
@@ -164,7 +210,7 @@ namespace SharsorIPCpp {
     template <typename Scalar>
     const Tensor<Scalar> &Client<Scalar>::getTensorCopy() {
 
-        if (!_running) {
+        if (!_attached) {
 
             std::string error = std::string("Client is not running. ") +
                     std::string("Did you remember to call the Run() method?");
@@ -175,14 +221,129 @@ namespace SharsorIPCpp {
 
         }
 
+        _acquireData(); // making sure nothing is modifying the object
+
         _tensor_copy = _tensor_view;
+
+        _releaseData(); // release data semaphore
 
         return _tensor_copy;
 
     }
 
     template <typename Scalar>
-    void Client<Scalar>::_cleanUpAll()
+    void Client<Scalar>::_waitForServer()
+    {
+        while(!(_isrunning_view(0, 0) > 0)) {
+
+            if (_verbose &&
+                _vlevel > VLevel::V0) {
+
+                std::string info = std::string("Waiting transition of Server at ") +
+                        _mem_config.mem_path +
+                        std::string(" to running state...");
+
+                _journal.log(__FUNCTION__,
+                     info,
+                     LogType::WARN);
+
+            }
+
+            _timer.clock_msleep(1.0);
+        }
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_checkDType()
+    {
+        if (_dtype_view(0, 0) != sizeof(Scalar)) {
+
+            // not impeccable: different types may have in general different sizes
+
+            std::string error = std::string("Client initialized with element size of ") +
+                    std::to_string(sizeof(Scalar)) +
+                    std::string(", while the Server was initialized with size ") +
+                    std::to_string(_dtype_view(0, 0));
+
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP);
+
+        }
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_acquireData()
+    {
+
+        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
+                                     _data_sem,
+                                     _n_acq_trials,
+                                     _n_sem_acq_fail,
+                                     _journal,
+                                     false, // no verbosity (this is called very frequently)
+                                     _verbose,
+                                     _vlevel);
+
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_releaseData()
+    {
+
+        MemUtils::releaseSem<Scalar>(_mem_config.mem_path_data_sem,
+                             _data_sem,
+                             _journal,
+                             false, // no verbosity (this is called very frequently)
+                             _vlevel);
+
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_cleanMetaMem()
+    {
+        // closing file descriptors and but not unlinking
+        // memory
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_nrows,
+                             _nrows_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_ncols,
+                             _ncols_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_clients_counter,
+                             _n_clients_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_dtype,
+                             _dtype_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_isrunning,
+                             _isrunning_shm_fd,
+                             _journal,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_cleanMems()
     {
 
         if (!_terminated) {
@@ -191,14 +352,17 @@ namespace SharsorIPCpp {
                                  _data_shm_fd,
                                  _journal,
                                  _verbose,
-                                 _vlevel);
+                                 _vlevel,
+                                 false); // closing but no unlinking
+
+            _cleanMetaMem(); // closes, but doesn't unlink, aux. data
 
             _closeSems(); // closing semaphores
 
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Stopped client at ") +
+                std::string info = std::string("Closed client at ") +
                         _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,
@@ -214,17 +378,8 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Client<Scalar>::_initMems()
+    void Client<Scalar>::_initMetaMem()
     {
-
-        MemUtils::initMem<Scalar>(n_rows,
-                        n_cols,
-                        _mem_config.mem_path,
-                        _data_shm_fd,
-                        _tensor_view,
-                        _journal,
-                        _verbose,
-                        _vlevel); // initializes shared data
 
         // auxiliary data
         MemUtils::initMem<int>(1,
@@ -263,10 +418,17 @@ namespace SharsorIPCpp {
                         _verbose,
                         _vlevel);
 
-        _n_rows_view(0, 0) = n_rows;
-        _n_cols_view(0, 0) = n_cols;
-        _n_clients_view(0, 0) = 0;
-        _dtype_view(0, 0) = sizeof(Scalar);
+        MemUtils::initMem<bool>(1,
+                        1,
+                        _mem_config.mem_path_isrunning,
+                        _isrunning_shm_fd,
+                        _isrunning_view,
+                        _journal,
+                        _verbose,
+                        _vlevel);
+
+        n_rows = _n_rows_view(0, 0);
+        n_cols = _n_cols_view(0, 0);
 
     }
 
@@ -285,12 +447,13 @@ namespace SharsorIPCpp {
     template <typename Scalar>
     void Client<Scalar>::_closeSems()
     {
-
+        // closes semaphores but doesn't unlink them
         MemUtils::closeSem<Scalar>(_mem_config.mem_path_data_sem,
                                    _data_sem,
                                    _journal,
                                    _verbose,
-                                   _vlevel);
+                                   _vlevel,
+                                   false);
 
     }
 
@@ -301,7 +464,7 @@ namespace SharsorIPCpp {
         return _this_name;
     }
 
-    // explicit instantiations for specific types
+    // explicit instantiations for specific supported types
     template class Client<double>;
     template class Client<float>;
     template class Client<int>;

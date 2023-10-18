@@ -31,6 +31,13 @@ namespace SharsorIPCpp{
 
             }
 
+            static std::string isSrvrRunningName() {
+
+                return std::string("isSrvrRunning");
+
+
+            }
+
             static std::string SrvrSemName() {
 
                 return std::string("srvrSem");

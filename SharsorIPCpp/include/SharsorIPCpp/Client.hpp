@@ -13,11 +13,14 @@
 #include <SharedMemConfig.hpp>
 
 #include <MemUtils.hpp>
+#include <TimeUtils.hpp>
 
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
 
 namespace SharsorIPCpp{
+
+    using Timer = TimeUtils::PerfSleep;
 
     template <typename Scalar>
     class Client {
@@ -28,16 +31,16 @@ namespace SharsorIPCpp{
             typedef std::shared_ptr<Client> Ptr;
             typedef std::unique_ptr<Client> UniquePtr;
 
-            Client(int n_rows,
-                   int n_cols,
-                   std::string basename = "MySharedMemory",
+            Client(std::string basename = "MySharedMemory",
                    std::string name_space = "",
                    bool verbose = false,
                    VLevel vlevel = VLevel::V0);
 
             ~Client();
 
-            void writeMemory(const Tensor<Scalar>& data);
+            void writeMemory(const Tensor<Scalar>& data,
+                             int row = 0,
+                             int col = 0);
 
             //  read only getter
             const MMap<Scalar>& getTensorView();
@@ -45,29 +48,36 @@ namespace SharsorIPCpp{
             // read only getter
             const Tensor<Scalar>& getTensorCopy();
 
-            int n_rows;
-            int n_cols;
+            int n_rows = -1;
+            int n_cols = -1;
+
+            void attach();
+            void detach();
 
             void close();
 
-            bool isRunning();
+            bool isAttached();
 
         private:
+
+            bool _unlink_data = false; // will never unlink data
+            // when cleaning shared memory
 
             bool _verbose = false;
 
             bool _terminated = false;
 
-            bool _running = false;
+            bool _attached = false;
 
             int _data_shm_fd; // shared memory file descriptor
             int _nrows_shm_fd,
                 _ncols_shm_fd,
                 _n_clients_shm_fd,
-                _dtype_shm_fd;
+                _dtype_shm_fd,
+                _isrunning_shm_fd;
 
             int _n_sem_acq_fail = 0;
-            int _n_acq_trials = 10;
+            int _n_acq_trials = 100;
 
             std::string _this_name = "SharsorIPCpp::Client";
 
@@ -79,6 +89,8 @@ namespace SharsorIPCpp{
 
             Journal _journal; // for rt-friendly logging
 
+            Timer _timer;
+
             Tensor<Scalar> _tensor_copy; // copy (not view) of the tensor
 
             MMap<Scalar> _tensor_view; // view of the tensor
@@ -87,16 +99,25 @@ namespace SharsorIPCpp{
                       _n_cols_view,
                       _n_clients_view,
                       _dtype_view;
+            MMap<bool> _isrunning_view;
+
+            void _acquireData();
+            void _releaseData();
+
+            void _waitForServer();
 
             std::string _getThisName();
 
-            void _initMems();
+            void _checkDType();
+
+            void _initMetaMem();
 
             void _initSems();
 
             void _closeSems();
 
-            void _cleanUpAll();
+            void _cleanMetaMem();
+            void _cleanMems();
 
     };
 

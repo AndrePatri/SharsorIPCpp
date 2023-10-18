@@ -20,11 +20,14 @@ namespace SharsorIPCpp{
     using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
 
     template <typename Scalar>
-    using MMap = Eigen::Map<Tensor<Scalar>>;
+    using MMap = Eigen::Map<Tensor<Scalar>>; // no explicit cleanup needed
+    // for Eigen::Map -> it does not own the memory
 
     using VLevel = Journal::VLevel;
 
     using LogType = Journal::LogType;
+
+    using Index = Eigen::Index;
 
     namespace MemUtils{
 
@@ -126,31 +129,61 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar>
-        void write(const Tensor<Scalar>& data,
-                   MMap<Scalar>& tensor_view,
-                   Journal& journal) {
+        bool canFitTensor(const Tensor<Scalar>& mat,
+                           int i, int j,
+                           Index n_rows2fit,
+                           Index n_cols2fit,
+                           Journal& journal) {
 
-            if(data.rows() != tensor_view.rows()
-                    || data.cols() !=  tensor_view.cols()) {
+            // Check if the indices (i, j) are within the matrix
+            if (i < 0 || i >= mat.rows() || j < 0 || j >= mat.cols()) {
 
-                std::string error =
-                        std::string("Data dimension mismatch. ") +
-                        std::string("Expected a tensor of size ") +
-                        std::to_string(tensor_view.rows()) + std::string("x") +
-                        std::to_string(tensor_view.cols()) +
-                        std::string(", but provided tensor is ") +
-                        std::to_string(data.rows()) + std::string("x") +
-                        std::to_string(data.cols());
+                std::string warn =
+                        std::string("Provided indeces are out of bounds.");
 
                 journal.log(__FUNCTION__,
-                             error,
-                             LogType::EXCEP);
+                             warn,
+                             LogType::WARN);
 
+                return false;
             }
 
-            tensor_view.block(0, 0,
+            // Check if there's enough space for the submatrix
+            if (i + n_rows2fit > mat.rows() ||
+                j + n_cols2fit > mat.cols()) {
+
+                std::string warn =
+                        std::string("Not enough space to fit input tensor.");
+
+                journal.log(__FUNCTION__,
+                             warn,
+                             LogType::WARN);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        template <typename Scalar>
+        bool write(const Tensor<Scalar>& data,
+                   MMap<Scalar>& tensor_view,
+                   int row, int col,
+                   Journal& journal) {
+
+            bool success = canFitTensor<Scalar>(tensor_view,
+                         row, col,
+                         data.rows(), data.cols(),
+                         journal);
+
+            if (success) {
+
+                tensor_view.block(row, col,
                               tensor_view.rows(),
                               tensor_view.cols()) = data;
+            }
+
+            return success;
 
         }
 
@@ -160,23 +193,10 @@ namespace SharsorIPCpp{
                 int& shm_fd,
                 Journal& journal,
                 bool verbose = true,
-                VLevel vlevel = Journal::VLevel::V0) {
+                VLevel vlevel = Journal::VLevel::V0,
+                bool unlink = false) {
 
-            // Unlinking from shared memory data
-            shm_unlink(mem_path.c_str());
-
-            if (verbose &&
-                    vlevel > VLevel::V2) {
-
-                std::string info = "Unlinked from memory at " +
-                                    mem_path;
-
-                journal.log(__FUNCTION__,
-                             info,
-                             LogType::INFO);
-            }
-
-            // Closing the file descriptor
+            // Closing the file descriptor (for this process only)
             ::close(shm_fd);
 
             if (verbose
@@ -188,6 +208,26 @@ namespace SharsorIPCpp{
                 journal.log(__FUNCTION__,
                              info,
                              LogType::INFO);
+            }
+
+            if (unlink) {
+
+                // Unlinking from shared memory data (system-wide)
+                // processed which have access to the memory can
+                // still access it, but no new process can access it
+
+                shm_unlink(mem_path.c_str());
+
+                if (verbose &&
+                        vlevel > VLevel::V2) {
+
+                    std::string info = "Unlinked memory at " +
+                                        mem_path;
+
+                    journal.log(__FUNCTION__,
+                                 info,
+                                 LogType::INFO);
+                }
             }
 
         }
@@ -290,21 +330,43 @@ namespace SharsorIPCpp{
                      sem_t *&sem,
                      Journal& journal,
                      bool verbose = true,
-                     VLevel vlevel = Journal::VLevel::V0) {
+                     VLevel vlevel = Journal::VLevel::V0,
+                     bool unlink = false) {
 
-            sem_close(sem); // close semaphore
+            sem_close(sem); // closes semaphore for the current process
 
-            sem_unlink(sem_path.c_str()); // unlink semaphore
+            if (unlink) {
 
-            if (verbose &&
-                    vlevel > VLevel::V2) {
+                sem_unlink(sem_path.c_str()); // unlinks semaphore system-wide.
+                // Other processes who had it open can still use it, but no new
+                // process can access it
 
-                std::string info = std::string("Closed and unlinked server semaphore at ") +
-                        sem_path;
+                if (verbose &&
+                        vlevel > VLevel::V2) {
 
-                journal.log(__FUNCTION__,
-                     info,
-                     LogType::INFO);
+                    std::string info = std::string("Closed and unlinked semaphore at ") +
+                            sem_path;
+
+                    journal.log(__FUNCTION__,
+                         info,
+                         LogType::INFO);
+
+                }
+            }
+
+            if (!unlink) {
+
+                if (verbose &&
+                        vlevel > VLevel::V2) {
+
+                    std::string info = std::string("Closed semaphore at ") +
+                            sem_path;
+
+                    journal.log(__FUNCTION__,
+                         info,
+                         LogType::INFO);
+
+                }
 
             }
 
@@ -320,7 +382,7 @@ namespace SharsorIPCpp{
             if (verbose &&
                     vlevel > VLevel::V2) {
 
-                std::string info = std::string("Releasing server semaphore at ") +
+                std::string info = std::string("Releasing semaphore at ") +
                             sem_path;
 
                 journal.log(__FUNCTION__,
@@ -341,7 +403,7 @@ namespace SharsorIPCpp{
             if (verbose &&
                     vlevel > VLevel::V2) {
 
-                std::string info = std::string("Released server semaphore at ") +
+                std::string info = std::string("Released semaphore at ") +
                         sem_path;
 
                 journal.log(__FUNCTION__,
@@ -366,7 +428,7 @@ namespace SharsorIPCpp{
                     vlevel > VLevel::V2 &&
                     fail_counter == 0) {
 
-                std::string info = std::string("Acquiring server semaphore at ") +
+                std::string info = std::string("Acquiring semaphore at ") +
                         sem_path;
 
                 journal.log(__FUNCTION__,
@@ -410,7 +472,7 @@ namespace SharsorIPCpp{
                             sem,
                             journal,
                             verbose,
-                            vlevel); // we try to release it, so that if a previous server
+                            vlevel); // we try to release it, so that if a previous instance
                     // crashed, we now make the semaphore available for acquisition.
                 }
 
@@ -440,7 +502,7 @@ namespace SharsorIPCpp{
             if (verbose &&
                     vlevel > VLevel::V2) {
 
-                std::string info = std::string("Acquired server semaphore at ") +
+                std::string info = std::string("Acquired semaphore at ") +
                         sem_path;
 
                 journal.log(__FUNCTION__,

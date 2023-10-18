@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(LIBRARY_NAME SharsorIPCpp)
+add_definitions("-DLIBRARY_NAME=${LIBRARY_NAME}")
 
 project(${LIBRARY_NAME} LANGUAGES CXX)
 

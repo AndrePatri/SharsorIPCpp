@@ -38,7 +38,9 @@ namespace SharsorIPCpp{
 
             ~Server();
 
-            void writeMemory(const Tensor<Scalar>& data);
+            void writeMemory(const Tensor<Scalar>& data,
+                             int row = 0,
+                             int col = 0);
 
             //  read only getter
             const MMap<Scalar>& getTensorView();
@@ -46,8 +48,10 @@ namespace SharsorIPCpp{
             // read only getter
             const Tensor<Scalar>& getTensorCopy();
 
-            int n_rows;
-            int n_cols;
+            int n_rows = -1;
+            int n_cols = -1;
+
+            int n_clients = -1;
 
             void run();
             void stop();
@@ -55,7 +59,12 @@ namespace SharsorIPCpp{
 
             bool isRunning();
 
+            int getNClients();
+
         private:
+
+            bool _unlink_data = true; // will also unlink data
+            // when freeing shared memory
 
             bool _verbose = false;
 
@@ -69,7 +78,8 @@ namespace SharsorIPCpp{
             int _nrows_shm_fd,
                 _ncols_shm_fd,
                 _n_clients_shm_fd,
-                _dtype_shm_fd;
+                _dtype_shm_fd,
+                _isrunning_shm_fd;
 
             int _n_sem_acq_fail = 0;
             int _n_acq_trials = 10;
@@ -93,16 +103,22 @@ namespace SharsorIPCpp{
                       _n_cols_view,
                       _n_clients_view,
                       _dtype_view;
+            MMap<bool> _isrunning_view;
 
             std::string _getThisName();
 
+            void _initMetaMem();
             void _initMems();
 
             void _initSems();
 
+            void _acquireData();
+            void _releaseData();
+
             void _closeSems();
 
-            void _cleanUpAll();
+            void _cleanMetaMem();
+            void _cleanMems();
 
     };
 
