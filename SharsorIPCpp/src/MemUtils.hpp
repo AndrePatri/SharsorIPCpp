@@ -179,8 +179,8 @@ namespace SharsorIPCpp{
             if (success) {
 
                 tensor_view.block(row, col,
-                              tensor_view.rows(),
-                              tensor_view.cols()) = data;
+                              data.rows(),
+                              data.cols()) = data;
             }
 
             return success;
