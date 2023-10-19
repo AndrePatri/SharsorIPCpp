@@ -52,6 +52,7 @@ find_package(Eigen3 3.3 REQUIRED)
 add_library(${LIBRARY_NAME} STATIC
     src/Server.cpp
     src/Client.cpp
+    src/StringTensor.cpp
     src/MemDefs.hpp
     src/MemUtils.hpp
     src/SharedMemConfig.hpp

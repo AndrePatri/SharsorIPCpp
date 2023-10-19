@@ -21,9 +21,9 @@ ToDo:
 - [x] add semaphore for data: when any kind of shared data has to be modified, this has to be acquired (either by the server or the client). The data semaphore will be held by the server, up to the point when the run() has finished. Also, when stopping the server, the semaphore is owned back y the server.
 - [x] separate common utils between server and client
 - [x] write client: tries to acquire the data semaphore, read ncols, nrows,dtype, gets a memory view, increments the clients counter
-- [ ] add method to read a block and not all the Tensor
-- [ ] write a "PyFace" interface on top of SharspIPCpp which is a simple wrapper around its public methods ("PyServer", "PyClient"), but it exposes a write method which accepts either a Torch tensor or a Numpy 2D array and a position where this has to be written and a read method which returns a torch or numpy block of the data. No view of the data should be exposed so that race conditions will not be possible at the Python level.
+- [x] add method to read a block and not all the Tensor
 - [ ] add a class for shared string lists built on top of the server and clients. Ideally, we would want it to be templatized, so that a server type is passed, then a server is created, otherwise a client.
+- [ ] write a "PyFace" interface on top of SharspIPCpp which is a simple wrapper around its public methods ("PyServer", "PyClient"), but it exposes a write method which accepts either a Torch tensor or a Numpy 2D array and a position where this has to be written and a read method which returns a torch or numpy block of the data. No view of the data should be exposed so that race conditions will not be possible at the Python level.
 - [ ] write tests for the Python bindings
 - [ ] deploy on Anaconda   
 - [ ] test use from other package 

@@ -2,8 +2,6 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-message(STATUS "###")
-
 add_executable(read_write_bench read_write_bench.cpp)
 target_link_libraries(read_write_bench PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
