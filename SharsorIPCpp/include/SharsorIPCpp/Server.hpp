@@ -38,9 +38,12 @@ namespace SharsorIPCpp{
 
             ~Server();
 
-            void writeMemory(const Tensor<Scalar>& data,
+            void writeTensor(const Tensor<Scalar>& data,
                              int row = 0,
                              int col = 0);
+
+            void readTensor(Tensor<Scalar>& output,
+                            int row = 0, int col = 0);
 
             //  read only getter
             const MMap<Scalar>& getTensorView();

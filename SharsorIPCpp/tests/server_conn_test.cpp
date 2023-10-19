@@ -73,7 +73,7 @@ protected:
       tensor.array() += TENSOR_INCREMENT; // incremening copy
 
       // writing only a block
-      server_ptr->writeMemory(tensor.block(0, 0,
+      server_ptr->writeTensor(tensor.block(0, 0,
                                            BLOCK_SIZE, BLOCK_SIZE),
                               0, 0);
 
@@ -142,7 +142,7 @@ protected:
       journal.log("updateData", message, LogType::INFO);
 
       // writing only a block
-      server_ptr->writeMemory(myData,
+      server_ptr->writeTensor(myData,
                               1, 1);
 
       std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -201,7 +201,7 @@ protected:
       journal.log("updateData", message, LogType::INFO);
 
       // writing only a block
-      server_ptr->writeMemory(myData,
+      server_ptr->writeTensor(myData,
                               1, 1);
 
       std::this_thread::sleep_for(std::chrono::seconds(1));

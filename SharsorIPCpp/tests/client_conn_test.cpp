@@ -15,6 +15,7 @@
 #include <test_utils.hpp>
 
 int N_ITER = 10;
+int BLOCK_SIZE = 3;
 
 using namespace SharsorIPCpp;
 
@@ -35,9 +36,15 @@ protected:
 
         client_ptr->attach();
 
-        tensor_copy = client_ptr->getTensorCopy();
-
         getMetaData();
+
+        tensor_copy = Tensor<int>::Zero(rows,
+                                         cols);
+
+        tensor_block_copy = Tensor<int>::Zero(BLOCK_SIZE,
+                                         BLOCK_SIZE);
+
+        client_ptr->readTensor(tensor_copy);
 
         std::cout << "Detected data of size " << rows << "x" << cols << std::endl;
     }
@@ -64,9 +71,13 @@ protected:
 
     void readData() {
 
-        tensor_copy = client_ptr->getTensorCopy();
+        client_ptr->readTensor(tensor_copy);
+        client_ptr->readTensor(tensor_block_copy, 0, 0);
 
+        std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
+        std::cout << "Read tensor block (copy):" << std::endl;
+        std::cout << tensor_block_copy << std::endl;
         std::cout << "##############" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -80,6 +91,7 @@ protected:
     Client<int>::UniquePtr client_ptr;
 
     Tensor<int> tensor_copy;
+    Tensor<int> tensor_block_copy;
 };
 
 class ClientReadsBool : public ::testing::Test {
@@ -93,9 +105,15 @@ protected:
 
         client_ptr->attach();
 
-        tensor_copy = client_ptr->getTensorCopy();
-
         getMetaData();
+
+        tensor_copy = Tensor<bool>::Zero(rows,
+                                         cols);
+
+        tensor_block_copy = Tensor<bool>::Zero(rows - 2,
+                                         cols - 2);
+
+        client_ptr->readTensor(tensor_copy);
 
         std::cout << "Detected data of size " << rows << "x" << cols << std::endl;
     }
@@ -122,9 +140,13 @@ protected:
 
     void readData() {
 
-        tensor_copy = client_ptr->getTensorCopy();
-
+        client_ptr->readTensor(tensor_copy);
+        client_ptr->readTensor(tensor_block_copy,
+                               1, 1);
+        std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
+        std::cout << "Read tensor block (copy):" << std::endl;
+        std::cout << tensor_block_copy << std::endl;
         std::cout << "##############" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -138,6 +160,8 @@ protected:
     Client<bool>::UniquePtr client_ptr;
 
     Tensor<bool> tensor_copy;
+    Tensor<bool> tensor_block_copy;
+
 };
 
 class ClientReadsFloat : public ::testing::Test {
@@ -151,9 +175,14 @@ protected:
 
         client_ptr->attach();
 
-        tensor_copy = client_ptr->getTensorCopy();
-
         getMetaData();
+
+        tensor_copy = Tensor<float>::Zero(rows,
+                                         cols);
+        tensor_block_copy = Tensor<float>::Zero(rows - 2,
+                                                cols - 2);
+
+        client_ptr->readTensor(tensor_copy);
 
         std::cout << "Detected data of size " << rows << "x" << cols << std::endl;
     }
@@ -180,9 +209,14 @@ protected:
 
     void readData() {
 
-        tensor_copy = client_ptr->getTensorCopy();
+        client_ptr->readTensor(tensor_copy);
+        client_ptr->readTensor(tensor_block_copy,
+                               1, 1);
 
+        std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
+        std::cout << "Read tensor block (copy):" << std::endl;
+        std::cout << tensor_block_copy << std::endl;
         std::cout << "##############" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -196,6 +230,8 @@ protected:
     Client<float>::UniquePtr client_ptr;
 
     Tensor<float> tensor_copy;
+    Tensor<float> tensor_block_copy;
+
 };
 
 class ClientReadsDouble : public ::testing::Test {
@@ -209,9 +245,15 @@ protected:
 
         client_ptr->attach();
 
-        tensor_copy = client_ptr->getTensorCopy();
-
         getMetaData();
+
+        tensor_copy = Tensor<double>::Zero(rows,
+                                         cols);
+
+        tensor_block_copy = Tensor<double>::Zero(rows - 2,
+                                                cols - 2);
+
+        client_ptr->readTensor(tensor_copy);
 
         std::cout << "Detected data of size " << rows << "x" << cols << std::endl;
     }
@@ -238,9 +280,14 @@ protected:
 
     void readData() {
 
-        tensor_copy = client_ptr->getTensorCopy();
+        client_ptr->readTensor(tensor_copy);
+        client_ptr->readTensor(tensor_block_copy,
+                               1, 1);
 
+        std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
+        std::cout << "Read tensor block (copy):" << std::endl;
+        std::cout << tensor_block_copy << std::endl;
         std::cout << "##############" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -254,6 +301,8 @@ protected:
     Client<double>::UniquePtr client_ptr;
 
     Tensor<double> tensor_copy;
+    Tensor<double> tensor_block_copy;
+
 };
 
 TEST_F(ClientReadsInt, ClientReadingInt) {

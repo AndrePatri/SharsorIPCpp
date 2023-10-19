@@ -202,9 +202,9 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::writeMemory(const Tensor<Scalar>& data,
-                                     int row,
-                                     int col) {
+    void Server<Scalar>::writeTensor(const Tensor<Scalar>& data,
+                                 int row,
+                                 int col) {
 
         if (_running) {
 
@@ -222,6 +222,37 @@ namespace SharsorIPCpp {
 
             std::string error = std::string("Server is not running. ") +
                     std::string("Did you remember to call the run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP);
+
+        }
+
+    }
+
+    template <typename Scalar>
+    void Server<Scalar>::readTensor(Tensor<Scalar>& output,
+                                    int row, int col) {
+
+        if (_running) {
+
+            _acquireData();
+
+            MemUtils::read(row, col,
+                           output,
+                           _tensor_view,
+                           _journal,
+                           _verbose,
+                           _vlevel);
+
+            _releaseData();
+
+        }
+        else {
+
+            std::string error = std::string("Client is not registered to the Server. ") +
+                    std::string("Did you remember to call the attach() method?");
 
             _journal.log(__FUNCTION__,
                  error,

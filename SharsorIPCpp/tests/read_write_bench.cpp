@@ -233,7 +233,7 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server_ptr->writeMemory(myData);
+        server_ptr->writeTensor(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
@@ -316,14 +316,14 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server_ptr->writeMemory(myData);
+        server_ptr->writeTensor(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server_ptr->getTensorCopy();
+        server_ptr->readTensor(tensor_copy);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -399,14 +399,14 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server_ptr->writeMemory(myData);
+        server_ptr->writeTensor(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server_ptr->getTensorCopy();
+        server_ptr->readTensor(tensor_copy);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -482,14 +482,14 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        server_ptr->writeMemory(myData);
+        server_ptr->writeTensor(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server_ptr->getTensorCopy();
+        server_ptr->readTensor(tensor_copy);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);

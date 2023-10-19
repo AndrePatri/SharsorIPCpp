@@ -129,21 +129,28 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar>
-        bool canFitTensor(const Tensor<Scalar>& mat,
-                           int i, int j,
-                           Index n_rows2fit,
-                           Index n_cols2fit,
-                           Journal& journal) {
+        bool canFitTensor(MMap<Scalar>& mat,
+                            int i, int j,
+                            Index n_rows2fit,
+                            Index n_cols2fit,
+                            Journal& journal,
+                            bool verbose = true,
+                            VLevel vlevel = Journal::VLevel::V0) {
 
             // Check if the indices (i, j) are within the matrix
             if (i < 0 || i >= mat.rows() || j < 0 || j >= mat.cols()) {
 
-                std::string warn =
-                        std::string("Provided indeces are out of bounds.");
+                if (verbose &&
+                        vlevel > VLevel::V0) {
 
-                journal.log(__FUNCTION__,
-                             warn,
+                    std::string warn =
+                            std::string("Provided indeces are out of bounds wrt memory.");
+
+                    journal.log(__FUNCTION__,
+                                 warn,
                              LogType::WARN);
+
+                }
 
                 return false;
             }
@@ -152,12 +159,17 @@ namespace SharsorIPCpp{
             if (i + n_rows2fit > mat.rows() ||
                 j + n_cols2fit > mat.cols()) {
 
-                std::string warn =
-                        std::string("Not enough space to fit input tensor.");
+                if (verbose &&
+                        vlevel > VLevel::V0) {
 
-                journal.log(__FUNCTION__,
-                             warn,
-                             LogType::WARN);
+                    std::string warn =
+                            std::string("The provided tensor does not fit into memory!");
+
+                    journal.log(__FUNCTION__,
+                                 warn,
+                                 LogType::WARN);
+
+                }
 
                 return false;
             }
@@ -169,18 +181,48 @@ namespace SharsorIPCpp{
         bool write(const Tensor<Scalar>& data,
                    MMap<Scalar>& tensor_view,
                    int row, int col,
-                   Journal& journal) {
+                   Journal& journal,
+                   bool verbose = true,
+                   VLevel vlevel = Journal::VLevel::V0) {
 
             bool success = canFitTensor<Scalar>(tensor_view,
                          row, col,
                          data.rows(), data.cols(),
-                         journal);
+                         journal,
+                         verbose,
+                         vlevel);
 
             if (success) {
 
                 tensor_view.block(row, col,
                               data.rows(),
                               data.cols()) = data;
+            }
+
+            return success;
+
+        }
+
+        template <typename Scalar>
+        bool read(int row, int col,
+                  Tensor<Scalar>& output,
+                  MMap<Scalar>& tensor_view,
+                  Journal& journal,
+                  bool verbose = true,
+                  VLevel vlevel = Journal::VLevel::V0) {
+
+            bool success = canFitTensor<Scalar>(tensor_view,
+                         row, col,
+                         output.rows(), output.cols(),
+                         journal,
+                         verbose,
+                         vlevel);
+
+            if (success) {
+
+                output = tensor_view.block(row, col,
+                                           output.rows(),
+                                           output.cols());
             }
 
             return success;
