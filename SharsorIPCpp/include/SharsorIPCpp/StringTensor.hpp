@@ -11,10 +11,17 @@
 
 namespace SharsorIPCpp {
 
+        using StrServer = Server<int>;
+        using StrClient = Client<int>;
+
         template <typename ShMemType>
         class StringTensor {
 
         public:
+
+            typedef std::weak_ptr<StringTensor> WeakPtr;
+            typedef std::shared_ptr<StringTensor> Ptr;
+            typedef std::unique_ptr<StringTensor> UniquePtr;
 
             StringTensor(std::string basename = "MySharedMemory",
                          std::string name_space = "",
@@ -30,26 +37,33 @@ namespace SharsorIPCpp {
 
             ~StringTensor();
 
+            void run();
+
             void write(const std::vector<std::string>& vec,
                        int index = 0);
 
             void read(const std::vector<std::string>& vec,
                       int index = 0);
 
+            void close();
+
             int length = -1;
 
         private:
 
-            Server<int> sh_mem;
+            ShMemType sh_mem;
 
             // Helper methods to initialize sh_mem
             ShMemType _initServer(int length,
                                   std::string basename,
                                   std::string name_space,
-                                  VLevel vlevel);
+                                  bool verbose,
+                                  VLevel vlevel,
+                                  bool force_reconnection);
 
             ShMemType _initClient(std::string basename,
                                   std::string name_space,
+                                  bool verbose,
                                   VLevel vlevel);
 
         };

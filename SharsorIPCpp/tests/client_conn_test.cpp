@@ -9,6 +9,7 @@
 
 #include <SharsorIPCpp/Server.hpp>
 #include <SharsorIPCpp/Client.hpp>
+#include <SharsorIPCpp/StringTensor.hpp>
 
 #include <SharsorIPCpp/Journal.hpp>
 
@@ -305,6 +306,53 @@ protected:
 
 };
 
+class StringTensorRead : public ::testing::Test {
+protected:
+
+    StringTensorRead() :
+                   string_t_ptr(new StringTensor<StrClient>(
+                                     "SharedStrTensor", name_space,
+                                     true,
+                                     VLevel::V3)) {
+
+        string_t_ptr->run();
+
+    }
+
+    void SetUp() override {
+
+    }
+
+    void TearDown() override {
+
+        string_t_ptr->close();
+
+    }
+
+    void readData() {
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    }
+
+    StringTensor<StrClient>::UniquePtr string_t_ptr;
+
+};
+
+TEST_F(StringTensorRead, StringTensorCheck) {
+
+    check_comp_type(journal);
+
+    journal.log("StringTensorWrite", "\n Starting to read string tensor ...\n",
+                Journal::LogType::STAT);
+
+    for (int i = 0; i < N_ITER; ++i) {
+
+        readData();
+    }
+
+}
+
 TEST_F(ClientReadsInt, ClientReadingInt) {
 
     check_comp_type(journal);
@@ -346,8 +394,8 @@ TEST_F(ClientReadsFloat, ClientReadRandFloat) {
 
 int main(int argc, char** argv) {
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ClientReadsInt.ClientReadingInt";
+    ::testing::GTEST_FLAG(filter) =
+        ":StringTensorRead.StringTensorCheck";
 
 //    ::testing::GTEST_FLAG(filter) +=
 //        ":ClientReadsBool.ClientReadsRandBoolBlock";

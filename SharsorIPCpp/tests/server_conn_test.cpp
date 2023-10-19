@@ -9,6 +9,7 @@
 
 #include <SharsorIPCpp/Server.hpp>
 #include <SharsorIPCpp/Client.hpp>
+#include <SharsorIPCpp/StringTensor.hpp>
 
 #include <SharsorIPCpp/Journal.hpp>
 
@@ -214,6 +215,55 @@ protected:
 
 };
 
+class StringTensorWrite : public ::testing::Test {
+protected:
+
+    StringTensorWrite() :
+                   string_t_ptr(new StringTensor<StrServer>(
+                                     2,
+                                     "SharedStrTensor", name_space,
+                                     true,
+                                     VLevel::V3,
+                                     true)) {
+
+        string_t_ptr->run();
+
+    }
+
+    void SetUp() override {
+
+    }
+
+    void TearDown() override {
+
+        string_t_ptr->close();
+
+    }
+
+    void updateData() {
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    }
+
+    StringTensor<StrServer>::UniquePtr string_t_ptr;
+
+};
+
+TEST_F(StringTensorWrite, StringTensorCheck) {
+
+    check_comp_type(journal);
+
+    journal.log("StringTensorWrite", "\n Starting to write string tensor...\n",
+                Journal::LogType::STAT);
+
+    for (int i = 0; i < N_ITER; ++i) {
+
+        updateData();
+    }
+
+}
+
 TEST_F(ServerWritesInt, ServerWriteIntBlock) {
 
     check_comp_type(journal);
@@ -263,6 +313,9 @@ int main(int argc, char** argv) {
 
 //    ::testing::GTEST_FLAG(filter) +=
 //        ":ServerWritesFloat.ServerWriteFloatRandBlock";
+
+  ::testing::GTEST_FLAG(filter) =
+      ":StringTensorWrite.StringTensorCheck";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
