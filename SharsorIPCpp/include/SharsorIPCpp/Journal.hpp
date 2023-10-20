@@ -52,9 +52,6 @@ namespace SharsorIPCpp{
                 if (log_type == LogType::EXCEP){
 
                     std::printf("%s[%s][%s][%s]: %s%s\n",
-                                );
-
-                    std::printf("%s[%s][%s][%s]: %s%s\n",
                             Colors::kBoldRed.c_str(),
                             _classname.c_str(),
                             methodname.c_str(),
