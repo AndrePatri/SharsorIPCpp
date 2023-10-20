@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 find_package(pybind11 REQUIRED)
 
-find_package(Eigen REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
 
 # backends (at least one of them needs to be found)
 find_package(Torch QUIET)
@@ -20,10 +20,8 @@ execute_process(
       OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-pybind11_add_module(PySharsorIPC pysharsor_ip.cpp)
-target_link_libraries(PySharsorIPC PUBLIC SharsorIPCpp
-    ${TORCH_LIBRARIES}
-    ${NUMPY_LIBRARIES})
+pybind11_add_module(PySharsorIPC pysharsor_ipc.cpp)
+target_link_libraries(PySharsorIPC PUBLIC SharsorIPCpp PRIVATE pybind11::module)
 
 install(TARGETS PySharsorIPC
             DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME})

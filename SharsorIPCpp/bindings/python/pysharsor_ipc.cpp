@@ -1,32 +1,83 @@
 #include <pybind11/pybind11.h>
 
-#include <Server.hpp>
-#include <pybind11/eigen.h>
+#include <pybind11/stl.h>
+
 #include <Eigen/Dense>
 
-#include <torch/torch.h>
+//#include <SharsorIPCpp/Server.hpp>
+//#include <SharsorIPCpp/Client.hpp>
+#include <SharsorIPCpp/StringTensor.hpp>
 
 namespace py = pybind11;
-
 using namespace SharsorIPCpp;
 
-PYBIND11_MODULE(PySharsorIPC, m) {
+template <typename ShMemType>
+void declare_StringTensor(py::module &m,
+                          const std::string& type) {
 
-    m.doc() = "Python binding for SharsorIPCpp library";
+    std::string pyclass_name;
 
-    py::class_<Server>(m, "Server")
-            .def(py::init()));
+    if (type == std::string("Server")) {
 
-    py::class_<NumDiff, std::shared_ptr<NumDiff>>(m, "NumDiff")
-    .def(py::init(construct_num_diff),
-         py::arg("n_jnts"),
-         py::arg("dt"),
-         py::arg("order") = 1
-         )
-    .def("add_sample", &NumDiff::add_sample,
-         py::arg("sample"))
+        pyclass_name = std::string("StringTensorServer");
 
-    .def("dot", dot)
-    ;
+    }
+    if (type == std::string("Client")) {
 
+        pyclass_name = std::string("StringTensorClient");
+
+    }
+
+    py::class_<StringTensor<ShMemType>>(m, pyclass_name.c_str())
+
+        .def(py::init<std::string, std::string, bool, VLevel>(),
+             py::arg("basename") = "MySharedMemory",
+             py::arg("name_space") = "",
+             py::arg("verbose") = false,
+             py::arg("vlevel") = VLevel::V0)
+
+        .def(py::init<int, std::string, std::string, bool, VLevel, bool>(),
+             py::arg("length"),
+             py::arg("basename") = "MySharedMemory",
+             py::arg("name_space") = "",
+             py::arg("verbose") = false,
+             py::arg("vlevel") = VLevel::V0,
+             py::arg("force_reconnection") = false)
+
+        .def("run", &StringTensor<ShMemType>::run)
+
+        // Add other method bindings here ...
+        .def("isRunning", &StringTensor<ShMemType>::isRunning)
+
+        .def("close", &StringTensor<ShMemType>::close)
+
+        .def("write",
+            (bool (StringTensor<ShMemType>::*)(const std::vector<std::string>&, int))
+            &StringTensor<ShMemType>::write,
+            py::arg("vec"), py::arg("index") = 0)
+        .def("write",
+            (bool (StringTensor<ShMemType>::*)(const std::string&, int))
+            &StringTensor<ShMemType>::write,
+            py::arg("str"), py::arg("index") = 0)
+        .def("read",
+            (bool (StringTensor<ShMemType>::*)(std::vector<std::string>&, int))
+            &StringTensor<ShMemType>::read,
+            py::arg("vec"), py::arg("index") = 0)
+        .def("read",
+            (bool (StringTensor<ShMemType>::*)(std::string&, int))
+            &StringTensor<ShMemType>::read,
+            py::arg("str"), py::arg("index") = 0)
+
+        ;
 }
+
+PYBIND11_MODULE(stringtensor, m) {
+    m.doc() = "pybind11 StringTensor bindings";
+
+    // Bind other classes or enums if necessary...
+
+    declare_StringTensor<StrServer>(m, "Server");
+
+    declare_StringTensor<StrClient>(m, "Client");
+}
+

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 set(LIBRARY_NAME SharsorIPCpp)
 add_definitions("-DLIBRARY_NAME=${LIBRARY_NAME}")
 
-project(${LIBRARY_NAME} LANGUAGES CXX)
+project(${LIBRARY_NAME} VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -49,6 +49,9 @@ endif()
 
 find_package(Eigen3 3.3 REQUIRED)
 
+# static library for max compatibility and self-containment
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_library(${LIBRARY_NAME} STATIC
     src/Server.cpp
     src/Client.cpp
@@ -87,17 +90,19 @@ if(${WITH_TESTS})
 endif()
 
 # Compile python bindings
-#if(${WITH_PYTHON})
+if(${WITH_PYTHON})
 
-#    add_subdirectory(bindings/python/)
+    add_subdirectory(bindings/python/)
 
-#endif()
+endif()
 
 install(TARGETS  ${LIBRARY_NAME}
     EXPORT   ${LIBRARY_NAME}
     LIBRARY  DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
     ARCHIVE  DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT lib
     RUNTIME  DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin)
+
+include(GNUInstallDirs)
 
 # Mark cpp headers files for installation
 install(DIRECTORY include/${LIBRARY_NAME}
