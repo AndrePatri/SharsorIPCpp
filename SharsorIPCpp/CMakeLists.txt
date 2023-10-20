@@ -57,6 +57,7 @@ add_library(${LIBRARY_NAME} STATIC
     src/MemUtils.hpp
     src/SharedMemConfig.hpp
     include/${LIBRARY_NAME}/Journal.hpp
+    include/${LIBRARY_NAME}/ReturnCodes.hpp
 )
 
 # private headers
