@@ -6,6 +6,8 @@
 #include <csignal>
 #include <thread>
 #include <chrono>
+#include <vector>
+#include <string>
 
 #include <SharsorIPCpp/Server.hpp>
 #include <SharsorIPCpp/Client.hpp>
@@ -16,11 +18,15 @@
 #include <test_utils.hpp>
 
 int N_ITER = 10;
+int N_ITER_STR = 10;
+
 int N_ROWS = 4;
 int N_COLS = 7;
 int BLOCK_SIZE = 3;
 
 int TENSOR_INCREMENT = 4;
+
+size_t STR_TENSOR_LENGTH = 10;
 
 using namespace SharsorIPCpp;
 
@@ -146,7 +152,7 @@ protected:
       server_ptr->writeTensor(myData,
                               1, 1);
 
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::seconds(10));
 
     }
 
@@ -220,11 +226,22 @@ protected:
 
     StringTensorWrite() :
                    string_t_ptr(new StringTensor<StrServer>(
-                                     2,
+                                     STR_TENSOR_LENGTH,
                                      "SharedStrTensor", name_space,
                                      true,
                                      VLevel::V3,
-                                     true)) {
+                                     true)),
+                   str_vec(STR_TENSOR_LENGTH) {
+
+        str_vec[0] = "MaremmaMaiala";
+
+        str_vec[1] = "?=^/$£*ç°§_";
+
+        str_vec[2] = "Scibidibi97";
+
+        str_vec[6] = "Joint_dummy2";
+
+        str_vec[9] = "Sbirulina";
 
         string_t_ptr->run();
 
@@ -242,11 +259,30 @@ protected:
 
     void updateData() {
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        string_t_ptr->write(str_vec, 0);
+
+        str_vec[random_int(str_vec.size() - 1)] = random_string(5); // random
+        // update at random index
+
+        std::string delimiter = ", ";
+
+        std::string result = std::accumulate(str_vec.begin(), str_vec.end(),
+                                             std::string(),
+                                             [&delimiter](const std::string& a, const std::string& b) {
+                                                 return a.empty() ? b : a + delimiter + b;
+                                             });
+        journal.log("StringTensorRead",
+                    std::string("\nWritten vector:\n") + result + std::string("\n"),
+                    Journal::LogType::STAT);
+
+
+        std::this_thread::sleep_for(std::chrono::seconds(5));
 
     }
 
     StringTensor<StrServer>::UniquePtr string_t_ptr;
+
+    std::vector<std::string> str_vec;
 
 };
 
@@ -257,7 +293,7 @@ TEST_F(StringTensorWrite, StringTensorCheck) {
     journal.log("StringTensorWrite", "\n Starting to write string tensor...\n",
                 Journal::LogType::STAT);
 
-    for (int i = 0; i < N_ITER; ++i) {
+    for (int i = 0; i < N_ITER_STR; ++i) {
 
         updateData();
     }

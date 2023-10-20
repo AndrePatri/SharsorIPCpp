@@ -6,6 +6,9 @@
 #include <csignal>
 #include <thread>
 #include <chrono>
+#include <numeric>
+#include <vector>
+#include <string>
 
 #include <SharsorIPCpp/Server.hpp>
 #include <SharsorIPCpp/Client.hpp>
@@ -16,6 +19,8 @@
 #include <test_utils.hpp>
 
 int N_ITER = 10;
+int N_ITER_STR = 20;
+
 int BLOCK_SIZE = 3;
 
 using namespace SharsorIPCpp;
@@ -317,6 +322,8 @@ protected:
 
         string_t_ptr->run();
 
+        str_vec.resize(string_t_ptr->length);
+
     }
 
     void SetUp() override {
@@ -331,11 +338,25 @@ protected:
 
     void readData() {
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        string_t_ptr->read(str_vec, 0);
+
+        std::string delimiter = ", ";
+
+        std::string result = std::accumulate(str_vec.begin(), str_vec.end(),
+                                             std::string(),
+                                             [&delimiter](const std::string& a, const std::string& b) {
+                                                 return a.empty() ? b : a + delimiter + b;
+                                             });
+        journal.log("StringTensorRead",
+                    std::string("\n") + result + std::string("\n"),
+                    Journal::LogType::STAT);
+
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
     }
 
     StringTensor<StrClient>::UniquePtr string_t_ptr;
+    std::vector<std::string> str_vec;
 
 };
 
@@ -346,7 +367,7 @@ TEST_F(StringTensorRead, StringTensorCheck) {
     journal.log("StringTensorWrite", "\n Starting to read string tensor ...\n",
                 Journal::LogType::STAT);
 
-    for (int i = 0; i < N_ITER; ++i) {
+    for (int i = 0; i < N_ITER_STR; ++i) {
 
         readData();
     }

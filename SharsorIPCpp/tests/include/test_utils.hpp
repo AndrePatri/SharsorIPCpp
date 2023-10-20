@@ -3,6 +3,8 @@
 
 #include <SharsorIPCpp/Journal.hpp>
 
+#include <random>
+
 namespace SharsorIPCpp {
 
     void check_comp_type(Journal& journal)
@@ -42,6 +44,32 @@ namespace SharsorIPCpp {
 
         #endif
 
+    }
+
+    std::string random_string(size_t length) {
+
+        static const char alphabet[] = "abcdefghijklmnopqrst)(/)/£0430*é°è{}]54309582'2'uvwxyz";  // Add more characters if needed
+
+        static std::default_random_engine rng(std::random_device{}());
+        static std::uniform_int_distribution<> dist(0, sizeof(alphabet) - 2);  // -2 because sizeof(alphabet) includes the null-terminator
+
+        std::string result;
+        result.reserve(length);
+
+        for(size_t i = 0; i < length; ++i) {
+            result.push_back(alphabet[dist(rng)]);
+        }
+
+        return result;
+    }
+
+    int random_int(int n) {
+
+        static std::default_random_engine rng(std::random_device{}());
+
+        std::uniform_int_distribution<> dist(0, n);
+
+        return dist(rng);
     }
 
 }

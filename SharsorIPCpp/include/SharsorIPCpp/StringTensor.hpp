@@ -17,6 +17,17 @@ namespace SharsorIPCpp {
         template <typename ShMemType>
         class StringTensor {
 
+        // Wrapper on top of Server and Client to also share
+        // tensor (list) of strings. The idea is to use a
+        // shared tensor of ints with the following properties:
+        // each string in the list will be encoded along the columns of
+        // the tensor. Given an input string, the string is first split
+        // into chunks of size equal to size_of(int), which is typically 4 bytes or 32 bits.
+        // This means, for most systems, we can represent each chunk of a string as a sequence
+        // of up to 4 characters (UTF-8 encoded). Each chunck can then distributed
+        // along the column of the tensor, at the corresponding column index.
+        // Strings are encoded using UTF8 and then decoded with the same logic.
+
         public:
 
             typedef std::weak_ptr<StringTensor> WeakPtr;
@@ -39,21 +50,35 @@ namespace SharsorIPCpp {
 
             void run();
 
-            void write(const std::vector<std::string>& vec,
+            bool write(const std::vector<std::string>& vec,
                        int index = 0);
 
-            void read(const std::vector<std::string>& vec,
+            bool read(std::vector<std::string>& vec,
                       int index = 0);
 
             void close();
 
-            int length = -1;
+            bool isRunning();
+
+            int length = -1; // string tensor length
 
         private:
 
-            ShMemType sh_mem;
+            bool _running = false;
 
-            // Helper methods to initialize sh_mem
+            // assuming maximum characters in a string are max_chars
+            static constexpr int _max_chars = 1024;
+
+            // max number of rows needed
+            static constexpr int _n_rows = _max_chars / sizeof(int);
+
+            int _tmp_value = 0; // tmp val to avoid dyn allocations
+
+            Tensor<int> _buffer = Tensor<int>(_n_rows, 1); // to avoid dyn. allocations
+
+            ShMemType _sh_mem;
+
+            // Helper methods to initialize _sh_mem
             ShMemType _initServer(int length,
                                   std::string basename,
                                   std::string name_space,
@@ -65,6 +90,9 @@ namespace SharsorIPCpp {
                                   std::string name_space,
                                   bool verbose,
                                   VLevel vlevel);
+
+            bool _fits(const std::vector<std::string>& vec,
+                       int index);
 
         };
 
