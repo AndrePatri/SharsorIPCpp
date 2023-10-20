@@ -174,7 +174,8 @@ namespace SharsorIPCpp {
             _releaseData();
 
         }
-        else {
+
+        if (!_attached && _verbose) {
 
             std::string error = std::string("Client is not registered to the Server. ") +
                     std::string("Did you remember to call the attach() method?");
@@ -205,7 +206,8 @@ namespace SharsorIPCpp {
             _releaseData();
 
         }
-        else {
+
+        if (!_attached && _verbose) {
 
             std::string error = std::string("Client is not registered to the Server. ") +
                     std::string("Did you remember to call the attach() method?");
@@ -218,50 +220,26 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    const MMap<Scalar>& Client<Scalar>::getTensorView() {
+//    template <typename Scalar>
+//    const MMap<Scalar>& Client<Scalar>::getTensorView() {
 
-        // note: this is dangerous since it allows modification to the data without
-        // any synchronization, but can be useful to interface with other libraries (i.e. Torch, Numpy)
+//        // note: this is dangerous since it allows modification to the data without
+//        // any synchronization, but can be useful to interface with other libraries (i.e. Torch, Numpy)
 
-        if (!_attached) {
+//        if (!_attached && _verbose) {
 
-            std::string error = std::string("Client is not registered to the Server. ") +
-                    std::string("Did you remember to call attach attach() method?");
+//            std::string error = std::string("Client is not registered to the Server. ") +
+//                    std::string("Did you remember to call attach attach() method?");
 
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
+//            _journal.log(__FUNCTION__,
+//                 error,
+//                 LogType::EXCEP);
 
-        }
+//        }
 
-        return _tensor_view;
+//        return _tensor_view;
 
-    }
-
-    template <typename Scalar>
-    const Tensor<Scalar> &Client<Scalar>::getTensorCopy() {
-
-        if (!_attached) {
-
-            std::string error = std::string("Client is not running. ") +
-                    std::string("Did you remember to call the Run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
-
-        _acquireData(); // making sure nothing is modifying the object
-
-        _tensor_copy = _tensor_view;
-
-        _releaseData(); // release data semaphore
-
-        return _tensor_copy;
-
-    }
+//    }
 
     template <typename Scalar>
     void Client<Scalar>::_waitForServer()
@@ -293,14 +271,17 @@ namespace SharsorIPCpp {
 
             // not impeccable: different types may have in general different sizes
 
-            std::string error = std::string("Client initialized with element size of ") +
-                    std::to_string(sizeof(Scalar)) +
-                    std::string(", while the Server was initialized with size ") +
-                    std::to_string(_dtype_view(0, 0));
+            if (_verbose) {
 
-            _journal.log(__FUNCTION__,
-                         error,
-                         LogType::EXCEP);
+                std::string error = std::string("Client initialized with element size of ") +
+                        std::to_string(sizeof(Scalar)) +
+                        std::string(", while the Server was initialized with size ") +
+                        std::to_string(_dtype_view(0, 0));
+
+                _journal.log(__FUNCTION__,
+                             error,
+                             LogType::EXCEP);
+            }
 
         }
     }

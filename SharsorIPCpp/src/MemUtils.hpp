@@ -63,24 +63,30 @@ namespace SharsorIPCpp{
 
             if (shm_fd == -1) {
 
-                std::string error = "Could not create shared memory at " +
-                        mem_path;
+                if (verbose) {
 
-                journal.log(__FUNCTION__,
-                    error,
-                    LogType::EXCEP);
+                    std::string error = "Could not create shared memory at " +
+                            mem_path;
+
+                    journal.log(__FUNCTION__,
+                        error,
+                        LogType::EXCEP);
+                }
 
             }
 
             // Set size
             if (ftruncate(shm_fd, data_size) == -1) {
 
-                std::string error = "Could not set shared memory at " +
-                        mem_path;
+                if (verbose) {
 
-                journal.log(__FUNCTION__,
-                            error,
-                            LogType::EXCEP);
+                    std::string error = "Could not set shared memory at " +
+                            mem_path;
+
+                    journal.log(__FUNCTION__,
+                                error,
+                                LogType::EXCEP);
+                }
 
             }
 
@@ -105,9 +111,12 @@ namespace SharsorIPCpp{
 
             if (matrix_data == MAP_FAILED) {
 
-                journal.log(__FUNCTION__,
-                            "Could not map memory size.",
-                            LogType::EXCEP);
+                if (verbose) {
+
+                    journal.log(__FUNCTION__,
+                                "Could not map memory size.",
+                                LogType::EXCEP);
+                }
 
             }
 
@@ -437,9 +446,13 @@ namespace SharsorIPCpp{
 
                 // Handle semaphore release error
 
-                journal.log(__FUNCTION__,
-                             "Failed to release semaphore at",
-                             LogType::EXCEP);
+                if (verbose) {
+
+                    journal.log(__FUNCTION__,
+                                 "Failed to release semaphore at",
+                                 LogType::EXCEP);
+                }
+
             }
 
             if (verbose &&
@@ -489,9 +502,13 @@ namespace SharsorIPCpp{
 
                     fail_counter = 0; // reset counter
 
-                    journal.log(__FUNCTION__,
-                                 "Failed to acquire semaphore at",
-                                 LogType::EXCEP);
+                    if (verbose) {
+
+                        journal.log(__FUNCTION__,
+                                     "Failed to acquire semaphore at",
+                                     LogType::EXCEP);
+
+                    }
 
                 }
 
@@ -572,11 +589,16 @@ namespace SharsorIPCpp{
             if (sem == SEM_FAILED) {
                 // Handle semaphore creation error
 
-                std::string error = std::string("Failed to open semaphore");
+                if (verbose) {
 
-                journal.log(__FUNCTION__,
-                    error,
-                    LogType::EXCEP);
+                    std::string error = std::string("Failed to open semaphore");
+
+                    journal.log(__FUNCTION__,
+                        error,
+                        LogType::EXCEP);
+
+                }
+
             }
             else {
 

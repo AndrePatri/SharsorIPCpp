@@ -218,7 +218,8 @@ namespace SharsorIPCpp {
             _releaseData();
 
         }
-        else {
+
+        if (!_running && _verbose) {
 
             std::string error = std::string("Server is not running. ") +
                     std::string("Did you remember to call the run() method?");
@@ -249,7 +250,8 @@ namespace SharsorIPCpp {
             _releaseData();
 
         }
-        else {
+
+        if (!_running && _verbose) {
 
             std::string error = std::string("Client is not registered to the Server. ") +
                     std::string("Did you remember to call the attach() method?");
@@ -262,45 +264,48 @@ namespace SharsorIPCpp {
 
     }
 
+//    template <typename Scalar>
+//    const MMap<Scalar>& Server<Scalar>::getTensorView() {
+
+//        if (!_running && _verbose) {
+
+//            std::string error = std::string("Server is not running. ") +
+//                    std::string("Did you remember to call the run() method?");
+
+//            _journal.log(__FUNCTION__,
+//                 error,
+//                 LogType::EXCEP);
+
+//        }
+
+//        return _tensor_view;
+
+//    }
+
     template <typename Scalar>
-    const MMap<Scalar>& Server<Scalar>::getTensorView() {
+    void Server<Scalar>::_acquireData()
+    {
 
-        if (!_running) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
-
-        return _tensor_view;
+        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
+                                     _data_sem,
+                                     _n_acq_trials,
+                                     _n_sem_acq_fail,
+                                     _journal,
+                                     _force_reconnection,
+                                     false, // no verbosity (this is called very frequently)
+                                     _vlevel);
 
     }
 
     template <typename Scalar>
-    const Tensor<Scalar> &Server<Scalar>::getTensorCopy() {
+    void Server<Scalar>::_releaseData()
+    {
 
-        if (!_running) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
-
-        _acquireData(); // prevent access to the data
-
-        _tensor_copy = _tensor_view;
-
-        _releaseData();
-
-        return _tensor_copy;
+        MemUtils::releaseSem<Scalar>(_mem_config.mem_path_data_sem,
+                             _data_sem,
+                             _journal,
+                             false, // no verbosity (this is called very frequently)
+                             _vlevel);
 
     }
 
@@ -473,33 +478,6 @@ namespace SharsorIPCpp {
                                   _journal,
                                   _verbose,
                                   _vlevel);
-
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_acquireData()
-    {
-
-        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
-                                     _data_sem,
-                                     _n_acq_trials,
-                                     _n_sem_acq_fail,
-                                     _journal,
-                                     _force_reconnection,
-                                     false, // no verbosity (this is called very frequently)
-                                     _vlevel);
-
-    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_releaseData()
-    {
-
-        MemUtils::releaseSem<Scalar>(_mem_config.mem_path_data_sem,
-                             _data_sem,
-                             _journal,
-                             false, // no verbosity (this is called very frequently)
-                             _vlevel);
 
     }
 

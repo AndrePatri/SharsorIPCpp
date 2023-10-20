@@ -220,9 +220,6 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<bool>& tensorView = server_ptr->getTensorView(); // its a reference
-    // we only need to get it once
-
     journal.log("ServerTestBool", "\nBenchmarking performance with bool type...\n",
                 Journal::LogType::STAT);
 
@@ -240,7 +237,7 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        tensor_copy = server_ptr->getTensorCopy();
+        server_ptr->readTensor(tensor_copy);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -302,9 +299,6 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
 
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
-
-    const MMap<int>& tensorView = server_ptr->getTensorView(); // its a reference
-    // we only need to get it once
 
     journal.log("ServerTestInt", "\nBenchmarking performance with int type...\n",
                 Journal::LogType::STAT);
@@ -386,9 +380,6 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<float>& tensorView = server_ptr->getTensorView(); // its a reference
-    // we only need to get it once
-
     journal.log("ServerTestInt", "\nBenchmarking performance with float type...\n",
                 Journal::LogType::STAT);
 
@@ -469,9 +460,6 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
 
-    const MMap<double>& tensorView = server_ptr->getTensorView(); // its a reference
-    // we only need to get it once
-
     journal.log("ServerTestDouble", "\nBenchmarking performance with double type...\n",
                 Journal::LogType::STAT);
 
@@ -546,15 +534,14 @@ int main(int argc, char** argv) {
     // You can list multiple tests or test suites separated by a colon.
     // This example runs two test cases: ServerTestDouble.WriteReadBenchmark and AnotherTestSuite.*
 
-//    ::testing::GTEST_FLAG(filter) =
-//            "JournalTest.TestJournal";
+    ::testing::GTEST_FLAG(filter) =
+            "JournalTest.TestJournal";
 
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
 
-    ::testing::GTEST_FLAG(filter) = ":ServerTestBool.WriteReadBenchmark";
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

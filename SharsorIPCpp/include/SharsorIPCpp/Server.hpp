@@ -45,12 +45,6 @@ namespace SharsorIPCpp{
             void readTensor(Tensor<Scalar>& output,
                             int row = 0, int col = 0);
 
-            //  read only getter
-            const MMap<Scalar>& getTensorView();
-
-            // read only getter
-            const Tensor<Scalar>& getTensorCopy();
-
             int n_rows = -1;
             int n_cols = -1;
 
