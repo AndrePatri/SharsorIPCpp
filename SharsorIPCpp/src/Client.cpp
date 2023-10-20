@@ -95,6 +95,7 @@ namespace SharsorIPCpp {
                         _data_shm_fd,
                         _tensor_view,
                         _journal,
+                        _return_code,
                         _verbose,
                         _vlevel);
 
@@ -290,14 +291,14 @@ namespace SharsorIPCpp {
     void Client<Scalar>::_acquireData()
     {
 
-        MemUtils::acquireSem<Scalar>(_mem_config.mem_path_data_sem,
-                                     _data_sem,
-                                     _n_acq_trials,
-                                     _n_sem_acq_fail,
-                                     _journal,
-                                     false, // no verbosity (this is called very frequently)
-                                     _verbose,
-                                     _vlevel);
+        MemUtils::acquireSem(_mem_config.mem_path_data_sem,
+                             _data_sem,
+                             _n_acq_trials,
+                             _n_sem_acq_fail,
+                             _journal,
+                             false, // no verbosity (this is called very frequently)
+                             _verbose,
+                             _vlevel);
 
     }
 
@@ -305,7 +306,7 @@ namespace SharsorIPCpp {
     void Client<Scalar>::_releaseData()
     {
 
-        MemUtils::releaseSem<Scalar>(_mem_config.mem_path_data_sem,
+        MemUtils::releaseSem(_mem_config.mem_path_data_sem,
                              _data_sem,
                              _journal,
                              false, // no verbosity (this is called very frequently)
@@ -319,35 +320,35 @@ namespace SharsorIPCpp {
         // closing file descriptors and but not unlinking
         // memory
 
-        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_nrows,
+        MemUtils::cleanUpMem(_mem_config.mem_path_nrows,
                              _nrows_shm_fd,
                              _journal,
                              _verbose,
                              _vlevel,
                              _unlink_data);
 
-        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_ncols,
+        MemUtils::cleanUpMem(_mem_config.mem_path_ncols,
                              _ncols_shm_fd,
                              _journal,
                              _verbose,
                              _vlevel,
                              _unlink_data);
 
-        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_clients_counter,
+        MemUtils::cleanUpMem(_mem_config.mem_path_clients_counter,
                              _n_clients_shm_fd,
                              _journal,
                              _verbose,
                              _vlevel,
                              _unlink_data);
 
-        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_dtype,
+        MemUtils::cleanUpMem(_mem_config.mem_path_dtype,
                              _dtype_shm_fd,
                              _journal,
                              _verbose,
                              _vlevel,
                              _unlink_data);
 
-        MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path_isrunning,
+        MemUtils::cleanUpMem(_mem_config.mem_path_isrunning,
                              _isrunning_shm_fd,
                              _journal,
                              _verbose,
@@ -362,7 +363,7 @@ namespace SharsorIPCpp {
 
         if (!_terminated) {
 
-            MemUtils::cleanUpMem<Scalar>(_mem_config.mem_path,
+            MemUtils::cleanUpMem(_mem_config.mem_path,
                                  _data_shm_fd,
                                  _journal,
                                  _verbose,
@@ -402,6 +403,7 @@ namespace SharsorIPCpp {
                         _nrows_shm_fd,
                         _n_rows_view,
                         _journal,
+                        _return_code,
                         _verbose,
                         _vlevel);
 
@@ -411,6 +413,7 @@ namespace SharsorIPCpp {
                         _ncols_shm_fd,
                         _n_cols_view,
                         _journal,
+                        _return_code,
                         _verbose,
                         _vlevel);
 
@@ -420,6 +423,7 @@ namespace SharsorIPCpp {
                         _n_clients_shm_fd,
                         _n_clients_view,
                         _journal,
+                        _return_code,
                         _verbose,
                         _vlevel);
 
@@ -429,6 +433,7 @@ namespace SharsorIPCpp {
                         _dtype_shm_fd,
                         _dtype_view,
                         _journal,
+                        _return_code,
                         _verbose,
                         _vlevel);
 
@@ -438,6 +443,7 @@ namespace SharsorIPCpp {
                         _isrunning_shm_fd,
                         _isrunning_view,
                         _journal,
+                        _return_code,
                         _verbose,
                         _vlevel);
 
@@ -447,11 +453,11 @@ namespace SharsorIPCpp {
     void Client<Scalar>::_initSems()
     {
 
-        MemUtils::initSem<Scalar>(_mem_config.mem_path_data_sem,
-                                  _data_sem,
-                                  _journal,
-                                  _verbose,
-                                  _vlevel);
+        MemUtils::initSem(_mem_config.mem_path_data_sem,
+                          _data_sem,
+                          _journal,
+                          _verbose,
+                          _vlevel);
 
     }
 
@@ -459,12 +465,12 @@ namespace SharsorIPCpp {
     void Client<Scalar>::_closeSems()
     {
         // closes semaphores but doesn't unlink them
-        MemUtils::closeSem<Scalar>(_mem_config.mem_path_data_sem,
-                                   _data_sem,
-                                   _journal,
-                                   _verbose,
-                                   _vlevel,
-                                   false);
+        MemUtils::closeSem(_mem_config.mem_path_data_sem,
+                           _data_sem,
+                           _journal,
+                           _verbose,
+                           _vlevel,
+                           false);
 
     }
 

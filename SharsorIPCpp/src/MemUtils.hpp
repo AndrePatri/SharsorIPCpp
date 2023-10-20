@@ -13,6 +13,7 @@
 
 #include <SharsorIPCpp/DTypes.hpp>
 #include <SharsorIPCpp/Journal.hpp>
+#include <SharsorIPCpp/ReturnCodes.hpp>
 
 namespace SharsorIPCpp{
 
@@ -49,9 +50,12 @@ namespace SharsorIPCpp{
             int& shm_fd,
             MMap<Scalar>& tensor_view,
             Journal& journal,
+            ReturnCode& return_code,
             bool verbose = true,
-            VLevel vlevel = Journal::VLevel::V0)
+            VLevel vlevel = Journal::VLevel::V0
+            )
         {
+            return_code = ReturnCode::RESET; // resets return code
 
             // Determine the size based on the Scalar type
             std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
@@ -73,6 +77,8 @@ namespace SharsorIPCpp{
                         LogType::EXCEP);
                 }
 
+                return_code = return_code + ReturnCode::MEMCREATFAIL;
+
             }
 
             // Set size
@@ -88,7 +94,11 @@ namespace SharsorIPCpp{
                                 LogType::EXCEP);
                 }
 
+                return_code = return_code + ReturnCode::MEMSETFAIL;
+
             }
+
+            return_code = return_code + ReturnCode::MEMOPEN;
 
             if (verbose &&
                     vlevel > VLevel::V2) {
@@ -99,6 +109,7 @@ namespace SharsorIPCpp{
                 journal.log(__FUNCTION__,
                             info,
                             LogType::INFO);
+
             }
 
             // Map the shared memory
@@ -118,11 +129,15 @@ namespace SharsorIPCpp{
                                 LogType::EXCEP);
                 }
 
+                return_code = return_code + ReturnCode::MEMMAPFAIL;
+
             }
 
             new (&tensor_view) MMap<Scalar>(matrix_data,
                                            n_rows,
                                            n_cols);
+
+            return_code = return_code + ReturnCode::MEMMAP;
 
             if (verbose && vlevel > VLevel::V2) {
 
@@ -238,14 +253,13 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        void cleanUpMem(
-                const std::string& mem_path,
-                int& shm_fd,
-                Journal& journal,
-                bool verbose = true,
-                VLevel vlevel = Journal::VLevel::V0,
-                bool unlink = false) {
+        inline void cleanUpMem(
+                        const std::string& mem_path,
+                        int& shm_fd,
+                        Journal& journal,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0,
+                        bool unlink = false) {
 
             // Closing the file descriptor (for this process only)
             ::close(shm_fd);
@@ -283,13 +297,12 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        void checkMem(
-                const std::string& mem_path,
-                int& shm_fd,
-                Journal& journal,
-                bool verbose = true,
-                VLevel vlevel = Journal::VLevel::V0) {
+        inline void checkMem(
+                    const std::string& mem_path,
+                    int& shm_fd,
+                    Journal& journal,
+                    bool verbose = true,
+                    VLevel vlevel = Journal::VLevel::V0) {
 
             shm_fd = shm_open(mem_path.c_str(),
                                O_RDWR,
@@ -309,11 +322,11 @@ namespace SharsorIPCpp{
                                  LogType::WARN);
                 }
 
-                cleanUpMem<Scalar>(mem_path,
-                             shm_fd,
-                             journal,
-                             verbose,
-                             vlevel);
+                cleanUpMem(mem_path,
+                         shm_fd,
+                         journal,
+                         verbose,
+                         vlevel);
 
                 if (verbose &&
                         vlevel > VLevel::V0) {
@@ -337,9 +350,8 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        int semWait(sem_t* sem,
-                    double timeout_seconds) {
+        inline int semWait(sem_t* sem,
+                        double timeout_seconds) {
 
             struct timespec timeout;
 
@@ -376,13 +388,12 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        void closeSem(const std::string& sem_path,
-                     sem_t *&sem,
-                     Journal& journal,
-                     bool verbose = true,
-                     VLevel vlevel = Journal::VLevel::V0,
-                     bool unlink = false) {
+        inline void closeSem(const std::string& sem_path,
+                         sem_t *&sem,
+                         Journal& journal,
+                         bool verbose = true,
+                         VLevel vlevel = Journal::VLevel::V0,
+                         bool unlink = false) {
 
             sem_close(sem); // closes semaphore for the current process
 
@@ -423,12 +434,11 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        void releaseSem(const std::string& sem_path,
-                     sem_t *&sem,
-                     Journal& journal,
-                     bool verbose = true,
-                     VLevel vlevel = Journal::VLevel::V0) {
+        inline void releaseSem(const std::string& sem_path,
+                         sem_t *&sem,
+                         Journal& journal,
+                         bool verbose = true,
+                         VLevel vlevel = Journal::VLevel::V0) {
 
             if (verbose &&
                     vlevel > VLevel::V2) {
@@ -469,15 +479,14 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        void acquireSem(const std::string& sem_path,
-                     sem_t*& sem,
-                     int n_trials,
-                     int& fail_counter,
-                     Journal& journal,
-                     bool force_reconnection = false,
-                     bool verbose = true,
-                     VLevel vlevel = Journal::VLevel::V0) {
+        inline void acquireSem(const std::string& sem_path,
+                         sem_t*& sem,
+                         int n_trials,
+                         int& fail_counter,
+                         Journal& journal,
+                         bool force_reconnection = false,
+                         bool verbose = true,
+                         VLevel vlevel = Journal::VLevel::V0) {
 
             if (verbose &&
                     vlevel > VLevel::V2 &&
@@ -493,7 +502,7 @@ namespace SharsorIPCpp{
             }
 
             // Acquire the semaphore
-            if (semWait<Scalar>(sem, 1.0) == -1) {
+            if (semWait(sem, 1.0) == -1) {
 
                 fail_counter++;
 
@@ -527,7 +536,7 @@ namespace SharsorIPCpp{
 
                 if (force_reconnection) {
 
-                    releaseSem<Scalar>(sem_path,
+                    releaseSem(sem_path,
                             sem,
                             journal,
                             verbose,
@@ -535,7 +544,7 @@ namespace SharsorIPCpp{
                     // crashed, we now make the semaphore available for acquisition.
                 }
 
-                acquireSem<Scalar>(sem_path,
+                acquireSem(sem_path,
                             sem,
                             n_trials,
                             fail_counter,
@@ -575,12 +584,11 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        void initSem(const std::string& sem_path,
-                     sem_t*& sem,
-                     Journal& journal,
-                     bool verbose = true,
-                     VLevel vlevel = Journal::VLevel::V0) {
+        inline void initSem(const std::string& sem_path,
+                         sem_t*& sem,
+                         Journal& journal,
+                         bool verbose = true,
+                         VLevel vlevel = Journal::VLevel::V0) {
 
             sem = sem_open(sem_path.c_str(),
                                   O_CREAT, S_IRUSR | S_IWUSR,
