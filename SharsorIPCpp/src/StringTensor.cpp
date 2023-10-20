@@ -103,49 +103,146 @@ namespace SharsorIPCpp {
     }
 
     template <typename ShMemType>
-    bool StringTensor<ShMemType>::write(const std::vector<std::string>& vec,
-                                        int col_index) {
+    bool StringTensor<ShMemType>::read(std::vector<std::string>& vec,
+                                       int col_index) {
 
-        if (!_fits(vec, col_index)) {
+        return _decode_vec(vec, col_index);
 
-            return false;
-        }
-
-        for (const auto& str : vec) { // for each string
-
-            _buffer.setZero(); // reset buffer
-
-            for (size_t i = 0, row = 0;
-                 i < str.size();
-                 i += sizeof(int), ++row) { // increment row counter
-                // and move through the string by sizeof(int)
-
-                _tmp_value = 0;
-
-                for (size_t j = 0;
-                     j < sizeof(int) && i + j < str.size(); // move within the chunk up to string size
-                     ++j) {
-
-                    _tmp_value |= // UTF8 encoding
-                           (static_cast<int>(static_cast<unsigned char>(str[i + j])) << (j * 8));
-
-                }
-
-                _buffer(row, 0) = _tmp_value; // write to tmp buffer
-
-            }
-
-            _sh_mem.writeTensor(_buffer,
-                           0, col_index); // write column to tensor
-
-            ++col_index; // go to next column (i.e. string)
-        }
-
-        return true;
     }
 
     template <typename ShMemType>
-    bool StringTensor<ShMemType>::read(std::vector<std::string>& vec,
+    bool StringTensor<ShMemType>::read(std::string& str,
+                                       int col_index) {
+
+        if (col_index >= 0 && col_index < length) {
+
+          _decode_str(str, col_index);
+
+          return true;
+
+        }
+
+        return false;
+
+    }
+
+    template <typename ShMemType>
+    bool StringTensor<ShMemType>::write(const std::vector<std::string>& vec,
+                                        int col_index) {
+
+        return _encode_vec(vec, col_index);
+    }
+
+    template <typename ShMemType>
+    bool StringTensor<ShMemType>::write(const std::string& str,
+                                        int col_index) {
+
+        if (col_index >= 0 && col_index < length) {
+
+            _encode_str(str, col_index);
+
+            return true;
+        }
+
+        return false;
+
+    }
+
+    template <typename ShMemType>
+    bool StringTensor<ShMemType>::isRunning() {
+
+        return _running;
+
+    }
+
+    template <typename ShMemType>
+    void StringTensor<ShMemType>::close() {
+
+        _sh_mem.close();
+
+    }
+
+    template <typename ShMemType>
+    bool StringTensor<ShMemType>::_encode_vec(const std::vector<std::string>& vec,
+                                              int col_index) {
+
+      if (!_fits(vec, col_index)) {
+
+          return false;
+      }
+
+      for (const auto& str : vec) { // for each string
+
+          _encode_str(str, col_index); // encodes string in buffer
+
+          ++col_index; // go to next column (i.e. string)
+      }
+
+      return true;
+
+    }
+
+    template <typename ShMemType>
+    void StringTensor<ShMemType>::_encode_str(const std::string& str,
+                                       int col_index) {
+
+        _buffer.setZero(); // reset buffer
+
+        for (size_t i = 0, row = 0;
+             i < str.size();
+             i += sizeof(int), ++row) { // increment row counter
+            // and move through the string by sizeof(int)
+
+            _tmp_value = 0;
+
+            for (size_t j = 0;
+                 j < sizeof(int) && i + j < str.size(); // move within the chunk up to string size
+                 ++j) {
+
+                _tmp_value |= // UTF8 encoding
+                       (static_cast<int>(static_cast<unsigned char>(str[i + j])) << (j * 8));
+
+            }
+
+            _buffer(row, 0) = _tmp_value; // write to tmp buffer
+
+        }
+
+        _sh_mem.writeTensor(_buffer,
+                       0, col_index); // write column to tensor
+
+    }
+
+    template <typename ShMemType>
+    void StringTensor<ShMemType>::_decode_str(std::string& str,
+                                       int col_index) {
+
+        str.clear();
+
+        _sh_mem.readTensor(_buffer, 0, col_index); // puts current
+        // data into buffer
+
+        for (int row = 0; row < _n_rows; ++row) { // for each chunk
+
+            _tmp_value = _buffer(row, 0);
+
+            for (size_t j = 0; j < sizeof(int); ++j) {
+
+                char c = (_tmp_value >> (j * 8)) & 0xFF; // decode to UTF8
+
+                if (c == 0) break;
+
+                str.push_back(c); // add to string
+            }
+
+            if (str.size() % sizeof(int) != 0) break; // exit if out of range
+
+        }
+
+    }
+
+    template <typename ShMemType>
+    bool StringTensor<ShMemType>::_decode_vec(std::vector<std::string>& vec,
                                        int col_index) {
 
         if (!_fits(vec, col_index)) {
@@ -155,27 +252,7 @@ namespace SharsorIPCpp {
 
         for (auto& str : vec) { // for each string
 
-            str.clear();
-
-            _sh_mem.readTensor(_buffer, 0, col_index); // puts current
-            // data into buffer
-
-            for (int row = 0; row < _n_rows; ++row) { // for each chunk
-
-                _tmp_value = _buffer(row, 0);
-
-                for (size_t j = 0; j < sizeof(int); ++j) {
-
-                    char c = (_tmp_value >> (j * 8)) & 0xFF; // decode to UTF8
-
-                    if (c == 0) break;
-
-                    str.push_back(c); // add to string
-                }
-
-                if (str.size() % sizeof(int) != 0) break; // exit if out of range
-
-            }
+            _decode_str(str, col_index);
 
             ++col_index; // go to next string (i.e. column)
         }
@@ -193,20 +270,6 @@ namespace SharsorIPCpp {
         }
 
         return true;
-
-    }
-
-    template <typename ShMemType>
-    bool StringTensor<ShMemType>::isRunning() {
-
-        return _running;
-
-    }
-
-    template <typename ShMemType>
-    void StringTensor<ShMemType>::close() {
-
-        _sh_mem.close();
 
     }
 

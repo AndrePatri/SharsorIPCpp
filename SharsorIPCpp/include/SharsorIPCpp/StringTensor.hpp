@@ -53,7 +53,13 @@ namespace SharsorIPCpp {
             bool write(const std::vector<std::string>& vec,
                        int index = 0);
 
+            bool write(const std::string& str,
+                       int index = 0);
+
             bool read(std::vector<std::string>& vec,
+                      int index = 0);
+
+            bool read(std::string& str,
                       int index = 0);
 
             void close();
@@ -93,6 +99,18 @@ namespace SharsorIPCpp {
 
             bool _fits(const std::vector<std::string>& vec,
                        int index);
+
+            void _encode_str(const std::string& str,
+                             int col_index);
+
+            void _decode_str(std::string& str,
+                             int col_index);
+
+            bool _encode_vec(const std::vector<std::string>& vec,
+                             int col_index);
+
+            bool _decode_vec(std::vector<std::string>& vec,
+                           int col_index);
 
         };
 
