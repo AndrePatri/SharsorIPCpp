@@ -6,11 +6,16 @@
 #include <csignal>
 
 #include <SharsorIPCpp/Server.hpp>
+#include <SharsorIPCpp/StringTensor.hpp>
+
 #include <SharsorIPCpp/Journal.hpp>
 
 #include <test_utils.hpp>
 
-int n_iterations = 1000000;
+int N_ITERATIONS = 1000000;
+int N_ITERATIONS_STR = 1000000;
+
+int STR_TENSOR_LENGTH = 100;
 
 using namespace SharsorIPCpp;
 
@@ -40,7 +45,7 @@ protected:
 
     ServerTestDouble() : rows(100),
                    cols(60),
-                   iterations(n_iterations),
+                   iterations(N_ITERATIONS),
                    server_ptr(new Server<double>(rows, cols,
                                      "SharsorDouble", name_space,
                                      true,
@@ -79,7 +84,7 @@ protected:
 
     ServerTestFloat() : rows(100),
                    cols(60),
-                   iterations(n_iterations),
+                   iterations(N_ITERATIONS),
                    server_ptr(new Server<float>(rows, cols,
                                      "SharsorFloat", name_space,
                                      true,
@@ -117,7 +122,7 @@ class ServerTestInt : public ::testing::Test {
 protected:
     ServerTestInt() : rows(100),
                    cols(60),
-                   iterations(n_iterations),
+                   iterations(N_ITERATIONS),
                    server_ptr(new Server<int>(rows, cols,
                                      "SharsorInt", name_space,
                                      true,
@@ -155,7 +160,7 @@ class ServerTestBool : public ::testing::Test {
 protected:
     ServerTestBool() : rows(100),
                    cols(60),
-                   iterations(n_iterations),
+                   iterations(N_ITERATIONS),
                    server_ptr(new Server<bool>(rows, cols,
                                      "SharsorBool", name_space,
                                      true,
@@ -187,6 +192,46 @@ protected:
     Server<bool>::UniquePtr server_ptr;
 //    Server<bool> server;
     Tensor<bool> tensor_copy;
+
+};
+
+class StringTensorWrite : public ::testing::Test {
+protected:
+
+    StringTensorWrite() :
+                   string_t_ptr(new StringTensor<StrServer>(
+                                     STR_TENSOR_LENGTH,
+                                     "SharedStrTensor", name_space,
+                                     true,
+                                     VLevel::V3,
+                                     true)),
+                   str_vec_write(STR_TENSOR_LENGTH),
+                   str_vec_read(STR_TENSOR_LENGTH){
+
+        for (int i = 0; i < str_vec_write.size(); ++i) {
+
+            str_vec_write[i] = random_string(25); // random initialization
+        }
+
+        string_t_ptr->run();
+
+    }
+
+    void SetUp() override {
+
+    }
+
+    void TearDown() override {
+
+        string_t_ptr->close();
+
+    }
+
+    StringTensor<StrServer>::UniquePtr string_t_ptr;
+
+    std::vector<std::string> str_vec_write;
+
+    std::vector<std::string> str_vec_read;
 
 };
 
@@ -532,6 +577,84 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
     // satisfying the expected performance
 }
 
+TEST_F(StringTensorWrite, WriteReadStrTensorBenchmark) {
+
+    check_comp_type(journal);
+
+    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
+    double READ_T_AVRG_THRESH =   15000; // [nanoseconds]
+    double WRITE_T_AVRG_THRESH =  15000; // [nanoseconds]
+
+    std::vector<double> readTimes;
+    std::vector<double> writeTimes;
+
+    journal.log("ServerTestStringTensor", "\nBenchmarking performance with StringTensor...\n",
+                Journal::LogType::STAT);
+
+    for (int i = 0; i < N_ITERATIONS_STR; ++i) {
+
+
+        // we measure the time to write it on the memory
+        auto startWrite = std::chrono::high_resolution_clock::now();
+        string_t_ptr->write(str_vec_write, 0); // writes the whole vector
+        auto endWrite = std::chrono::high_resolution_clock::now();
+        double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
+        writeTimes.push_back(writeTime);
+
+        // we measure the time to read it all
+        auto startRead = std::chrono::high_resolution_clock::now();
+        string_t_ptr->read(str_vec_read, 0);
+        auto endRead = std::chrono::high_resolution_clock::now();
+        double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
+        readTimes.push_back(readTime);
+    }
+
+    journal.log("ServerTestStringTensor", "\nrunning post-processing steps...\n",
+                Journal::LogType::STAT);
+
+    // some post-processing
+    double averageReadTime = 0;
+    double averageWriteTime = 0;
+    double maxReadTime = std::numeric_limits<double>::min();
+    double maxWriteTime = std::numeric_limits<double>::min();
+
+    for (int i = 0; i < N_ITERATIONS_STR; ++i) {
+        averageReadTime += readTimes[i];
+        averageWriteTime += writeTimes[i];
+
+        if (readTimes[i] > maxReadTime) {
+            maxReadTime = readTimes[i];
+        }
+
+        if (writeTimes[i] > maxWriteTime) {
+            maxWriteTime = writeTimes[i];
+        }
+    }
+
+    averageReadTime /= N_ITERATIONS_STR;
+    averageWriteTime /= N_ITERATIONS_STR;
+
+    std::cout << "Number of performed iterations: " << N_ITERATIONS_STR << std::endl;
+    std::cout << "Average Read (with copy) Time: " << averageReadTime << " ns" << std::endl;
+    std::cout << "Average Write Time: " << averageWriteTime << " ns" << std::endl;
+    std::cout << "Maximum Read (with copy) Time: " << maxReadTime << " ns" << std::endl;
+    std::cout << "Maximum Write Time: " << maxWriteTime << " ns\n" << std::endl;
+
+    // Perform assertions using GTest
+
+    // reading
+    ASSERT_LT(averageReadTime, READ_T_AVRG_THRESH);
+    ASSERT_LT(maxReadTime, READ_T_MAX_THRESH);
+
+    // writing
+    ASSERT_LT(averageWriteTime, WRITE_T_AVRG_THRESH);
+    ASSERT_LT(maxWriteTime, WRITE_T_MAX_THRESH);
+
+
+    // satisfying the expected performance
+}
+
 int main(int argc, char** argv) {
 
     // Set the GTEST_FILTER environment variable to specify the tests to run.
@@ -541,10 +664,11 @@ int main(int argc, char** argv) {
     ::testing::GTEST_FLAG(filter) =
             "JournalTest.TestJournal";
 
-    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":StringTensorWrite.WriteReadStrTensorBenchmark";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

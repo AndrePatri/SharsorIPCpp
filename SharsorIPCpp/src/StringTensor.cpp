@@ -179,6 +179,8 @@ namespace SharsorIPCpp {
 
             ++col_index; // go to next string (i.e. column)
         }
+
+        return true;
     }
 
     template <typename ShMemType>
