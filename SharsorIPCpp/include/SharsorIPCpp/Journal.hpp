@@ -51,24 +51,16 @@ namespace SharsorIPCpp{
 
                 if (log_type == LogType::EXCEP){
 
-                    std::string exception =
-                            Colors::kBoldRed +
-                            std::string("[") +
-                            _classname +
-                            std::string("]") +
-                            std::string("[") +
-                            methodname +
-                            std::string("]") +
-                            std::string("[") +
-                            logTypeStr +
-                            std::string("]: ") +
-                            message +
-                            std::string(", error code ") +
-                            std::string(std::strerror(errno)) +
-                            Colors::kEndl;
+                    std::printf("%s[%s][%s][%s]: %s%s\n",
+                                );
 
-                    throw std::runtime_error(exception);
-
+                    std::printf("%s[%s][%s][%s]: %s%s\n",
+                            Colors::kBoldRed.c_str(),
+                            _classname.c_str(),
+                            methodname.c_str(),
+                            logTypeStr,
+                            message.c_str(),
+                            Colors::kEndl.c_str());
                 }
 
                 if (log_type == LogType::WARN){
