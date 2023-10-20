@@ -1,7 +1,7 @@
 ### <center> SharsorIPCpp </center>
 
-![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only)
-
+<!-- ![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only) -->
+![icon.svg](docs/icon.svg)
 Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
 External dependencies: 
