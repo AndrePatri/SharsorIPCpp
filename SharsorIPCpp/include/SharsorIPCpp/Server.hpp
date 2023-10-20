@@ -39,11 +39,11 @@ namespace SharsorIPCpp{
 
             ~Server();
 
-            void writeTensor(const Tensor<Scalar>& data,
+            bool writeTensor(const Tensor<Scalar>& data,
                              int row = 0,
                              int col = 0);
 
-            void readTensor(Tensor<Scalar>& output,
+            bool readTensor(Tensor<Scalar>& output,
                             int row = 0, int col = 0);
 
             int n_rows = -1;
@@ -113,12 +113,14 @@ namespace SharsorIPCpp{
 
             void _initSems();
 
-            void _acquireSem(const std::string& sem_path,
+            void _acquireSemWait(const std::string& sem_path,
+                             sem_t*& sem);
+            bool _acquireSemRt(const std::string& sem_path,
                              sem_t*& sem);
             void _releaseSem(const std::string& sem_path,
                              sem_t*& sem);
 
-            void _acquireData();
+            bool _acquireData(bool blocking = false);
             void _releaseData();
 
             void _closeSems();

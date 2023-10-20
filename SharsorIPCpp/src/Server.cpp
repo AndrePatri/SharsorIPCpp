@@ -73,12 +73,13 @@ namespace SharsorIPCpp {
 
         _initSems(); // creates necessary semaphores
 
-        MemUtils::acquireSem(_mem_config.mem_path_data_sem,
+        MemUtils::acquireSemWait(_mem_config.mem_path_data_sem,
                              _data_sem,
                              _n_acq_trials,
                              _n_sem_acq_fail,
                              _journal,
                              _return_code,
+                             1.0, // [s]
                              _force_reconnection,
                              _verbose,
                              _vlevel); // acquire shared data semaphore
@@ -125,8 +126,8 @@ namespace SharsorIPCpp {
 
         if (!isRunning()) {
 
-            _acquireSem(_mem_config.mem_path_server_sem,
-                        _srvr_sem);
+            _acquireSemWait(_mem_config.mem_path_server_sem,
+                        _srvr_sem); // blocking
 
 
             _releaseSem(_mem_config.mem_path_data_sem,
@@ -203,23 +204,26 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::writeTensor(const Tensor<Scalar>& data,
+    bool Server<Scalar>::writeTensor(const Tensor<Scalar>& data,
                                  int row,
                                  int col) {
 
         if (_running) {
 
-            _acquireData(); // prevent access to the data
+            if (_acquireData()) { // non-blocking
 
-            MemUtils::write(data,
+                MemUtils::write(data,
                             _tensor_view,
                             row, col,
                             _journal,
                             _return_code,
-                            false, // by default no prints
+                            false,
                             _vlevel);
 
-            _releaseData();
+                _releaseData();
+
+                return true;
+            }
 
         }
 
@@ -230,42 +234,50 @@ namespace SharsorIPCpp {
 
             _journal.log(__FUNCTION__,
                  error,
-                 LogType::EXCEP);
+                 LogType::EXCEP); // nonblocking
 
         }
+
+        return false;
 
     }
 
     template <typename Scalar>
-    void Server<Scalar>::readTensor(Tensor<Scalar>& output,
+    bool Server<Scalar>::readTensor(Tensor<Scalar>& output,
                                     int row, int col) {
 
         if (_running) {
 
-            _acquireData();
+            if (_acquireData()) { // non-blocking
 
-            MemUtils::read(row, col,
-                           output,
-                           _tensor_view,
-                           _journal,
-                           _return_code,
-                           false, // by default no prints
-                           _vlevel);
+                MemUtils::read(row, col,
+                               output,
+                               _tensor_view,
+                               _journal,
+                               _return_code,
+                               false,
+                               _vlevel);
 
-            _releaseData();
+                _releaseData();
+
+                return true;
+
+            }
 
         }
 
         if (!_running && _verbose) {
 
-            std::string error = std::string("Client is not registered to the Server. ") +
-                    std::string("Did you remember to call the attach() method?");
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
-                 LogType::EXCEP);
+                 LogType::EXCEP); // nonblocking
 
         }
+
+        return false;
 
     }
 
@@ -288,17 +300,18 @@ namespace SharsorIPCpp {
 //    }
 
     template <typename Scalar>
-    void Server<Scalar>::_acquireSem(const std::string& sem_path,
+    void Server<Scalar>::_acquireSemWait(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
 
-        MemUtils::acquireSem(sem_path,
+        MemUtils::acquireSemWait(sem_path,
                              sem,
                              _n_acq_trials,
                              _n_sem_acq_fail,
                              _journal,
                              _return_code,
+                             1.0, // [s]
                              _force_reconnection,
                              false, // no verbosity (this is called very frequently)
                              _vlevel);
@@ -311,6 +324,32 @@ namespace SharsorIPCpp {
                                    _journal);
 
         }
+
+    }
+
+    template <typename Scalar>
+    bool Server<Scalar>::_acquireSemRt(const std::string& sem_path,
+                                     sem_t*& sem)
+    {
+        _return_code = ReturnCode::RESET;
+
+        MemUtils::acquireSemTry(sem_path,
+                             sem,
+                             _journal,
+                             _return_code,
+                             _verbose,
+                             VLevel::V0); // minimal verbosity (if enabled at all)
+
+        if (isin(ReturnCode::SEMACQFAIL,
+                 _return_code)) {
+
+            return false;
+
+        }
+
+        _return_code = ReturnCode::RESET;
+
+        return true;
 
     }
 
@@ -339,11 +378,23 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Server<Scalar>::_acquireData()
+    bool Server<Scalar>::_acquireData(bool blocking)
     {
 
-        _acquireSem(_mem_config.mem_path_data_sem,
-                    _data_sem);
+        if (blocking) {
+
+            _acquireSemWait(_mem_config.mem_path_data_sem,
+                            _data_sem); // this is blocking
+
+            return true;
+
+        }
+        else {
+
+            return _acquireSemRt(_mem_config.mem_path_data_sem,
+                        _data_sem);
+
+        }
 
     }
 

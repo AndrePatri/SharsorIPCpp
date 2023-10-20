@@ -549,12 +549,70 @@ namespace SharsorIPCpp{
 
         }
 
-        inline void acquireSem(const std::string& sem_path,
+        inline void acquireSemTry(const std::string& sem_path,
+                         sem_t*& sem,
+                         Journal& journal,
+                         ReturnCode& return_code,
+                         bool verbose = true,
+                         VLevel vlevel = Journal::VLevel::V0) {
+
+            // this is nonblocking --> suitable for RT systems
+
+            if (verbose &&
+                    vlevel > VLevel::V2) {
+
+                std::string info = std::string("Acquiring semaphore at ") +
+                        sem_path;
+
+                journal.log(__FUNCTION__,
+                             info,
+                             LogType::INFO);
+
+            }
+
+            // try to acquire the semaphore
+            if (sem_trywait(sem) == -1) {
+
+                // failed --> return
+
+                if (verbose) {
+
+                    journal.log(__FUNCTION__,
+                                 "Failed to acquire semaphore at",
+                                 LogType::EXCEP);
+
+                }
+
+                return_code = return_code + ReturnCode::SEMACQFAIL;
+
+                return;
+
+            }
+
+            return_code = return_code + ReturnCode::SEMACQ;
+
+            if (verbose &&
+                    vlevel > VLevel::V2) {
+
+                std::string info = std::string("Acquired semaphore at ") +
+                        sem_path;
+
+                journal.log(__FUNCTION__,
+                             info,
+                             LogType::INFO);
+
+
+            }
+
+        }
+
+        inline void acquireSemWait(const std::string& sem_path,
                          sem_t*& sem,
                          int n_trials,
                          int& fail_counter,
                          Journal& journal,
                          ReturnCode& return_code,
+                         float wait_for = 1.0, // [s]
                          bool force_reconnection = false,
                          bool verbose = true,
                          VLevel vlevel = Journal::VLevel::V0) {
@@ -573,7 +631,7 @@ namespace SharsorIPCpp{
             }
 
             // Acquire the semaphore
-            if (semWait(sem, 1.0,
+            if (semWait(sem, wait_for,
                         return_code) == -1) {
 
                 fail_counter++;
@@ -625,12 +683,13 @@ namespace SharsorIPCpp{
                     return_code = return_code + ReturnCode::SEMREL;
                 }
 
-                acquireSem(sem_path,
+                acquireSemWait(sem_path,
                             sem,
                             n_trials,
                             fail_counter,
                             journal,
                             return_code,
+                            wait_for,
                             force_reconnection,
                             verbose,
                             vlevel); // recursive call. After releaseSems(), this should now work
