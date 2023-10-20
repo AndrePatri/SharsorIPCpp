@@ -44,12 +44,14 @@ namespace SharsorIPCpp{
 
             void log(const std::string& methodname,
                      const std::string& message,
-                     LogType log_type) {
+                     LogType log_type,
+                     bool throw_when_excep = false) {
 
                 // Map LogType to corresponding string
                 const char* logTypeStr = logTypeToString(log_type);
 
-                if (log_type == LogType::EXCEP){
+                if (log_type == LogType::EXCEP &&
+                    !throw_when_excep){
 
                     std::printf("%s[%s][%s][%s]: %s%s\n",
                             Colors::kBoldRed.c_str(),
@@ -58,6 +60,29 @@ namespace SharsorIPCpp{
                             logTypeStr,
                             message.c_str(),
                             Colors::kEndl.c_str());
+                }
+
+                if (log_type == LogType::EXCEP &&
+                    throw_when_excep){
+
+                    std::string exception =
+                                    Colors::kBoldRed +
+                                    std::string("[") +
+                                    _classname +
+                                    std::string("]") +
+                                    std::string("[") +
+                                    methodname +
+                                    std::string("]") +
+                                    std::string("[") +
+                                    logTypeStr +
+                                    std::string("]: ") +
+                                    message +
+                                    std::string(", error code ") +
+                                    std::string(std::strerror(errno)) +
+                                    Colors::kEndl;
+
+                    throw std::runtime_error(exception);
+
                 }
 
                 if (log_type == LogType::WARN){

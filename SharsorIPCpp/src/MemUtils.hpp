@@ -55,7 +55,6 @@ namespace SharsorIPCpp{
             VLevel vlevel = Journal::VLevel::V0
             )
         {
-            return_code = ReturnCode::RESET; // resets return code
 
             // Determine the size based on the Scalar type
             std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
@@ -79,6 +78,8 @@ namespace SharsorIPCpp{
 
                 return_code = return_code + ReturnCode::MEMCREATFAIL;
 
+                return;
+
             }
 
             // Set size
@@ -95,6 +96,8 @@ namespace SharsorIPCpp{
                 }
 
                 return_code = return_code + ReturnCode::MEMSETFAIL;
+
+                return;
 
             }
 
@@ -131,6 +134,8 @@ namespace SharsorIPCpp{
 
                 return_code = return_code + ReturnCode::MEMMAPFAIL;
 
+                return;
+
             }
 
             new (&tensor_view) MMap<Scalar>(matrix_data,
@@ -158,6 +163,7 @@ namespace SharsorIPCpp{
                             Index n_rows2fit,
                             Index n_cols2fit,
                             Journal& journal,
+                            ReturnCode& return_code,
                             bool verbose = true,
                             VLevel vlevel = Journal::VLevel::V0) {
 
@@ -171,10 +177,12 @@ namespace SharsorIPCpp{
                             std::string("Provided indeces are out of bounds wrt memory.");
 
                     journal.log(__FUNCTION__,
-                                 warn,
-                             LogType::WARN);
+                                warn,
+                                LogType::EXCEP);
 
                 }
+
+                return_code = return_code + ReturnCode::INDXOUT;
 
                 return false;
             }
@@ -191,9 +199,11 @@ namespace SharsorIPCpp{
 
                     journal.log(__FUNCTION__,
                                  warn,
-                                 LogType::WARN);
+                                 LogType::EXCEP);
 
                 }
+
+                return_code = return_code + ReturnCode::NOFIT;
 
                 return false;
             }
@@ -206,6 +216,7 @@ namespace SharsorIPCpp{
                    MMap<Scalar>& tensor_view,
                    int row, int col,
                    Journal& journal,
+                   ReturnCode& return_code,
                    bool verbose = true,
                    VLevel vlevel = Journal::VLevel::V0) {
 
@@ -213,6 +224,7 @@ namespace SharsorIPCpp{
                          row, col,
                          data.rows(), data.cols(),
                          journal,
+                         return_code,
                          verbose,
                          vlevel);
 
@@ -221,6 +233,11 @@ namespace SharsorIPCpp{
                 tensor_view.block(row, col,
                               data.rows(),
                               data.cols()) = data;
+            }
+
+            if (!success) {
+
+                return_code = return_code + ReturnCode::WRITEFAIL;
             }
 
             return success;
@@ -232,6 +249,7 @@ namespace SharsorIPCpp{
                   Tensor<Scalar>& output,
                   MMap<Scalar>& tensor_view,
                   Journal& journal,
+                  ReturnCode& return_code,
                   bool verbose = true,
                   VLevel vlevel = Journal::VLevel::V0) {
 
@@ -239,6 +257,7 @@ namespace SharsorIPCpp{
                          row, col,
                          output.rows(), output.cols(),
                          journal,
+                         return_code,
                          verbose,
                          vlevel);
 
@@ -249,7 +268,26 @@ namespace SharsorIPCpp{
                                            output.cols());
             }
 
+            if (!success) {
+
+                return_code = return_code + ReturnCode::READFAIL;
+            }
+
             return success;
+
+        }
+
+        inline void failWithCode(ReturnCode fail_code,
+                                 Journal journal) {
+
+            std::string error = std::string("Failed with error code: ") +
+                    toString(fail_code);
+
+            // we throw an exception
+            journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP,
+                         true);
 
         }
 
@@ -257,12 +295,15 @@ namespace SharsorIPCpp{
                         const std::string& mem_path,
                         int& shm_fd,
                         Journal& journal,
+                        ReturnCode& return_code,
                         bool verbose = true,
                         VLevel vlevel = Journal::VLevel::V0,
                         bool unlink = false) {
 
             // Closing the file descriptor (for this process only)
             ::close(shm_fd);
+
+            return_code = return_code + ReturnCode::MEMFDCLOSED;
 
             if (verbose
                     && vlevel > VLevel::V2) {
@@ -293,6 +334,8 @@ namespace SharsorIPCpp{
                                  info,
                                  LogType::INFO);
                 }
+
+                return_code = return_code + ReturnCode::MEMUNLINK;
             }
 
         }
@@ -301,6 +344,7 @@ namespace SharsorIPCpp{
                     const std::string& mem_path,
                     int& shm_fd,
                     Journal& journal,
+                    ReturnCode& return_code,
                     bool verbose = true,
                     VLevel vlevel = Journal::VLevel::V0) {
 
@@ -322,11 +366,16 @@ namespace SharsorIPCpp{
                                  LogType::WARN);
                 }
 
+                return_code = return_code + ReturnCode::MEMEXISTS;
+
                 cleanUpMem(mem_path,
                          shm_fd,
                          journal,
+                         return_code,
                          verbose,
                          vlevel);
+
+                return_code = return_code + ReturnCode::MEMCLEAN;
 
                 if (verbose &&
                         vlevel > VLevel::V0) {
@@ -344,6 +393,8 @@ namespace SharsorIPCpp{
 
                     ::close(shm_fd);
 
+                    return_code = return_code + ReturnCode::MEMFDCLOSED;
+
                 }
 
             }
@@ -351,7 +402,8 @@ namespace SharsorIPCpp{
         }
 
         inline int semWait(sem_t* sem,
-                        double timeout_seconds) {
+                        double timeout_seconds,
+                        ReturnCode& return_code) {
 
             struct timespec timeout;
 
@@ -368,9 +420,13 @@ namespace SharsorIPCpp{
 
                     // Successfully acquired the semaphore.
 
+                    return_code = return_code + ReturnCode::SEMACQ;
+
                     return 0;
 
                 } else if (result == -1 && errno == ETIMEDOUT) {
+
+                    return_code = return_code + ReturnCode::SEMACQTIMEOUT;
 
                     // Timeout occurred.
 
@@ -379,6 +435,8 @@ namespace SharsorIPCpp{
                 } else if (result == -1 && errno != EINTR) {
 
                     // Other error occurred (excluding interrupt).
+
+                    return_code = return_code + ReturnCode::OTHER;
 
                     return errno;
 
@@ -391,17 +449,22 @@ namespace SharsorIPCpp{
         inline void closeSem(const std::string& sem_path,
                          sem_t *&sem,
                          Journal& journal,
+                         ReturnCode& return_code,
                          bool verbose = true,
                          VLevel vlevel = Journal::VLevel::V0,
                          bool unlink = false) {
 
             sem_close(sem); // closes semaphore for the current process
 
+            return_code = return_code + ReturnCode::SEMCLOSE;
+
             if (unlink) {
 
                 sem_unlink(sem_path.c_str()); // unlinks semaphore system-wide.
                 // Other processes who had it open can still use it, but no new
                 // process can access it
+
+                return_code = return_code + ReturnCode::SEMUNLINK;
 
                 if (verbose &&
                         vlevel > VLevel::V2) {
@@ -437,6 +500,7 @@ namespace SharsorIPCpp{
         inline void releaseSem(const std::string& sem_path,
                          sem_t *&sem,
                          Journal& journal,
+                         ReturnCode& return_code,
                          bool verbose = true,
                          VLevel vlevel = Journal::VLevel::V0) {
 
@@ -463,7 +527,13 @@ namespace SharsorIPCpp{
                                  LogType::EXCEP);
                 }
 
+                return_code = return_code + ReturnCode::SEMRELFAIL;
+
+                return;
+
             }
+
+            return_code = return_code + ReturnCode::SEMREL;
 
             if (verbose &&
                     vlevel > VLevel::V2) {
@@ -484,6 +554,7 @@ namespace SharsorIPCpp{
                          int n_trials,
                          int& fail_counter,
                          Journal& journal,
+                         ReturnCode& return_code,
                          bool force_reconnection = false,
                          bool verbose = true,
                          VLevel vlevel = Journal::VLevel::V0) {
@@ -502,9 +573,12 @@ namespace SharsorIPCpp{
             }
 
             // Acquire the semaphore
-            if (semWait(sem, 1.0) == -1) {
+            if (semWait(sem, 1.0,
+                        return_code) == -1) {
 
                 fail_counter++;
+
+                return_code = return_code + ReturnCode::SEMACQRETRY;
 
                 if (fail_counter > n_trials)
                 { // we exceeded the number of allowed trials
@@ -518,6 +592,10 @@ namespace SharsorIPCpp{
                                      LogType::EXCEP);
 
                     }
+
+                    return_code = return_code + ReturnCode::SEMACQFAIL;
+
+                    return;
 
                 }
 
@@ -539,9 +617,12 @@ namespace SharsorIPCpp{
                     releaseSem(sem_path,
                             sem,
                             journal,
+                            return_code,
                             verbose,
                             vlevel); // we try to release it, so that if a previous instance
                     // crashed, we now make the semaphore available for acquisition.
+
+                    return_code = return_code + ReturnCode::SEMREL;
                 }
 
                 acquireSem(sem_path,
@@ -549,6 +630,7 @@ namespace SharsorIPCpp{
                             n_trials,
                             fail_counter,
                             journal,
+                            return_code,
                             force_reconnection,
                             verbose,
                             vlevel); // recursive call. After releaseSems(), this should now work
@@ -564,6 +646,8 @@ namespace SharsorIPCpp{
                          LogType::WARN);
 
                 }
+
+                return_code = return_code + ReturnCode::SEMACQ;
 
             }
 
@@ -587,6 +671,7 @@ namespace SharsorIPCpp{
         inline void initSem(const std::string& sem_path,
                          sem_t*& sem,
                          Journal& journal,
+                         ReturnCode& return_code,
                          bool verbose = true,
                          VLevel vlevel = Journal::VLevel::V0) {
 
@@ -596,6 +681,8 @@ namespace SharsorIPCpp{
 
             if (sem == SEM_FAILED) {
                 // Handle semaphore creation error
+
+                return_code = return_code + ReturnCode::SEMOPENFAIL;
 
                 if (verbose) {
 
@@ -607,8 +694,12 @@ namespace SharsorIPCpp{
 
                 }
 
+                return;
+
             }
             else {
+
+                return_code = return_code + ReturnCode::SEMOPEN;
 
                 if (verbose &&
                     vlevel > VLevel::V2) {

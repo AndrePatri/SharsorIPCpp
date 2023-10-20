@@ -98,6 +98,11 @@ namespace SharsorIPCpp{
                       _dtype_view;
             MMap<bool> _isrunning_view;
 
+            void _acquireSem(const std::string& sem_path,
+                             sem_t*& sem);
+            void _releaseSem(const std::string& sem_path,
+                             sem_t*& sem);
+
             void _acquireData();
             void _releaseData();
 
@@ -107,6 +112,7 @@ namespace SharsorIPCpp{
 
             void _checkDType();
 
+            void _initDataMem();
             void _initMetaMem();
 
             void _initSems();

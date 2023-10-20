@@ -29,10 +29,61 @@ namespace SharsorIPCpp {
         SEMRELFAIL = 1ULL << 21, // failed to release semaphore
         SEMCLOSE = 1ULL << 22, // close semaphore
         SEMUNLINK = 1ULL << 23, // unlinked semaphore
+        WRITEFAIL = 1ULL << 24, // failed to write to memory
+        READFAIL = 1ULL << 24, // failed to read from memory
         // ... up to 1ULL << 62
+        OTHER = 1ULL << 62,
         UNKNOWN = 1ULL << 63,
 
     };
+
+    inline std::string getDescription(ReturnCode code) {
+
+            static const std::unordered_map<ReturnCode, std::string> CodeMap = {
+
+                {ReturnCode::RESET, "RESET"},
+                {ReturnCode::MEMOPEN, "MEMOPEN"},
+                {ReturnCode::MEMOPENFAIL, "MEMOPENFAIL"},
+                {ReturnCode::MEMCREAT, "MEMCREAT"},
+                {ReturnCode::MEMCREATFAIL, "MEMCREATFAIL"},
+                {ReturnCode::MEMSET, "MEMSET"},
+                {ReturnCode::MEMSETFAIL, "MEMSETFAIL"},
+                {ReturnCode::MEMEXISTS, "MEMEXISTS"},
+                {ReturnCode::MEMCLEAN, "MEMCLEAN"},
+                {ReturnCode::MEMFDCLOSED, "MEMFDCLOSED"},
+                {ReturnCode::MEMUNLINK, "MEMUNLINK"},
+                {ReturnCode::MEMMAP, "MEMMAP"},
+                {ReturnCode::MEMMAPFAIL, "MEMMAPFAIL"},
+                {ReturnCode::INDXOUT, "INDXOUT"},
+                {ReturnCode::NOFIT, "NOFIT"},
+                {ReturnCode::SEMACQTIMEOUT, "SEMACQTIMEOUT"},
+                {ReturnCode::SEMACQ, "SEMACQ"},
+                {ReturnCode::SEMACQFAIL, "SEMACQFAIL"},
+                {ReturnCode::SEMACQRETRY, "SEMACQRETRY"},
+                {ReturnCode::SEMOPEN, "SEMOPEN"},
+                {ReturnCode::SEMOPENFAIL, "SEMOPENFAIL"},
+                {ReturnCode::SEMREL, "SEMREL"},
+                {ReturnCode::SEMRELFAIL, "SEMRELFAIL"},
+                {ReturnCode::SEMCLOSE, "SEMCLOSE"},
+                {ReturnCode::SEMUNLINK, "SEMUNLINK"},
+                // ... other codes
+                {ReturnCode::UNKNOWN, "UNKNOWN"},
+
+
+            };
+
+            auto it = CodeMap.find(code);
+
+            if (it != CodeMap.end()) {
+
+                return it->second;
+
+            } else {
+
+                return "UNKNOWN";
+
+            }
+        }
 
     // inline to avoid inclusion in multiple translation units
     inline ReturnCode operator+(ReturnCode lhs, ReturnCode rhs) {
@@ -53,6 +104,12 @@ namespace SharsorIPCpp {
         return (static_cast<unsigned long long>(code) &
                 static_cast<unsigned long long>(subcode)) ==
                     static_cast<unsigned long long>(subcode);
+    }
+
+    inline std::string toString(ReturnCode code) {
+
+        return std::to_string(static_cast<unsigned long long>(code));
+
     }
 
     // Example usage:

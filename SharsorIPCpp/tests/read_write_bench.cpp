@@ -198,13 +198,17 @@ TEST_F(JournalTest, TestJournal) {
                 Journal::LogType::INFO);
     journal.log("DoSomething", "These are statistics.",
                 Journal::LogType::STAT);
+    journal.log("DoSomething", "An exception without throw occurred!!",
+                Journal::LogType::EXCEP);
 
     std::cout << ""  << std::endl;
 
     EXPECT_THROW({
-            journal.log("DoSomething", "An exception occurred!!",
-                        Journal::LogType::EXCEP);
-        }, std::runtime_error) << "Expected a std::runtime_error to be thrown.";
+            journal.log("DoSomething", "An exception with throw occurred!!",
+                        Journal::LogType::EXCEP,
+                        true);
+        },
+        std::runtime_error) << "Expected a std::runtime_error to be thrown.";
 
 }
 
@@ -544,5 +548,6 @@ int main(int argc, char** argv) {
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
+
 }
 

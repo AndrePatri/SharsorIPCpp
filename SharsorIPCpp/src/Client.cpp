@@ -89,15 +89,7 @@ namespace SharsorIPCpp {
         _n_clients_view(0, 0) = _n_clients_view(0, 0) + 1; // increase clients counter
 
         // we have now all the info to create the shared tensor
-        MemUtils::initMem<Scalar>(n_rows,
-                        n_cols,
-                        _mem_config.mem_path,
-                        _data_shm_fd,
-                        _tensor_view,
-                        _journal,
-                        _return_code,
-                        _verbose,
-                        _vlevel);
+        _initDataMem();
 
         _tensor_copy = Tensor<Scalar>::Zero(n_rows,
                                             n_cols); // used to hold
@@ -169,6 +161,7 @@ namespace SharsorIPCpp {
                             _tensor_view,
                             row, col,
                             _journal,
+                            _return_code,
                             _verbose,
                             _vlevel);
 
@@ -201,6 +194,7 @@ namespace SharsorIPCpp {
                            output,
                            _tensor_view,
                            _journal,
+                           _return_code,
                            _verbose,
                            _vlevel);
 
@@ -288,17 +282,62 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
-    void Client<Scalar>::_acquireData()
+    void Client<Scalar>::_acquireSem(const std::string& sem_path,
+                                     sem_t*& sem)
     {
+        _return_code = ReturnCode::RESET;
 
-        MemUtils::acquireSem(_mem_config.mem_path_data_sem,
-                             _data_sem,
+        MemUtils::acquireSem(sem_path,
+                             sem,
                              _n_acq_trials,
                              _n_sem_acq_fail,
                              _journal,
+                             _return_code,
+                             false,
                              false, // no verbosity (this is called very frequently)
-                             _verbose,
                              _vlevel);
+
+        _return_code = ReturnCode::RESET;
+
+        if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
+
+            MemUtils::failWithCode(_return_code,
+                                   _journal);
+
+        }
+
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_releaseSem(const std::string& sem_path,
+                                     sem_t*& sem)
+    {
+        _return_code = ReturnCode::RESET;
+
+        MemUtils::releaseSem(sem_path,
+                             sem,
+                             _journal,
+                             _return_code,
+                             false, // no verbosity (this is called very frequently)
+                             _vlevel);
+
+        _return_code = ReturnCode::RESET;
+
+        if (isin(ReturnCode::SEMRELFAIL, _return_code)) {
+
+            MemUtils::failWithCode(_return_code,
+                                   _journal);
+
+        }
+
+    }
+
+    template <typename Scalar>
+    void Client<Scalar>::_acquireData()
+    {
+
+        _acquireSem(_mem_config.mem_path_data_sem,
+                    _data_sem);
 
     }
 
@@ -306,11 +345,8 @@ namespace SharsorIPCpp {
     void Client<Scalar>::_releaseData()
     {
 
-        MemUtils::releaseSem(_mem_config.mem_path_data_sem,
-                             _data_sem,
-                             _journal,
-                             false, // no verbosity (this is called very frequently)
-                             _vlevel);
+        _releaseSem(_mem_config.mem_path_data_sem,
+                    _data_sem);
 
     }
 
@@ -320,9 +356,12 @@ namespace SharsorIPCpp {
         // closing file descriptors and but not unlinking
         // memory
 
+        _return_code = ReturnCode::RESET;
+
         MemUtils::cleanUpMem(_mem_config.mem_path_nrows,
                              _nrows_shm_fd,
                              _journal,
+                             _return_code,
                              _verbose,
                              _vlevel,
                              _unlink_data);
@@ -330,6 +369,7 @@ namespace SharsorIPCpp {
         MemUtils::cleanUpMem(_mem_config.mem_path_ncols,
                              _ncols_shm_fd,
                              _journal,
+                             _return_code,
                              _verbose,
                              _vlevel,
                              _unlink_data);
@@ -337,6 +377,7 @@ namespace SharsorIPCpp {
         MemUtils::cleanUpMem(_mem_config.mem_path_clients_counter,
                              _n_clients_shm_fd,
                              _journal,
+                             _return_code,
                              _verbose,
                              _vlevel,
                              _unlink_data);
@@ -344,6 +385,7 @@ namespace SharsorIPCpp {
         MemUtils::cleanUpMem(_mem_config.mem_path_dtype,
                              _dtype_shm_fd,
                              _journal,
+                             _return_code,
                              _verbose,
                              _vlevel,
                              _unlink_data);
@@ -351,9 +393,12 @@ namespace SharsorIPCpp {
         MemUtils::cleanUpMem(_mem_config.mem_path_isrunning,
                              _isrunning_shm_fd,
                              _journal,
+                             _return_code,
                              _verbose,
                              _vlevel,
                              _unlink_data);
+
+        _return_code = ReturnCode::RESET;
 
     }
 
@@ -363,12 +408,17 @@ namespace SharsorIPCpp {
 
         if (!_terminated) {
 
+            _return_code = ReturnCode::RESET;
+
             MemUtils::cleanUpMem(_mem_config.mem_path,
                                  _data_shm_fd,
                                  _journal,
+                                 _return_code,
                                  _verbose,
                                  _vlevel,
                                  false); // closing but no unlinking
+
+            _return_code = ReturnCode::RESET;
 
             _cleanMetaMem(); // closes, but doesn't unlink, aux. data
 
@@ -393,8 +443,44 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
+    void Client<Scalar>::_initDataMem()
+    {
+
+        _return_code = _return_code + ReturnCode::RESET;
+
+        if (!isin(ReturnCode::MEMCREATFAIL,
+                _return_code) &&
+            !isin(ReturnCode::MEMSETFAIL,
+                _return_code) &&
+            !isin(ReturnCode::MEMMAPFAIL,
+                 _return_code)) {
+
+            MemUtils::initMem<Scalar>(n_rows,
+                            n_cols,
+                            _mem_config.mem_path,
+                            _data_shm_fd,
+                            _tensor_view,
+                            _journal,
+                            _return_code,
+                            _verbose,
+                            _vlevel);
+
+            _return_code = _return_code + ReturnCode::RESET;
+
+        }
+        else {
+
+            MemUtils::failWithCode(_return_code,
+                                   _journal);
+
+        }
+
+    }
+
+    template <typename Scalar>
     void Client<Scalar>::_initMetaMem()
     {
+        _return_code = ReturnCode::RESET; // resets return code
 
         // auxiliary data
         MemUtils::initMem<int>(1,
@@ -447,6 +533,22 @@ namespace SharsorIPCpp {
                         _verbose,
                         _vlevel);
 
+        if (!isin(ReturnCode::MEMCREATFAIL,
+                _return_code) &&
+            !isin(ReturnCode::MEMSETFAIL,
+                _return_code) &&
+            !isin(ReturnCode::MEMMAPFAIL,
+                 _return_code)) {
+
+            _return_code = ReturnCode::RESET;
+
+        }
+        else {
+
+            MemUtils::failWithCode(_return_code,
+                                   _journal);
+        }
+
     }
 
     template <typename Scalar>
@@ -456,6 +558,7 @@ namespace SharsorIPCpp {
         MemUtils::initSem(_mem_config.mem_path_data_sem,
                           _data_sem,
                           _journal,
+                          _return_code,
                           _verbose,
                           _vlevel);
 
@@ -468,6 +571,7 @@ namespace SharsorIPCpp {
         MemUtils::closeSem(_mem_config.mem_path_data_sem,
                            _data_sem,
                            _journal,
+                           _return_code,
                            _verbose,
                            _vlevel,
                            false);

@@ -108,10 +108,15 @@ namespace SharsorIPCpp{
 
             std::string _getThisName();
 
+            void _initDataMem();
             void _initMetaMem();
-            void _initMems();
 
             void _initSems();
+
+            void _acquireSem(const std::string& sem_path,
+                             sem_t*& sem);
+            void _releaseSem(const std::string& sem_path,
+                             sem_t*& sem);
 
             void _acquireData();
             void _releaseData();
