@@ -1,0 +1,4 @@
+#ifndef RETURNCODES_HPP
+#define RETURNCODES_HPP
+
+#endif // RETURNCODES_HPP
