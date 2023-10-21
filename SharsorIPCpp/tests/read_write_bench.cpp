@@ -12,8 +12,8 @@
 
 #include <test_utils.hpp>
 
-int N_ITERATIONS = 10000000;
-int N_ITERATIONS_STR = 10000000;
+int N_ITERATIONS = 1000000;
+int N_ITERATIONS_STR = 100000;
 
 int STR_TENSOR_LENGTH = 100;
 
