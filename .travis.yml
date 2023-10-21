@@ -30,5 +30,6 @@ script:
 - if echo "$UBUNTU_MAJOR_FULL" | grep -q "18"; then WITH_PYTHON='OFF'; else WITH_PYTHON='ON'; fi
 - cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=$WITH_PYTHON ..
 - make
+- ctest --output-on-failure --verbose
 - cd tests
-- ls
+- ./run_parallel_conn_tests.sh
