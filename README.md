@@ -6,7 +6,7 @@ Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSI
 
 CI: [![Build Status](https://app.travis-ci.com/AndrePatri/SharsorIPCpp.svg?branch=main)](https://app.travis-ci.com/AndrePatri/SharsorIPCpp)
 
-Documentation [here](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/)
+Documentation [here](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html)
 
 External dependencies: 
 - **Eigen3**: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
