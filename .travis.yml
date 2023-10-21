@@ -2,13 +2,13 @@ os: linux
 language: cpp
 compiler: g++
 
-matrix:
+jobs:
   include:
     - os: linux
-      dist: focal  # Ubuntu 20.04
+      dist: focal
       compiler: g++
     - os: linux
-      dist: jammy  # Ubuntu 22.04
+      dist: jammy  
       compiler: g++
 
 notifications:
