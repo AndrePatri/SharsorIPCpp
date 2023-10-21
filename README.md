@@ -10,11 +10,12 @@ External dependencies:
 - **Real-time library** (rt). ```sudo apt-get install librt-dev```
 - **pthread**: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev```
 
+<!-- 
 The library is also shipped with Python bindings with both Numpy or PyTorch support. To be able to compile the bindings, you'll need the following packages:
 - **pybind11**
 - **Torch**
 - **NumPy**
-- **Eigen**
+- **Eigen** -->
 
 If employed properly, the library is also designed to be rt-safe:
 - Dynamic allocations are reduced to the bare minimum.
@@ -35,6 +36,6 @@ ToDo:
 - [ ] add documentation
 - [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
 - [ ] write tests for the Python bindings
-- [ ] deploy on Anaconda   
+- [ ] deploy on Anaconda 
+- [ ] continuous integration  
 - [ ] test use from other package 
-- [ ] deploy to the world (make public)

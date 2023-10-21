@@ -45,6 +45,34 @@ if(${WITH_TESTS})
 
 endif()
 
+find_package(Doxygen QUIET)
+
+if(Doxygen_FOUND)
+
+    option(WITH_DOCS "Compile and install documentation" FALSE)
+
+    if(${WITH_DOCS})
+
+        message(STATUS "Documentation will be generated.")
+
+        add_definitions(-DWITH_DOCS) # can be used by preprocessor macros
+
+        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile)
+
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+        message("Doxygen build started")
+
+        add_custom_target(doc_doxygen ALL
+                COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                COMMENT "Generating API documentation with Doxygen"
+                VERBATIM)
+
+    endif()
+
+endif()
+
 #list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(Eigen3 3.3 REQUIRED)
