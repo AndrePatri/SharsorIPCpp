@@ -4,6 +4,8 @@
 ![icon.svg](docs/icon.svg)
 Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
+CI: [![Build Status](https://app.travis-ci.com/AndrePatri/SharsorIPCpp.svg?branch=main)](https://app.travis-ci.com/AndrePatri/SharsorIPCpp)
+
 External dependencies: 
 - **Eigen3**: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
 - **GTest** (Google Test): a C++ testing framework. On Linux, install it with ```sudo apt-get install libgtest-dev```.
