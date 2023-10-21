@@ -23,10 +23,18 @@ configure_file(
     @ONLY
 )
 
-gtest_discover_tests(read_write_bench)
-
+file(
+    COPY "${CMAKE_CURRENT_BINARY_DIR}/run_parallel_conn_tests.sh"
+    DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+    FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+)
 
 # Executable permissions
 execute_process(
     COMMAND chmod +x "${CMAKE_CURRENT_BINARY_DIR}/run_parallel_conn_tests.sh"
 )
+
+gtest_discover_tests(read_write_bench)
+
+
+

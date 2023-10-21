@@ -31,4 +31,4 @@ script:
 - cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=$WITH_PYTHON ..
 - make
 - ctest --output-on-failure --verbose
-- ./build/run_parallel_conn_tests.sh  # runs parallel connection tests
+- ./run_parallel_conn_tests.sh  # runs parallel connection tests
