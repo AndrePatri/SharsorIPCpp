@@ -1,0 +1,12 @@
+#!/bin/bash
+
+./@CLIENT_CONN_TEST@ &  # Start client in the background
+CLIENT_CONN_TEST_PID=$!  # Get the PID of test2
+
+./@SERVER_CONN_TEST@ &  # Start server in the background
+SERVER_CONN_TEST_PID=$!  # Get the PID of test1
+
+# Wait for both tests to complete
+wait $SERVER_CONN_TEST_PID
+wait $CLIENT_CONN_TEST_PID
+

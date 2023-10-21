@@ -664,11 +664,11 @@ int main(int argc, char** argv) {
     ::testing::GTEST_FLAG(filter) =
             "JournalTest.TestJournal";
 
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
-//    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
-    ::testing::GTEST_FLAG(filter) += ":StringTensorWrite.WriteReadStrTensorBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestDouble.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestFloat.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestInt.WriteReadBenchmark";
+    ::testing::GTEST_FLAG(filter) += ":ServerTestBool.WriteReadBenchmark";
+//    ::testing::GTEST_FLAG(filter) += ":StringTensorWrite.WriteReadStrTensorBenchmark";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
