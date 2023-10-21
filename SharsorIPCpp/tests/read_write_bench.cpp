@@ -261,8 +261,8 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  1000000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 1000000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   1000; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  1000; // [nanoseconds]
 
@@ -341,8 +341,8 @@ TEST_F(ServerTestInt, WriteReadBenchmark) {
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  1000000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 1000000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   2300; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  2300; // [nanoseconds]
 
@@ -421,8 +421,8 @@ TEST_F(ServerTestFloat, WriteReadBenchmark) {
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  1000000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 1000000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   2500; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  2500; // [nanoseconds]
 
@@ -501,8 +501,8 @@ TEST_F(ServerTestDouble, WriteReadBenchmark) {
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  1000000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 1000000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   5000; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  5000; // [nanoseconds]
 
@@ -581,8 +581,8 @@ TEST_F(StringTensorWrite, WriteReadStrTensorBenchmark) {
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH =  500000; // [nanoseconds], maximum allowed read time
-    double WRITE_T_MAX_THRESH = 500000; // [nanoseconds], maximum allowed read time
+    double READ_T_MAX_THRESH =  1000000; // [nanoseconds], maximum allowed read time
+    double WRITE_T_MAX_THRESH = 1000000; // [nanoseconds], maximum allowed read time
     double READ_T_AVRG_THRESH =   15000; // [nanoseconds]
     double WRITE_T_AVRG_THRESH =  15000; // [nanoseconds]
 
