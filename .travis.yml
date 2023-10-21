@@ -6,6 +6,10 @@ jobs:
   include:
     - os: linux
       dist: focal
+      compiler: g++
+    - os: linux
+      dist: jammy  
+      compiler: g++
 
 notifications:
   email:
