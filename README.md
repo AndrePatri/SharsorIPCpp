@@ -1,7 +1,7 @@
 ### <center> SharsorIPCpp </center>
 
 <!-- ![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only) -->
-![icon.svg](docs/icon.svg)
+![icon.svg](docs/sphinx/source/_static/icon.svg)
 Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
 CI: [![Build Status](https://app.travis-ci.com/AndrePatri/SharsorIPCpp.svg?branch=main)](https://app.travis-ci.com/AndrePatri/SharsorIPCpp)

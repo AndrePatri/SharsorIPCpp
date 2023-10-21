@@ -57,7 +57,7 @@ if(Doxygen_FOUND)
 
         add_definitions(-DWITH_DOCS) # can be used by preprocessor macros
 
-        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/Doxyfile.in)
         set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile)
 
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
@@ -137,3 +137,15 @@ install(DIRECTORY include/${LIBRARY_NAME}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_NAME}
     FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE)
+
+# install documentation
+if(Doxygen_FOUND)
+
+    if(${WITH_DOCS})
+
+        install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs/ DESTINATION
+            ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen)
+
+    endif()
+
+endif()
