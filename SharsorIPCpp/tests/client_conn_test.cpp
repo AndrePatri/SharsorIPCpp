@@ -418,11 +418,11 @@ int main(int argc, char** argv) {
     ::testing::GTEST_FLAG(filter) =
         ":StringTensorRead.StringTensorCheck";
 
-//    ::testing::GTEST_FLAG(filter) +=
-//        ":ClientReadsBool.ClientReadsRandBoolBlock";
+    ::testing::GTEST_FLAG(filter) +=
+        ":ClientReadsBool.ClientReadsRandBoolBlock";
 
-//    ::testing::GTEST_FLAG(filter) +=
-//        ":ClientReadsFloat.ClientReadRandFloat";
+    ::testing::GTEST_FLAG(filter) +=
+        ":ClientReadsFloat.ClientReadRandFloat";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

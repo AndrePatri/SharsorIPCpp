@@ -341,14 +341,14 @@ TEST_F(ServerWritesFloat, ServerWritesRandFloatBlock) {
 
 int main(int argc, char** argv) {
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ServerWritesInt.ServerWriteIntBlock";
+    ::testing::GTEST_FLAG(filter) =
+        ":ServerWritesInt.ServerWriteIntBlock";
 
-//    ::testing::GTEST_FLAG(filter) +=
-//        ":ServerWritesBool.ServerWriteBoolRandBlock";
+    ::testing::GTEST_FLAG(filter) +=
+        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
-//    ::testing::GTEST_FLAG(filter) +=
-//        ":ServerWritesFloat.ServerWriteFloatRandBlock";
+    ::testing::GTEST_FLAG(filter) +=
+        ":ServerWritesFloat.ServerWriteFloatRandBlock";
 
   ::testing::GTEST_FLAG(filter) =
       ":StringTensorWrite.StringTensorCheck";
