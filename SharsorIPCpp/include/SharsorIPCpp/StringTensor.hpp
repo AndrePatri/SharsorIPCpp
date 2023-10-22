@@ -66,9 +66,11 @@ namespace SharsorIPCpp {
 
             bool isRunning();
 
-            int length = -1; // string tensor length
+            int getLength();
 
         private:
+
+            int _length = -1; // string tensor length
 
             bool _running = false;
 

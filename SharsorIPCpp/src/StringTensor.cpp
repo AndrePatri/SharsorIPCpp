@@ -59,7 +59,7 @@ namespace SharsorIPCpp {
                          basename, name_space,
                          verbose, vlevel,
                          force_reconnection)),
-      length(length) {
+      _length(length) {
 
     }
 
@@ -70,7 +70,7 @@ namespace SharsorIPCpp {
 
             _sh_mem.attach();
 
-            length =_sh_mem.n_cols; // getting from
+            _length =_sh_mem.n_cols; // getting from
             // client (client gets this from server)
 
             _running = true;
@@ -106,7 +106,16 @@ namespace SharsorIPCpp {
     bool StringTensor<ShMemType>::read(std::vector<std::string>& vec,
                                        int col_index) {
 
-        return _decode_vec(vec, col_index);
+        if(isRunning()) {
+
+            return _decode_vec(vec, col_index);
+
+        }
+        else {
+
+            return false;
+        }
+
 
     }
 
@@ -114,15 +123,23 @@ namespace SharsorIPCpp {
     bool StringTensor<ShMemType>::read(std::string& str,
                                        int col_index) {
 
-        if (col_index >= 0 && col_index < length) {
+        if(isRunning()) {
 
-          _decode_str(str, col_index);
+            if (col_index >= 0 && col_index < _length) {
 
-          return true;
+              _decode_str(str, col_index);
+
+              return true;
+
+            }
+
+            return false;
+        }
+        else {
+
+            return false;
 
         }
-
-        return false;
 
     }
 
@@ -130,21 +147,39 @@ namespace SharsorIPCpp {
     bool StringTensor<ShMemType>::write(const std::vector<std::string>& vec,
                                         int col_index) {
 
-        return _encode_vec(vec, col_index);
+        if(isRunning()) {
+
+            return _encode_vec(vec, col_index);
+
+        }
+        else {
+
+            return false;
+
+        }
+
     }
 
     template <typename ShMemType>
     bool StringTensor<ShMemType>::write(const std::string& str,
                                         int col_index) {
 
-        if (col_index >= 0 && col_index < length) {
+        if(isRunning()) {
 
-            _encode_str(str, col_index);
+            if (col_index >= 0 && col_index < _length) {
 
-            return true;
+                _encode_str(str, col_index);
+
+                return true;
+            }
+
+            return false;
+
         }
+        else {
 
-        return false;
+            return false;
+        }
 
     }
 
@@ -152,6 +187,13 @@ namespace SharsorIPCpp {
     bool StringTensor<ShMemType>::isRunning() {
 
         return _running;
+
+    }
+
+    template <typename ShMemType>
+    int StringTensor<ShMemType>::getLength() {
+
+        return _length;
 
     }
 
@@ -264,7 +306,7 @@ namespace SharsorIPCpp {
     bool StringTensor<ShMemType>::_fits(const std::vector<std::string>& vec,
                                        int index) {
 
-        if (index + vec.size() > length) {
+        if (index + vec.size() > _length) {
 
             return false;
         }

@@ -322,7 +322,7 @@ protected:
 
         string_t_ptr->run();
 
-        str_vec.resize(string_t_ptr->length);
+        str_vec.resize(string_t_ptr->getLength());
 
     }
 
