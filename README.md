@@ -36,11 +36,17 @@ If employed properly, the library is also designed to be rt-safe:
 - As of now, the logging utility `Journal` is not guaranteed to be rt-friendly. It is very useful for debugging purposes but, if working with rt-code, it is strongly recommended to set the verbosity level to `VLevel::V0` (which prints only exceptions) or to disable logging altogether with `verbose = false`.
 
 ToDo:
-- [ ] python bindings with Numpy and PyTorch support
-- [x] start to add documentation
-- [ ] fill doc with simple examples
-- [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
-- [ ] write tests for the Python bindings
-- [ ] deploy on Anaconda 
 - [x] continuous integration  
+- [ ] python bindings with Numpy and PyTorch support
+  - [x] bind StringTensor
+  - [ ] bind Client and Server: write factory method, so that it's not necessary to have a different name for each different type of data
+  - [ ] add support for Torch and Eigen
+  - [ ] write some read/write unittests to benchmark performance impacts of additional dynamic allocations in bindings
+  - [ ] add python tests to CI
+- [] start to add documentation
+  - [x] doc page initialization
+  - [ ] fill with simple Cpp examples and also reference tests
+  - [ ] Python interface examples
+- [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
+- [ ] deploy on Anaconda 
 - [ ] test use from other package 
