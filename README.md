@@ -4,15 +4,23 @@
 ![icon.svg](docs/sphinx/source/_static/icon.svg)
 Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSIX-compatible OS.
 
-CI: [![Build Status](https://app.travis-ci.com/AndrePatri/SharsorIPCpp.svg?branch=main)](https://app.travis-ci.com/AndrePatri/SharsorIPCpp)
+<center>
+<table>
+  <tr>
+    <td><img src="https://img.shields.io/badge/License-GPLv2-purple.svg" alt="License"></td>
+    <td><img src="https://img.shields.io/badge/Docs-WIP-yellow" alt="Docs"></td>
+    <td><img src="https://app.travis-ci.com/AndrePatri/SharsorIPCpp.svg?branch=main" alt="CI"></td>
+  </tr>
+</table>
+</center>
 
-Documentation [here](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html)
+The documentation (WIP currently) is host [here](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html).
 
 External dependencies: 
-- **Eigen3**: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
-- **GTest** (Google Test): a C++ testing framework. On Linux, install it with ```sudo apt-get install libgtest-dev```.
-- **Real-time library** (rt). ```sudo apt-get install librt-dev```
-- **pthread**: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev```
+- **Eigen3** - *required*: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
+- **GTest** (Google Test) - *optional*: a C++ testing framework. On Linux, install it with ```sudo apt-get install libgtest-dev```.
+- **Real-time library** (rt) - *required*: ```sudo apt-get install librt-dev```
+- **pthread** - *required*: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev```
 
 <!-- 
 The library is also shipped with Python bindings with both Numpy or PyTorch support. To be able to compile the bindings, you'll need the following packages:
@@ -29,9 +37,10 @@ If employed properly, the library is also designed to be rt-safe:
 
 ToDo:
 - [ ] python bindings with Numpy and PyTorch support
-- [ ] add documentation
+- [x] start to add documentation
+- [ ] fill doc with simple examples
 - [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
 - [ ] write tests for the Python bindings
 - [ ] deploy on Anaconda 
-- [ ] continuous integration  
+- [x] continuous integration  
 - [ ] test use from other package 
