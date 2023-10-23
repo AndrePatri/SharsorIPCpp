@@ -19,8 +19,8 @@ namespace SharsorIPCpp {
           _verbose(verbose),
           _vlevel(vlevel),
           _tensor_view(nullptr,
-                       n_rows,
-                       n_cols),
+                       -1,
+                       -1),
           _n_rows_view(nullptr,
                        1,
                        1),
@@ -84,15 +84,15 @@ namespace SharsorIPCpp {
 
         _checkDType(); // checks data type consistency
 
-        n_rows = _n_rows_view(0, 0);
-        n_cols = _n_cols_view(0, 0);
+        _n_rows = _n_rows_view(0, 0);
+        _n_cols = _n_cols_view(0, 0);
         _n_clients_view(0, 0) = _n_clients_view(0, 0) + 1; // increase clients counter
 
         // we have now all the info to create the shared tensor
         _initDataMem();
 
-        _tensor_copy = Tensor<Scalar>::Zero(n_rows,
-                                            n_cols); // used to hold
+        _tensor_copy = Tensor<Scalar>::Zero(_n_rows,
+                                            _n_cols); // used to hold
         // a copy of the shared tensor data
 
         // releasing data semaphore so that other clients/the server can access the tensor
@@ -123,6 +123,22 @@ namespace SharsorIPCpp {
     {
 
         return _attached;
+
+    }
+
+    template <typename Scalar>
+    int Client<Scalar>::getNRows()
+    {
+
+        return _n_rows;
+
+    }
+
+    template <typename Scalar>
+    int Client<Scalar>::getNCols()
+    {
+
+        return _n_cols;
 
     }
 
@@ -486,8 +502,8 @@ namespace SharsorIPCpp {
             !isin(ReturnCode::MEMMAPFAIL,
                  _return_code)) {
 
-            MemUtils::initMem<Scalar>(n_rows,
-                            n_cols,
+            MemUtils::initMem<Scalar>(_n_rows,
+                            _n_cols,
                             _mem_config.mem_path,
                             _data_shm_fd,
                             _tensor_view,

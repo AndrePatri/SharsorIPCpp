@@ -46,11 +46,6 @@ namespace SharsorIPCpp{
             bool readTensor(Tensor<Scalar>& output,
                             int row = 0, int col = 0);
 
-            int n_rows = -1;
-            int n_cols = -1;
-
-            int n_clients = -1;
-
             void run();
             void stop();
             void close();
@@ -58,6 +53,8 @@ namespace SharsorIPCpp{
             bool isRunning();
 
             int getNClients();
+            int getNRows();
+            int getNCols();
 
         private:
 
@@ -71,6 +68,11 @@ namespace SharsorIPCpp{
             bool _running = false;
 
             bool _force_reconnection = false;
+
+            int _n_rows = -1;
+            int _n_cols = -1;
+
+            int _n_clients = -1;
 
             int _data_shm_fd; // shared memory file descriptor
             int _nrows_shm_fd,

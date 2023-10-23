@@ -70,7 +70,7 @@ namespace SharsorIPCpp {
 
             _sh_mem.attach();
 
-            _length =_sh_mem.n_cols; // getting from
+            _length =_sh_mem.getNCols(); // getting from
             // client (client gets this from server)
 
             _running = true;

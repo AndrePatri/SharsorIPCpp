@@ -71,8 +71,8 @@ protected:
 
     void getMetaData() {
 
-        rows = client_ptr->n_rows;
-        cols = client_ptr->n_cols;
+        rows = client_ptr->getNRows();
+        cols = client_ptr->getNCols();
     }
 
     void readData() {
@@ -140,8 +140,8 @@ protected:
 
     void getMetaData() {
 
-        rows = client_ptr->n_rows;
-        cols = client_ptr->n_cols;
+        rows = client_ptr->getNRows();
+        cols = client_ptr->getNCols();
     }
 
     void readData() {
@@ -209,8 +209,8 @@ protected:
 
     void getMetaData() {
 
-        rows = client_ptr->n_rows;
-        cols = client_ptr->n_cols;
+        rows = client_ptr->getNRows();
+        cols = client_ptr->getNCols();
     }
 
     void readData() {
@@ -280,8 +280,8 @@ protected:
 
     void getMetaData() {
 
-        rows = client_ptr->n_rows;
-        cols = client_ptr->n_cols;
+        rows = client_ptr->getNRows();
+        cols = client_ptr->getNCols();
     }
 
     void readData() {

@@ -44,15 +44,15 @@ namespace SharsorIPCpp{
             bool readTensor(Tensor<Scalar>& output,
                             int row = 0, int col = 0);
 
-            int n_rows = -1;
-            int n_cols = -1;
-
             void attach();
             void detach();
 
             void close();
 
             bool isAttached();
+
+            int getNRows();
+            int getNCols();
 
         private:
 
@@ -64,6 +64,9 @@ namespace SharsorIPCpp{
             bool _terminated = false;
 
             bool _attached = false;
+
+            int _n_rows = -1;
+            int _n_cols = -1;
 
             int _data_shm_fd; // shared memory file descriptor
             int _nrows_shm_fd,

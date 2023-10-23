@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
 
-#include "PyStringTensor.hpp"
+#include <PySharsorIPC/PyStringTensor.hpp>
 
 namespace py = pybind11;
 

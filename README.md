@@ -25,9 +25,7 @@ External dependencies:
 Python bindings dependencies: 
 - **pybind11** - *required*. Already shipped with Numpy support.
 - **Eigen3** - *required*
-- **Torch** - *required*. The bindings link statically against libtorch. Download a statically precompiled version of Torch 2.1 [here](https://download.pytorch.org/libtorch/cpu/libtorch-static-with-deps-2.1.0%2Bcpu.zip). Alternatively, you can use a dynamically linked version by downloading it [here](https://download.pytorch.org/libtorch/cpu/libtorch-dynamic-with-deps-2.1.0%2Bcpu.zip), but you'll need to modify the CMakelists.txt of the bindings.
-
-To compile the python bindings, turn the WITH_PYTHON flag ON, download a precompiled Torch version and set the LIBTORCH_PATH to the root of the directory of the extracted zip archive.
+- **Torch** - *required*. The bindings link against libtorch. As of now, the only alternative is to download a pre-compiled zip archive from [here](https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.1.0%2Bcpu.zip). Unzip the archive to whatever location you like, then turn on the WITH_PYTHON flag and set the LIBTORCH_PATH to the root of the directory of the extracted zip archive. Internally this is also added to the RPATH associated with the bindings through CMake.
 
 <!-- 
 The library is also shipped with Python bindings with both Numpy or PyTorch support. To be able to compile the bindings, you'll need the following packages:

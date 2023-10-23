@@ -4,22 +4,20 @@ add_compile_options(-std=c++17)
 
 set(PyBindName "PySharsorIPC")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} include/${PyBindName} src/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} include/ src/)
 
 find_package(pybind11 REQUIRED)
 
 find_package(Eigen3 3.3 REQUIRED)
 
-# backends (at least one of them needs to be found)
-find_package(Torch QUIET)
-
 #find_package(NumPy REQUIRED) # not needed-> already shipped with pybind
 
 # setting up STATIC compilation against Torch
-set(LIBTORCH_PATH "/usr/lib/Torch" CACHE PATH "Path to extracted pre-compiled Torch zip archive")
-list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
-set(TORCH_STATIC ON)
-find_package(Torch REQUIRED STATIC)
+#set(LIBTORCH_PATH "/usr/lib/Torch" CACHE PATH "Path to extracted pre-compiled Torch zip archive")
+#list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
+#set(TORCH_STATIC ON)
+#find_package(Torch REQUIRED STATIC)
+#find_package(Torch REQUIRED)
 
 message(STATUS "Compiling python bindings for ${LIBRARY_NAME}. Codename: ${PyBindName}")
 
@@ -31,8 +29,13 @@ execute_process(
       OUTPUT_VARIABLE PYTHON_SITE
       OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+add_library("${PyBindName}Libs" STATIC src/PyStringTensor.cpp)
+target_link_libraries("${PyBindName}Libs" PUBLIC SharsorIPCpp PRIVATE pybind11::module )
+#"${TORCH_LIBRARIES}")
+
 pybind11_add_module(${PyBindName} PySharsorIPC.cpp)
-target_link_libraries(${PyBindName} PUBLIC SharsorIPCpp PRIVATE pybind11::module "${TORCH_LIBRARIES}")
+target_link_libraries(${PyBindName} PRIVATE "${PyBindName}Libs" pybind11::module)
+#set_target_properties(${PyBindName} PROPERTIES INSTALL_RPATH "${LIBTORCH_PATH}/lib")
 
 install(TARGETS ${PyBindName}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME})

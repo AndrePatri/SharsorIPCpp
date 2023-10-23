@@ -17,8 +17,8 @@ namespace SharsorIPCpp {
                    bool verbose,
                    VLevel vlevel,
                    bool force_reconnection)
-        : n_rows(n_rows),
-          n_cols(n_cols),
+        : _n_rows(n_rows),
+          _n_cols(n_cols),
           _mem_config(basename, name_space),
           _verbose(verbose),
           _vlevel(vlevel),
@@ -102,8 +102,8 @@ namespace SharsorIPCpp {
         // auxiliary data
         _initMetaMem();
 
-        _tensor_copy = Tensor<Scalar>::Zero(n_rows,
-                                            n_cols); // used to hold
+        _tensor_copy = Tensor<Scalar>::Zero(_n_rows,
+                                            _n_cols); // used to hold
         // a copy of the shared tensor data
 
         _terminated = false; // just in case
@@ -170,6 +170,22 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
+    int Server<Scalar>::getNRows()
+    {
+
+        return _n_rows;
+
+    }
+
+    template <typename Scalar>
+    int Server<Scalar>::getNCols()
+    {
+
+        return _n_cols;
+
+    }
+
+    template <typename Scalar>
     void Server<Scalar>::close()
     {
 
@@ -196,11 +212,11 @@ namespace SharsorIPCpp {
 
         _acquireData();
 
-        n_clients = _n_clients_view(0, 0);
+        _n_clients = _n_clients_view(0, 0);
 
         _releaseData();
 
-        return n_clients;
+        return _n_clients;
     }
 
     template <typename Scalar>
@@ -562,8 +578,8 @@ namespace SharsorIPCpp {
 
             // all memory creations where successful
 
-            _n_rows_view(0, 0) = n_rows;
-            _n_cols_view(0, 0) = n_cols;
+            _n_rows_view(0, 0) = _n_rows;
+            _n_cols_view(0, 0) = _n_cols;
             _n_clients_view(0, 0) = 0; // to be improved
             // (what happens when server crashes and clients remain appended?)
             _isrunning_view(0, 0) = 0;
@@ -594,8 +610,8 @@ namespace SharsorIPCpp {
             !isin(ReturnCode::MEMMAPFAIL,
                  _return_code)) {
 
-            MemUtils::initMem<Scalar>(n_rows,
-                            n_cols,
+            MemUtils::initMem<Scalar>(_n_rows,
+                            _n_cols,
                             _mem_config.mem_path,
                             _data_shm_fd,
                             _tensor_view,
