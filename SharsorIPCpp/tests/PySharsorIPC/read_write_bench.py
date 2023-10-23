@@ -1,41 +1,68 @@
 import unittest
+import numpy as np
 
-from SharsorIPCpp.PySharsorIPC import StringTensorClient, VLevel
+import time
 
-# from SharsorIPCpp.PySharsorIPC import Client
-# from SharsorIPCpp.PySharsorIPC import Server
+from SharsorIPCpp.PySharsorIPC import ClientFactory
+#from SharsorIPCpp.PySharsorIPC import StringTensorClient
+from SharsorIPCpp.PySharsorIPC import VLevel
+from SharsorIPCpp.PySharsorIPC import dtype
+
 
 class TestAddFunction(unittest.TestCase):
 
-    def test_readwrite_bool(self):
-        
-        # Create a client with the specified parameters
-        client = StringTensorClient(basename="SharedStrTensor", 
-                            name_space="ConnectionTests", 
-                            verbose=True, 
-                            vlevel=VLevel.V3)
-        
-        client.run() # start the client
-   
-        self.assertEqual(5, 5)
+#    def test_readwrite_bool(self):
 
-    def test_readwrite_int(self):
+#        # Create a client with the specified parameters
+#        client = StringTensorClient(basename="SharedStrTensor",
+#                            name_space="ConnectionTests",
+#                            verbose=True,
+#                            vlevel=VLevel.V3)
 
-        self.assertEqual(5, 5)
+#        client.run() # start the client
 
-    def test_readwrite_float(self):
+#        self.assertEqual(5, 5)
 
-        self.assertEqual(5, 5)
+#    def test_readwrite_int(self):
 
-    def test_readwrite_double(self):
+#        self.assertEqual(5, 5)
 
-        self.assertEqual(5, 5)
+#    def test_readwrite_float(self):
 
-    def test_readwrite_str(self):
+#        self.assertEqual(5, 5)
 
-        # client.read_vec()
+#    def test_readwrite_double(self):
 
-        self.assertEqual(5, 5)
+#        self.assertEqual(5, 5)
+
+#    def test_readwrite_str(self):
+
+#        # client.read_vec()
+
+#        self.assertEqual(5, 5)
+
+    def test_init_client(self):
+
+        # Create a client
+        client = ClientFactory(dtype=dtype.FLOAT)
+
+        for i in range(0, 1000):
+
+            # Use the client's readTensor method
+            success, tensor = client.readTensor()
+
+            # Check the success flag
+            if success:
+
+                print("Tensor successfully read:")
+
+                print(np.array(tensor))
+
+            else:
+
+                print("Failed to read the tensor.")
+
+            time.sleep(0.5)
 
 if __name__ == "__main__":
 
