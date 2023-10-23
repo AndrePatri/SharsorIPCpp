@@ -3,6 +3,8 @@
 #include <pybind11/stl.h>
 
 #include <Eigen/Dense>
+#include <pybind11/numpy.h>
+#include <torch/torch.h>
 
 #include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Server.hpp>

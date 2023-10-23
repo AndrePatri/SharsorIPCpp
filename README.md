@@ -22,6 +22,13 @@ External dependencies:
 - **Real-time library** (rt) - *required*: ```sudo apt-get install librt-dev```
 - **pthread** - *required*: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev```
 
+Python bindings dependencies: 
+- **pybind11** - *required*. Already shipped with Numpy support.
+- **Eigen3** - *required*
+- **Torch** - *required*. The bindings link statically against libtorch. Download a statically precompiled version of Torch 2.1 [here](https://download.pytorch.org/libtorch/cpu/libtorch-static-with-deps-2.1.0%2Bcpu.zip). Alternatively, you can use a dynamically linked version by downloading it [here](https://download.pytorch.org/libtorch/cpu/libtorch-dynamic-with-deps-2.1.0%2Bcpu.zip), but you'll need to modify the CMakelists.txt of the bindings.
+
+To compile the python bindings, turn the WITH_PYTHON flag ON, download a precompiled Torch version and set the LIBTORCH_PATH to the root of the directory of the extracted zip archive.
+
 <!-- 
 The library is also shipped with Python bindings with both Numpy or PyTorch support. To be able to compile the bindings, you'll need the following packages:
 - **pybind11**
@@ -29,7 +36,7 @@ The library is also shipped with Python bindings with both Numpy or PyTorch supp
 - **NumPy**
 - **Eigen** -->
 
-If employed properly, the library is also designed to be rt-safe:
+If employed properly, the library is also designed to be rt-safe (in C++):
 - Dynamic allocations are reduced to the bare minimum.
 - Run-time semaphore acquisitions (used by `writeTensor` and `readTensor`) are designed to be non-blocking and rt-safe. It is then user's responsibility to handle, if necessary, possible write/read failures due to semaphore acquisition.
 - Calls to `run()/attach()` and `stop()` are not guaranteed to be rt-friendly. For rt applications, these calls should only be done during initialization/closing steps or, at run-time, sporadically.

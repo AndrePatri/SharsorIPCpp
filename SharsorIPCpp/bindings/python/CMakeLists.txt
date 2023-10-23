@@ -6,7 +6,14 @@ find_package(Eigen3 3.3 REQUIRED)
 # backends (at least one of them needs to be found)
 find_package(Torch QUIET)
 
-find_package(NumPy QUIET)
+#find_package(NumPy REQUIRED)
+set(LIBTORCH_PATH "/usr/lib/libtorch")
+
+list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
+
+set(TORCH_STATIC ON)
+find_package(Torch REQUIRED STATIC)
+#find_package(Torch REQUIRED)
 
 #add_compile_options(-std=c++17)
 
@@ -21,7 +28,7 @@ execute_process(
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 pybind11_add_module(PySharsorIPC pysharsor_ipc.cpp)
-target_link_libraries(PySharsorIPC PUBLIC SharsorIPCpp PRIVATE pybind11::module)
+target_link_libraries(PySharsorIPC PUBLIC SharsorIPCpp PRIVATE pybind11::module "${TORCH_LIBRARIES}")
 
 install(TARGETS PySharsorIPC
             DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME})
