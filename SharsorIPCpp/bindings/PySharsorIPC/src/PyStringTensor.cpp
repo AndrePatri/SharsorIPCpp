@@ -1,16 +1,11 @@
-#include <pybind11/pybind11.h>
-
 #include <pybind11/stl.h>
 
 #include <Eigen/Dense>
 #include <pybind11/numpy.h>
-#include <torch/torch.h>
-
 #include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Server.hpp>
-#include <SharsorIPCpp/Journal.hpp>
 
-#include <SharsorIPCpp/StringTensor.hpp>
+#include <PySharsorIPC/PyStringTensor.hpp>
 
 namespace py = pybind11;
 using namespace SharsorIPCpp;
@@ -82,6 +77,7 @@ void declare_StringTensorServer(py::module &m) {
         }, py::arg("index") = 0)
 
         ;
+
 }
 
 void declare_StringTensorClient(py::module &m) {
@@ -148,23 +144,5 @@ void declare_StringTensorClient(py::module &m) {
         }, py::arg("index") = 0)
 
         ;
-}
-
-PYBIND11_MODULE(PySharsorIPC, m) {
-
-    m.doc() = "pybind11 StringTensor bindings";
-
-    py::enum_<VLevel>(m, "VLevel")
-        .value("V0", Journal::VLevel::V0)
-        .value("V1", Journal::VLevel::V1)
-        .value("V2", Journal::VLevel::V2)
-        .value("V3", Journal::VLevel::V3)
-        // ... bind other values similarly
-        .export_values();
-
-    declare_StringTensorServer(m);
-
-    declare_StringTensorClient(m);
 
 }
-

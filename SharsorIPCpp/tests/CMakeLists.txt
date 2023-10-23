@@ -32,12 +32,16 @@ file(
     FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
 )
 
+# copying pybinds tests to build folder
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC/
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC
+    FILES_MATCHING PATTERN "*.py")
+
+
 # Executable permissions
 execute_process(
     COMMAND chmod +x "${CMAKE_CURRENT_BINARY_DIR}/run_parallel_conn_tests.sh"
 )
 
 gtest_discover_tests(read_write_bench)
-
-
 

@@ -92,7 +92,7 @@ endif()
 # Compile python bindings
 if(${WITH_PYTHON})
 
-    add_subdirectory(bindings/python/)
+    add_subdirectory(bindings/PySharsorIPC/)
 
 endif()
 
