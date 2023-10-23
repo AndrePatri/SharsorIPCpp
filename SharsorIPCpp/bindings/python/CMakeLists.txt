@@ -7,8 +7,7 @@ find_package(Eigen3 3.3 REQUIRED)
 find_package(Torch QUIET)
 
 #find_package(NumPy REQUIRED)
-set(LIBTORCH_PATH "/usr/lib/libtorch")
-
+set(LIBTORCH_PATH "/usr/lib/Torch" CACHE PATH "Path to extracted pre-compiled Torch zip archive")
 list(APPEND CMAKE_PREFIX_PATH "${LIBTORCH_PATH}")
 
 set(TORCH_STATIC ON)
