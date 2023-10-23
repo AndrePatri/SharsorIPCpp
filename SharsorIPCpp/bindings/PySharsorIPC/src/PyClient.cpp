@@ -101,13 +101,18 @@ void PyClient::bind_ClientWrapper(py::module& m) {
 
         return wrapper.execute([&](py::object& client) {
 
-            py::tuple result = client.attr("readTensor")(row, col).cast<py::tuple>();
+            if (client.attr("getDType") == "bool") {
 
-            bool success = result[0].cast<bool>();
+                Tensor<bool> output(client.attr("getNRows"),
+                                    client.attr("getNCols"));
+            }
+
+
+            bool result = client.attr("readTensor")(row, col);
 
             py::array tensor = result[1].cast<py::array>();
 
-            return std::make_tuple(success, tensor);
+            return std::make_tuple(result, tensor);
         });
 
     }, py::arg("row") = 0, py::arg("col") = 0);
