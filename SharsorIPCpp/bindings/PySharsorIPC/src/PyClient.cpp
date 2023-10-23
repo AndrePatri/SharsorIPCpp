@@ -41,29 +41,29 @@ py::object PyClient::ClientFactory(std::string basename,
                         std::string name_space,
                         bool verbose,
                         VLevel vlevel,
-                        DataType dtype) {
+                        DType dtype) {
     switch (dtype) {
 
-        case DataType::BOOL:
+        case DType::Bool:
 
             return py::cast(ClientWrapper(new py::object(
                                               py::cast(std::make_shared<Client<bool>>(basename,
                                                                                     name_space,
                                                                                     verbose,
                                                                                     vlevel)))));
-        case DataType::INT:
+        case DType::Int:
             return py::cast(ClientWrapper(new py::object(
                                               py::cast(std::make_shared<Client<int>>(basename,
                                                                                     name_space,
                                                                                     verbose,
                                                                                     vlevel)))));
-        case DataType::FLOAT:
+        case DType::Float:
             return py::cast(ClientWrapper(new py::object(
                                               py::cast(std::make_shared<Client<float>>(basename,
                                                                                     name_space,
                                                                                     verbose,
                                                                                     vlevel)))));
-        case DataType::DOUBLE:
+        case DType::Double:
             return py::cast(ClientWrapper(new py::object(
                                               py::cast(std::make_shared<Client<double>>(basename,
                                                                                     name_space,
@@ -101,16 +101,16 @@ void PyClient::bind_ClientWrapper(py::module& m) {
 
         return wrapper.execute([&](py::object& client) {
 
-            if (client.attr("getDType") == "bool") {
+            if (client.attr("getScalarType") == DType::Bool) {
 
                 Tensor<bool> output(client.attr("getNRows"),
                                     client.attr("getNCols"));
             }
 
 
-            bool result = client.attr("readTensor")(row, col);
+            bool result = client.attr("readTensor")(output, row, col);
 
-            py::array tensor = result[1].cast<py::array>();
+            py::array tensor = output.cast<py::array>();
 
             return std::make_tuple(result, tensor);
         });
@@ -137,7 +137,7 @@ void PyClient::bindFactory(py::module& m,
           py::arg("name_space") = "",
           py::arg("verbose") = false,
           py::arg("vlevel") = VLevel::V0,
-          py::arg("dtype") = DataType::FLOAT,
+          py::arg("dtype") = DataType::Float,
           "Create a new client with the specified arguments and dtype.");
 
 }

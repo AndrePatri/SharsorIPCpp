@@ -36,6 +36,30 @@ namespace SharsorIPCpp {
         using type = bool;
     };
 
+    // Create a type trait to map C++ types values to  DTypes
+    template <typename T>
+    struct CppTypeToDType;
+
+    template <>
+    struct CppTypeToDType<float> {
+        static constexpr DType value = DType::Float;
+    };
+
+    template <>
+    struct CppTypeToDType<double> {
+        static constexpr DType value = DType::Double;
+    };
+
+    template <>
+    struct CppTypeToDType<int> {
+        static constexpr DType value = DType::Int;
+    };
+
+    template <>
+    struct CppTypeToDType<bool> {
+        static constexpr DType value = DType::Bool;
+    };
+
 }
 
 #endif // DTYPES_HPP

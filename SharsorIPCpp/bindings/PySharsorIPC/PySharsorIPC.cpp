@@ -7,18 +7,17 @@
 
 namespace py = pybind11;
 
-namespace py = pybind11;
 using namespace SharsorIPCpp;
 
 PYBIND11_MODULE(PySharsorIPC, m) {
 
     m.doc() = "pybind11 StringTensor bindings";
 
-    py::enum_<DataType>(m, "dtype")
-        .value("BOOL", DataType::BOOL)
-        .value("INT", DataType::INT)
-        .value("FLOAT", DataType::FLOAT)
-        .value("DOUBLE", DataType::DOUBLE);
+    py::enum_<DType>(m, "dtype")
+        .value("BOOL", DType::Bool)
+        .value("INT", DType::Int)
+        .value("FLOAT", DType::Float)
+        .value("DOUBLE", DType::Double);
 
     py::enum_<VLevel>(m, "VLevel")
         .value("V0", Journal::VLevel::V0)

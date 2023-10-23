@@ -143,6 +143,13 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
+    DType Client<Scalar>::getScalarType() const {
+
+        return CppTypeToDType<Scalar>::value;
+
+    }
+
+    template <typename Scalar>
     void Client<Scalar>::close()
     {
 

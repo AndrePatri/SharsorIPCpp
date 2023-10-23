@@ -54,6 +54,8 @@ namespace SharsorIPCpp{
             int getNRows();
             int getNCols();
 
+            DType getScalarType() const;
+
         private:
 
             bool _unlink_data = false; // will never unlink data
@@ -81,6 +83,8 @@ namespace SharsorIPCpp{
             std::string _this_name = "SharsorIPCpp::Client";
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
+
+            Scalar _scalarType; // scalar type of this class
 
             SharedMemConfig _mem_config;
 

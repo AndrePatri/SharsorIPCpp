@@ -4,8 +4,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 
-#include <PyDefs.hpp>
-
 #include <SharsorIPCpp/Server.hpp>
 
 namespace py = pybind11;

@@ -220,6 +220,13 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
+    DType Server<Scalar>::getScalarType() const {
+
+        return CppTypeToDType<Scalar>::value;
+
+    }
+
+    template <typename Scalar>
     bool Server<Scalar>::writeTensor(const Tensor<Scalar>& data,
                                  int row,
                                  int col) {

@@ -6,8 +6,6 @@
 #include <pybind11/stl.h>
 #include <memory>
 
-#include <PyDefs.hpp>
-
 #include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 
@@ -38,7 +36,7 @@ namespace PyClient{
                             std::string name_space = "",
                             bool verbose = false,
                             VLevel vlevel = VLevel::V0,
-                            DataType dtype = DataType::FLOAT);
+                            DType dtype = DType::Float);
 
     void bind_ClientWrapper(py::module& m);
 

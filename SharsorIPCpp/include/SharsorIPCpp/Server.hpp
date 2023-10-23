@@ -53,8 +53,11 @@ namespace SharsorIPCpp{
             bool isRunning();
 
             int getNClients();
+
             int getNRows();
             int getNCols();
+
+            DType getScalarType() const;
 
         private:
 
