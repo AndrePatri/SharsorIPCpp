@@ -251,6 +251,45 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar>
+    bool Client<Scalar>::readTensor(MMap<Scalar>& output,
+                                    int row, int col) {
+
+        if (_attached) {
+
+            if (_acquireData()) { // non-blocking
+
+                MemUtils::read(row, col,
+                               output,
+                               _tensor_view,
+                               _journal,
+                               _return_code,
+                               false,
+                               _vlevel);
+
+                _releaseData();
+
+                return true;
+
+            }
+
+        }
+
+        if (!_attached && _verbose) {
+
+            std::string error = std::string("Client is not registered to the Server. ") +
+                    std::string("Did you remember to call the attach() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
+
+        return false;
+
+    }
+
+    template <typename Scalar>
     void Client<Scalar>::_waitForServer()
     {
         while(!(_isrunning_view(0, 0) > 0)) {

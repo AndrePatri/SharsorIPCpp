@@ -20,9 +20,16 @@ namespace SharsorIPCpp{
     template <typename Scalar>
     using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
 
+//    template <typename Scalar>
+//    using TensorRMaj = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic,
+//                                    Eigen::RowMajor>;
+
     template <typename Scalar>
     using MMap = Eigen::Map<Tensor<Scalar>>; // no explicit cleanup needed
     // for Eigen::Map -> it does not own the memory
+
+//    template <typename Scalar>
+//    using MMapRMaj = Eigen::Map<TensorRMaj<Scalar>>; // row
 
     using VLevel = Journal::VLevel;
 
@@ -266,6 +273,43 @@ namespace SharsorIPCpp{
                 output = tensor_view.block(row, col,
                                            output.rows(),
                                            output.cols());
+            }
+
+            if (!success) {
+
+                return_code = return_code + ReturnCode::READFAIL;
+            }
+
+            return success;
+
+        }
+
+        template <typename Scalar>
+        bool read(int row, int col,
+                  MMap<Scalar>& output,
+                  MMap<Scalar>& tensor_view,
+                  Journal& journal,
+                  ReturnCode& return_code,
+                  bool verbose = true,
+                  VLevel vlevel = Journal::VLevel::V0) {
+
+            // copy data pointed from tensor_view
+            // into the matrix output points
+            bool success = canFitTensor<Scalar>(tensor_view,
+                         row, col,
+                         output.rows(), output.cols(),
+                         journal,
+                         return_code,
+                         verbose,
+                         vlevel);
+
+            if (success) {
+
+                output = tensor_view.block(row, col,
+                                           output.rows(),
+                                           output.cols()).eval();
+                //.eval(), forces Eigen to evaluate the block expression
+                // and produce an actual matrix
             }
 
             if (!success) {

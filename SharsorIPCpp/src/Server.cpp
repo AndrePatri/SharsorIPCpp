@@ -304,6 +304,45 @@ namespace SharsorIPCpp {
 
     }
 
+    template <typename Scalar>
+    bool Server<Scalar>::readTensor(MMap<Scalar>& output,
+                                    int row, int col) {
+
+        if (_running) {
+
+            if (_acquireData()) { // non-blocking
+
+                MemUtils::read(row, col,
+                               output,
+                               _tensor_view,
+                               _journal,
+                               _return_code,
+                               false,
+                               _vlevel);
+
+                _releaseData();
+
+                return true;
+
+            }
+
+        }
+
+        if (!_running && _verbose) {
+
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
+
+        return false;
+
+    }
+
 //    template <typename Scalar>
 //    const MMap<Scalar>& Server<Scalar>::getTensorView() {
 

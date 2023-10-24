@@ -42,7 +42,12 @@ namespace SharsorIPCpp{
                              int col = 0);
 
             bool readTensor(Tensor<Scalar>& output,
-                            int row = 0, int col = 0);
+                            int row = 0, int col = 0); // copies
+            // underlying shared tensor data to the output
+
+            bool readTensor(MMap<Scalar>& output,
+                            int row = 0, int col = 0); // copies
+            // underlying shared tensor data to the output Map
 
             void attach();
             void detach();

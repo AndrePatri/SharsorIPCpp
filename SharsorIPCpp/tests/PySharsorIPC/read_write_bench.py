@@ -6,8 +6,7 @@ import time
 from SharsorIPCpp.PySharsorIPC import ClientFactory
 #from SharsorIPCpp.PySharsorIPC import StringTensorClient
 from SharsorIPCpp.PySharsorIPC import VLevel
-from SharsorIPCpp.PySharsorIPC import dtype
-
+from SharsorIPCpp.PySharsorIPC import dtype, toNumpyDType
 
 namespace = "ConnectionTests"
 
@@ -50,21 +49,27 @@ class TestAddFunction(unittest.TestCase):
                               namespace = namespace,
                               verbose = True,
                               vlevel = VLevel.V3,
-                              dtype=dtype.FLOAT)
+                              dtype=dtype.Float)
 
         client.attach() # attach to server or wait for it
+
+        # dtype must be consistent
+        output = np.zeros((client.getNRows() - 2,
+                        client.getNCols() -2) ,
+                        dtype=toNumpyDType(client.getScalarType()),
+                        order='C')
 
         for i in range(0, 1000): # we are connected
 
             # read the shared tensor (copy)
-            success, tensor = client.readTensor()
+            success = client.readTensor(output, 1, 1)
 
             # Check the success flag
             if success:
 
                 print("Tensor successfully read:")
 
-                print(np.array(tensor))
+                print(output)
 
             else:
 
