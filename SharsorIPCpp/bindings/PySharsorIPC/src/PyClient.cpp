@@ -53,7 +53,7 @@ void PyClient::bindClientT(py::module &m, const char* name) {
             else { // for now throw error. T.B. improved
 
                 std::string error = std::string("Provided numpy array is not column-major.") +
-                        std::string("Please create the array with the order=\'F\' option to") +
+                        std::string(" Please create the array with the order=\'F\' option to") +
                         std::string(" ensure correct reading.")
                         ;
 
