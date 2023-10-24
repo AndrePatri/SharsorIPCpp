@@ -32,11 +32,11 @@ execute_process(
 add_library("${PyBindName}Libs" STATIC src/PyStringTensor.cpp
                                        src/PyServer.cpp
                                        src/PyClient.cpp)
-target_link_libraries("${PyBindName}Libs" PUBLIC SharsorIPCpp PRIVATE pybind11::module )
+target_link_libraries("${PyBindName}Libs" PUBLIC SharsorIPCpp PRIVATE pybind11::module)
 #"${TORCH_LIBRARIES}")
 
 pybind11_add_module(${PyBindName} PySharsorIPC.cpp)
-target_link_libraries(${PyBindName} PUBLIC "${PyBindName}Libs" PRIVATE pybind11::module)
+target_link_libraries(${PyBindName} PRIVATE "${PyBindName}Libs" pybind11::module)
 #set_target_properties(${PyBindName} PROPERTIES INSTALL_RPATH "${LIBTORCH_PATH}/lib")
 
 install(TARGETS ${PyBindName}

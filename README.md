@@ -19,13 +19,21 @@ The documentation (WIP currently) is host [here](https://andrepatri.github.io/Sh
 External dependencies: 
 - **Eigen3** - *required*: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
 - **GTest** (Google Test) - *optional*: a C++ testing framework. On Linux, install it with ```sudo apt-get install libgtest-dev```.
-- **Real-time library** (rt) - *required*: ```sudo apt-get install librt-dev```
-- **pthread** - *required*: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev```
+<!-- - **Real-time library** (rt) - *required*: ```sudo apt-get install librt-dev```
+- **pthread** - *required*: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev``` -->
 
-Python bindings dependencies: 
+To compile python bindings you need: 
 - **pybind11** - *required*. Already shipped with Numpy support.
 - **Eigen3** - *required*
-- **Torch** - *required*. The bindings link against libtorch. As of now, the only alternative is to download a pre-compiled zip archive from [here](https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-2.1.0%2Bcpu.zip). Unzip the archive to whatever location you like, then turn on the WITH_PYTHON flag and set the LIBTORCH_PATH to the root of the directory of the extracted zip archive. Internally this is also added to the RPATH associated with the bindings through CMake.
+
+Run-time dependencies for the bindings:
+- **linux-vdso**
+- **librt**
+- **libstdc++**
+- **libgcc**
+- **libc**
+- **libpthread**
+- **libm**
 
 <!-- 
 The library is also shipped with Python bindings with both Numpy or PyTorch support. To be able to compile the bindings, you'll need the following packages:
@@ -40,12 +48,14 @@ If employed properly, the library is also designed to be rt-safe (in C++):
 - Calls to `run()/attach()` and `stop()` are not guaranteed to be rt-friendly. For rt applications, these calls should only be done during initialization/closing steps or, at run-time, sporadically.
 - As of now, the logging utility `Journal` is not guaranteed to be rt-friendly. It is very useful for debugging purposes but, if working with rt-code, it is strongly recommended to set the verbosity level to `VLevel::V0` (which prints only exceptions) or to disable logging altogether with `verbose = false`.
 
+As a side note, to ensure bindings compatibility with popular libraries like Numpy and PyTorch, SharsorIPCpp uses *Eigen::RowMajor* for its basic *Tensor* type.
+
 ToDo:
 - [x] continuous integration  
 - [ ] python bindings with Numpy and PyTorch support
   - [x] bind StringTensor
   - [ ] bind Client and Server: write factory method, so that it's not necessary to have a different name for each different type of data
-  - [ ] add support for Torch and Eigen
+  - [ ] Numpy support
   - [ ] write some read/write unittests to benchmark performance impacts of additional dynamic allocations in bindings
   - [ ] add python tests to CI
 - [] start to add documentation
