@@ -54,15 +54,17 @@ class TestAddFunction(unittest.TestCase):
         client.attach() # attach to server or wait for it
 
         # dtype must be consistent
-        output = np.zeros((client.getNRows() - 2,
-                        client.getNCols() - 2) ,
+        output = np.zeros((client.getNRows(),
+                        client.getNCols()) ,
                         dtype=toNumpyDType(client.getScalarType()))
+
+        output_view = output[1:-1, 1:-1]
         #(to ensure consistency)
 
         for i in range(0, 1000): # we are connected
 
             # read the shared tensor (copy)
-            success = client.readTensor(output, 1, 1)
+            success = client.readTensor(output_view, 1, 1)
 
             # Check the success flag
             if success:
@@ -70,6 +72,9 @@ class TestAddFunction(unittest.TestCase):
                 print("Tensor successfully read:")
 
                 print(output)
+
+                print("View")
+                print(output_view)
 
             else:
 

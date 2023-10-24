@@ -56,6 +56,7 @@ add_library(${LIBRARY_NAME} STATIC
     src/Server.cpp
     src/Client.cpp
     src/StringTensor.cpp
+    src/Helpers.cpp
     src/MemDefs.hpp
     src/MemUtils.hpp
     src/SharedMemConfig.hpp
