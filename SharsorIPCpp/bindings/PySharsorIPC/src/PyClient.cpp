@@ -32,6 +32,8 @@ void PyClient::bindClientT(py::module &m, const char* name) {
 
         .def("isAttached", &SharsorIPCpp::Client<Scalar>::isAttached)
 
+        .def("getScalarType", &SharsorIPCpp::Client<Scalar>::getScalarType)
+
         .def("getNRows", &SharsorIPCpp::Client<Scalar>::getNRows)
 
         .def("getNCols", &SharsorIPCpp::Client<Scalar>::getNCols);
@@ -84,6 +86,76 @@ void PyClient::bind_ClientWrapper(py::module& m) {
 
     py::class_<ClientWrapper> cls(m, "Client");
 
+    cls.def("attach", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("attach")();
+
+        });
+
+    });
+
+    cls.def("detach", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("detach")();
+
+        });
+
+    });
+
+    cls.def("close", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("close")();
+
+        });
+
+    });
+
+    cls.def("isAttached", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("isAttached")().cast<bool>();
+
+        });
+
+    });
+
+    cls.def("getNRows", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("getNRows")().cast<int>();
+
+        });
+
+    });
+
+    cls.def("getNCols", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("getNCols")().cast<int>();
+
+        });
+
+    });
+
+    cls.def("getScalarType", [](ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](py::object& client) {
+
+            return client.attr("getScalarType")().cast<DType>();
+
+        });
+
+    });
+
     cls.def("writeTensor", [](ClientWrapper& wrapper,
                               const py::array& np_array,
                               int row, int col) {
@@ -101,18 +173,114 @@ void PyClient::bind_ClientWrapper(py::module& m) {
 
         return wrapper.execute([&](py::object& client) {
 
-            if (client.attr("getScalarType") == DType::Bool) {
+            DType client_type = client.attr("getScalarType")().cast<DType>();
 
-                Tensor<bool> output(client.attr("getNRows"),
-                                    client.attr("getNCols"));
+            int nRows = client.attr("getNRows")().cast<int>();
+            int nCols = client.attr("getNCols")().cast<int>();
+
+            bool is_attached = client.attr("isAttached")().cast<bool>();
+
+            bool success = false;
+
+            switch (client_type) {
+
+                case DType::Bool:
+                    {
+                        if(is_attached) {
+
+                            Tensor<bool> output_t(nRows, nCols);
+
+                            success = client.attr("readTensor")(output_t, row, col).cast<bool>();
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor);
+                        }
+                        else {
+
+                            Tensor<bool> output_t(1, 1); // 1x1 default
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor); // success is false
+                        }
+                    }
+                    break;
+
+                case DType::Int:
+                    {
+                        if(is_attached) {
+
+                            Tensor<int> output_t(nRows, nCols);
+
+                            success = client.attr("readTensor")(output_t, row, col).cast<bool>();
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor);
+                        }
+                        else {
+
+                            Tensor<int> output_t(1, 1); // 1x1 default
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor); // success is false
+                        }
+                    }
+                    break;
+
+                case DType::Float:
+                    {
+                        if(is_attached) {
+
+                            Tensor<float> output_t(nRows, nCols);
+
+                            success = client.attr("readTensor")(output_t, row, col).cast<bool>();
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor);
+                        }
+                        else {
+
+                            Tensor<float> output_t(1, 1); // 1x1 default
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor); // success is false
+                        }
+                    }
+                    break;
+
+                case DType::Double:
+                    {
+                        if(is_attached) {
+
+                            Tensor<double> output_t(nRows, nCols);
+
+                            success = client.attr("readTensor")(output_t, row, col).cast<bool>();
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor);
+                        }
+                        else {
+
+                            Tensor<double> output_t(1, 1); // 1x1 default
+
+                            py::array tensor = pybind11::cast(output_t);
+
+                            return std::make_tuple(success, tensor); // success is false
+                        }
+                    }
+                    break;
+
+                default:
+
+                    throw std::runtime_error("Invalid dtype!");
             }
 
-
-            bool result = client.attr("readTensor")(output, row, col);
-
-            py::array tensor = output.cast<py::array>();
-
-            return std::make_tuple(result, tensor);
         });
 
     }, py::arg("row") = 0, py::arg("col") = 0);
@@ -134,10 +302,10 @@ void PyClient::bindFactory(py::module& m,
 
     m.def(name, &PyClient::ClientFactory,
           py::arg("basename") = "MySharedMemory",
-          py::arg("name_space") = "",
+          py::arg("namespace") = "",
           py::arg("verbose") = false,
           py::arg("vlevel") = VLevel::V0,
-          py::arg("dtype") = DataType::Float,
+          py::arg("dtype") = DType::Float,
           "Create a new client with the specified arguments and dtype.");
 
 }

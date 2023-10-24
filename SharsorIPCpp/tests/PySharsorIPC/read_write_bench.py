@@ -9,6 +9,8 @@ from SharsorIPCpp.PySharsorIPC import VLevel
 from SharsorIPCpp.PySharsorIPC import dtype
 
 
+namespace = "ConnectionTests"
+
 class TestAddFunction(unittest.TestCase):
 
 #    def test_readwrite_bool(self):
@@ -44,11 +46,17 @@ class TestAddFunction(unittest.TestCase):
     def test_init_client(self):
 
         # Create a client
-        client = ClientFactory(dtype=dtype.FLOAT)
+        client = ClientFactory(basename = "SharsorFloat",
+                              namespace = namespace,
+                              verbose = True,
+                              vlevel = VLevel.V3,
+                              dtype=dtype.FLOAT)
 
-        for i in range(0, 1000):
+        client.attach() # attach to server or wait for it
 
-            # Use the client's readTensor method
+        for i in range(0, 1000): # we are connected
+
+            # read the shared tensor (copy)
             success, tensor = client.readTensor()
 
             # Check the success flag
