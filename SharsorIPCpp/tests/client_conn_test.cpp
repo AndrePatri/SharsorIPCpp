@@ -178,24 +178,22 @@ protected:
                    client_ptr(new Client<float>(
                                      "SharsorFloat", name_space,
                                      true,
-                                     VLevel::V3)),
-                   tensor_copy(Tensor<float>::Zero(rows,
-                                                    cols)),
-                   tensor_block_copy(Tensor<float>::Zero(rows - 2,
-                                                         cols - 2)),
-                   tensor_block_view(helpers::createViewFrom(tensor_copy,
-                                                      1, 1,
-                                                      rows - 2, rows - 2))
+                                     VLevel::V3))
     {
 
         client_ptr->attach();
 
         getMetaData();
 
-        helpers::createViewFrom(tensor_block_view,
-                                 tensor_copy,
-                                 1, 1,
-                                 rows - 2, cols - 2);
+        tensor_copy = Tensor<float>::Zero(rows,
+                                         cols);
+
+        tensor_block_view = std::make_unique<MMap<float>>(helpers::createViewFrom(tensor_copy,
+                                                                                  1, 1,
+                                                                                  rows - 2, cols - 2));
+
+        tensor_block_copy = Tensor<float>::Zero(rows - 2,
+                                              cols - 2);
 
         client_ptr->readTensor(tensor_copy);
 
@@ -224,20 +222,20 @@ protected:
 
     void readData() {
 
-        client_ptr->readTensor(tensor_copy);
+//        client_ptr->readTensor(tensor_copy);
         client_ptr->readTensor(tensor_block_copy,
                                1, 1);
 
-//        client_ptr->readTensor(tensor_block_view,
-//                               1, 1);
+        client_ptr->readTensor(*tensor_block_view,
+                               1, 1);
 
         std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
         std::cout << "Read tensor block (copy):" << std::endl;
         std::cout << tensor_block_copy << std::endl;
         std::cout << "##############" << std::endl;
-//        std::cout << "Read tensor block (view):" << std::endl;
-//        std::cout << tensor_block_view << std::endl;
+        std::cout << "Read tensor block (view):" << std::endl;
+        std::cout << *tensor_block_view << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -250,7 +248,9 @@ protected:
     Client<float>::UniquePtr client_ptr;
 
     Tensor<float> tensor_copy;
-    MMap<float> tensor_block_view;
+
+    std::unique_ptr<MMap<float>> tensor_block_view;
+
     Tensor<float> tensor_block_copy;
 
 };

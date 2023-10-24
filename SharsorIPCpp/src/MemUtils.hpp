@@ -17,8 +17,6 @@
 
 namespace SharsorIPCpp{
 
-
-
     using VLevel = Journal::VLevel;
 
     using LogType = Journal::LogType;
