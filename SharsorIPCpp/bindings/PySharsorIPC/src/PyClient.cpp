@@ -34,7 +34,7 @@ void PyClient::bindClientT(py::module &m, const char* name) {
             bool success = false;
 
             // We check if the provided array is row-major
-            if (buf_info.strides[0] <= buf_info.strides[1]) { // row major
+            if (buf_info.strides[0] > buf_info.strides[1]) {// col major
 
                 Scalar* ptr = static_cast<Scalar*>(buf_info.ptr);
 
@@ -52,8 +52,8 @@ void PyClient::bindClientT(py::module &m, const char* name) {
             }
             else { // for now throw error. T.B. improved
 
-                std::string error = std::string("Provided numpy array is not column-major.") +
-                        std::string(" Please create the array with the order=\'F\' option to") +
+                std::string error = std::string("Provided numpy array is not row-major.") +
+                        std::string(" Please create the array with the order=\'C\' option to") +
                         std::string(" ensure correct reading.")
                         ;
 

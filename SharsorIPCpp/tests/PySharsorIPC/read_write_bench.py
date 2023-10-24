@@ -55,9 +55,8 @@ class TestAddFunction(unittest.TestCase):
 
         # dtype must be consistent
         output = np.zeros((client.getNRows() - 2,
-                        client.getNCols() -2) ,
-                        dtype=toNumpyDType(client.getScalarType()),
-                        order='F') # column major ordering
+                        client.getNCols() - 2) ,
+                        dtype=toNumpyDType(client.getScalarType()))
         #(to ensure consistency)
 
         for i in range(0, 1000): # we are connected

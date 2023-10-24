@@ -18,18 +18,13 @@
 namespace SharsorIPCpp{
 
     template <typename Scalar>
-    using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-
-//    template <typename Scalar>
-//    using TensorRMaj = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic,
-//                                    Eigen::RowMajor>;
+    using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic,
+                                    Eigen::RowMajor>; // to ensure compatibility
+    // with col. major libraries like Numpy or PyTorch
 
     template <typename Scalar>
     using MMap = Eigen::Map<Tensor<Scalar>>; // no explicit cleanup needed
     // for Eigen::Map -> it does not own the memory
-
-//    template <typename Scalar>
-//    using MMapRMaj = Eigen::Map<TensorRMaj<Scalar>>; // row
 
     using VLevel = Journal::VLevel;
 
