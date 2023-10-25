@@ -11,6 +11,7 @@
 
 namespace SharsorIPCpp {
 
+        // uses default memory layout
         using StrServer = Server<int>;
         using StrClient = Client<int>;
 

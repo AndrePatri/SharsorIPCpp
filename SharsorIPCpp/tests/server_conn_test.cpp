@@ -148,11 +148,14 @@ protected:
 
       journal.log("updateData", message, LogType::INFO);
 
+      std::cout << "Writing block:" << std::endl;
+      std::cout << myData << std::endl;
+
       // writing only a block
       server_ptr->writeTensor(myData,
                               1, 1);
 
-      std::this_thread::sleep_for(std::chrono::seconds(10));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
 
     }
 
@@ -206,6 +209,9 @@ protected:
                             std::to_string(server_ptr->getNClients());
 
       journal.log("updateData", message, LogType::INFO);
+
+      std::cout << "Writing block:" << std::endl;
+      std::cout << myData << std::endl;
 
       // writing only a block
       server_ptr->writeTensor(myData,
@@ -344,13 +350,13 @@ int main(int argc, char** argv) {
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesInt.ServerWriteIntBlock";
 
-//    ::testing::GTEST_FLAG(filter) +=
-//        ":ServerWritesBool.ServerWriteBoolRandBlock";
-
     ::testing::GTEST_FLAG(filter) =
-        ":ServerWritesFloat.ServerWritesRandFloatBlock";
+        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
-//    ::testing::GTEST_FLAG(filter) +=
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ServerWritesFloat.ServerWritesRandFloatBlock";
+
+//    ::testing::GTEST_FLAG(filter) =
 //        ":StringTensorWrite.StringTensorCheck";
 
     ::testing::InitGoogleTest(&argc, argv);

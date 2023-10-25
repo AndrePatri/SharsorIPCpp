@@ -20,7 +20,8 @@
 
 namespace SharsorIPCpp{
 
-    template <typename Scalar>
+    template <typename Scalar,
+              int Layout = Eigen::ColMajor>
     class Server {
 
         public:
@@ -39,15 +40,15 @@ namespace SharsorIPCpp{
 
             ~Server();
 
-            bool writeTensor(const Tensor<Scalar>& data,
+            bool writeTensor(const Tensor<Scalar, Layout>& data,
                              int row = 0,
                              int col = 0);
 
-            bool readTensor(Tensor<Scalar>& output,
+            bool readTensor(Tensor<Scalar, Layout>& output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output
 
-            bool readTensor(MMap<Scalar>& output,
+            bool readTensor(MMap<Scalar, Layout>& output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output Map
 
@@ -106,15 +107,15 @@ namespace SharsorIPCpp{
             ReturnCode _return_code; // overwritten by all methods
             // this is to avoid dyn. allocation
 
-            Tensor<Scalar> _tensor_copy; // copy (not view) of the tensor
+            Tensor<Scalar, Layout> _tensor_copy; // copy (not view) of the tensor
 
-            MMap<Scalar> _tensor_view; // view of the tensor
+            MMap<Scalar, Layout> _tensor_view; // view of the tensor
             // auxiliary views
-            MMap<int> _n_rows_view,
+            MMap<int, Layout> _n_rows_view,
                       _n_cols_view,
                       _n_clients_view,
                       _dtype_view;
-            MMap<bool> _isrunning_view;
+            MMap<bool, Layout> _isrunning_view;
 
             std::string _getThisName();
 

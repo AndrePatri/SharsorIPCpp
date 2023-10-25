@@ -35,13 +35,14 @@ namespace SharsorIPCpp{
                 std::is_same<Scalar, typename DTypeToCppType<DType::Bool>::type>::value;
         };
 
-        template <typename Scalar>
+        template <typename Scalar,
+                  int Layout = Eigen::ColMajor>
         void initMem(
             std::size_t n_rows,
             std::size_t n_cols,
             const std::string& mem_path,
             int& shm_fd,
-            MMap<Scalar>& tensor_view,
+            MMap<Scalar, Layout>& tensor_view,
             Journal& journal,
             ReturnCode& return_code,
             bool verbose = true,
@@ -131,7 +132,7 @@ namespace SharsorIPCpp{
 
             }
 
-            new (&tensor_view) MMap<Scalar>(matrix_data,
+            new (&tensor_view) MMap<Scalar, Layout>(matrix_data,
                                            n_rows,
                                            n_cols);
 
@@ -150,8 +151,9 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
-        bool canFitTensor(MMap<Scalar>& mat,
+        template <typename Scalar,
+                  int Layout = Eigen::ColMajor>
+        bool canFitTensor(MMap<Scalar, Layout>& mat,
                             int i, int j,
                             Index n_rows2fit,
                             Index n_cols2fit,
@@ -204,16 +206,17 @@ namespace SharsorIPCpp{
             return true;
         }
 
-        template <typename Scalar>
-        bool write(const Tensor<Scalar>& data,
-                   MMap<Scalar>& tensor_view,
+        template <typename Scalar,
+                  int Layout = Eigen::ColMajor>
+        bool write(const Tensor<Scalar, Layout>& data,
+                   MMap<Scalar, Layout>& tensor_view,
                    int row, int col,
                    Journal& journal,
                    ReturnCode& return_code,
                    bool verbose = true,
                    VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor<Scalar>(tensor_view,
+            bool success = canFitTensor<Scalar, Layout>(tensor_view,
                          row, col,
                          data.rows(), data.cols(),
                          journal,
@@ -237,16 +240,17 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
+        template <typename Scalar,
+                  int Layout = Eigen::ColMajor>
         bool read(int row, int col,
-                  Tensor<Scalar>& output,
-                  MMap<Scalar>& tensor_view,
+                  Tensor<Scalar, Layout>& output,
+                  MMap<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,
                   bool verbose = true,
                   VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor<Scalar>(tensor_view,
+            bool success = canFitTensor<Scalar, Layout>(tensor_view,
                          row, col,
                          output.rows(), output.cols(),
                          journal,
@@ -270,10 +274,11 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar>
+        template <typename Scalar,
+                  int Layout = Eigen::ColMajor>
         bool read(int row, int col,
-                  MMap<Scalar>& output,
-                  MMap<Scalar>& tensor_view,
+                  MMap<Scalar, Layout>& output,
+                  MMap<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,
                   bool verbose = true,
@@ -281,7 +286,7 @@ namespace SharsorIPCpp{
 
             // copy data pointed from tensor_view
             // into the matrix output points
-            bool success = canFitTensor<Scalar>(tensor_view,
+            bool success = canFitTensor<Scalar, Layout>(tensor_view,
                          row, col,
                          output.rows(), output.cols(),
                          journal,

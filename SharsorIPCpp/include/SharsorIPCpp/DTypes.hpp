@@ -3,13 +3,12 @@
 
 namespace SharsorIPCpp {
 
-    template <typename Scalar>
+    template <typename Scalar, int Layout = Eigen::ColMajor>
     using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic,
-                                    Eigen::RowMajor>; // to ensure compatibility
-    // with col. major libraries like Numpy or PyTorch
+                                   Layout>;
 
-    template <typename Scalar>
-    using MMap = Eigen::Map<Tensor<Scalar>>; // no explicit cleanup needed
+    template <typename Scalar, int Layout = Eigen::ColMajor>
+    using MMap = Eigen::Map<Tensor<Scalar, Layout>>; // no explicit cleanup needed
     // for Eigen::Map -> it does not own the memory
 
     // Define an enum class for data types

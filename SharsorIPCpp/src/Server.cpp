@@ -9,8 +9,8 @@
 
 namespace SharsorIPCpp {
 
-    template <typename Scalar>
-    Server<Scalar>::Server(int n_rows,
+    template <typename Scalar, int Layout>
+    Server<Scalar, Layout>::Server(int n_rows,
                    int n_cols,
                    std::string basename,
                    std::string name_space,
@@ -102,7 +102,7 @@ namespace SharsorIPCpp {
         // auxiliary data
         _initMetaMem();
 
-        _tensor_copy = Tensor<Scalar>::Zero(_n_rows,
+        _tensor_copy = Tensor<Scalar, Layout>::Zero(_n_rows,
                                             _n_cols); // used to hold
         // a copy of the shared tensor data
 
@@ -110,8 +110,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    Server<Scalar>::~Server() {
+    template <typename Scalar, int Layout>
+    Server<Scalar, Layout>::~Server() {
 
         if (!_terminated) {
 
@@ -120,8 +120,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::run()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::run()
     {
 
         if (!isRunning()) {
@@ -141,8 +141,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::stop()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::stop()
     {
 
         if (isRunning()) {
@@ -161,32 +161,32 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Server<Scalar>::isRunning()
+    template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::isRunning()
     {
 
         return _running;
 
     }
 
-    template <typename Scalar>
-    int Server<Scalar>::getNRows()
+    template <typename Scalar, int Layout>
+    int Server<Scalar, Layout>::getNRows()
     {
 
         return _n_rows;
 
     }
 
-    template <typename Scalar>
-    int Server<Scalar>::getNCols()
+    template <typename Scalar, int Layout>
+    int Server<Scalar, Layout>::getNCols()
     {
 
         return _n_cols;
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::close()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::close()
     {
 
         stop(); // stop server if running
@@ -207,8 +207,8 @@ namespace SharsorIPCpp {
         }
     }
 
-    template <typename Scalar>
-    int Server<Scalar>::getNClients() {
+    template <typename Scalar, int Layout>
+    int Server<Scalar, Layout>::getNClients() {
 
         _acquireData();
 
@@ -219,15 +219,15 @@ namespace SharsorIPCpp {
         return _n_clients;
     }
 
-    template <typename Scalar>
-    DType Server<Scalar>::getScalarType() const {
+    template <typename Scalar, int Layout>
+    DType Server<Scalar, Layout>::getScalarType() const {
 
         return CppTypeToDType<Scalar>::value;
 
     }
 
-    template <typename Scalar>
-    bool Server<Scalar>::writeTensor(const Tensor<Scalar>& data,
+    template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::writeTensor(const Tensor<Scalar, Layout>& data,
                                  int row,
                                  int col) {
 
@@ -265,8 +265,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Server<Scalar>::readTensor(Tensor<Scalar>& output,
+    template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::readTensor(Tensor<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_running) {
@@ -304,8 +304,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Server<Scalar>::readTensor(MMap<Scalar>& output,
+    template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::readTensor(MMap<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_running) {
@@ -343,26 +343,8 @@ namespace SharsorIPCpp {
 
     }
 
-//    template <typename Scalar>
-//    const MMap<Scalar>& Server<Scalar>::getTensorView() {
-
-//        if (!_running && _verbose) {
-
-//            std::string error = std::string("Server is not running. ") +
-//                    std::string("Did you remember to call the run() method?");
-
-//            _journal.log(__FUNCTION__,
-//                 error,
-//                 LogType::EXCEP);
-
-//        }
-
-//        return _tensor_view;
-
-//    }
-
-    template <typename Scalar>
-    void Server<Scalar>::_acquireSemWait(const std::string& sem_path,
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_acquireSemWait(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
@@ -389,8 +371,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Server<Scalar>::_acquireSemRt(const std::string& sem_path,
+    template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::_acquireSemRt(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
@@ -415,8 +397,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_releaseSem(const std::string& sem_path,
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_releaseSem(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
@@ -439,8 +421,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Server<Scalar>::_acquireData(bool blocking)
+    template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::_acquireData(bool blocking)
     {
 
         if (blocking) {
@@ -460,8 +442,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_releaseData()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_releaseData()
     {
 
         _releaseSem(_mem_config.mem_path_data_sem,
@@ -469,8 +451,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_cleanMetaMem()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_cleanMetaMem()
     {
         // closing file descriptors and also unlinking
         // memory
@@ -521,8 +503,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_cleanMems()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_cleanMems()
     {
 
         if (!_terminated) {
@@ -560,8 +542,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_initMetaMem()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_initMetaMem()
     {
         _return_code = ReturnCode::RESET; // resets return code
 
@@ -643,8 +625,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_initDataMem()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_initDataMem()
     {
 
         _return_code = _return_code + ReturnCode::RESET;
@@ -656,7 +638,8 @@ namespace SharsorIPCpp {
             !isin(ReturnCode::MEMMAPFAIL,
                  _return_code)) {
 
-            MemUtils::initMem<Scalar>(_n_rows,
+            MemUtils::initMem<Scalar, Layout>(
+                            _n_rows,
                             _n_cols,
                             _mem_config.mem_path,
                             _data_shm_fd,
@@ -678,8 +661,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_initSems()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_initSems()
     {
 
         MemUtils::initSem(_mem_config.mem_path_server_sem,
@@ -698,8 +681,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Server<Scalar>::_closeSems()
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_closeSems()
     {
         // closes semaphores and also unlinks it
         // Other processes who had it open can still use it, but no new
@@ -722,16 +705,22 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    std::string Server<Scalar>::_getThisName()
+    template <typename Scalar, int Layout>
+    std::string Server<Scalar, Layout>::_getThisName()
     {
 
         return _this_name;
     }
 
     // explicit instantiations for specific supported types
-    template class Server<double>;
-    template class Server<float>;
-    template class Server<int>;
-    template class Server<bool>;
+    // and layouts
+    template class Server<double, Eigen::ColMajor>;
+    template class Server<float, Eigen::ColMajor>;
+    template class Server<int, Eigen::ColMajor>;
+    template class Server<bool, Eigen::ColMajor>;
+
+    template class Server<double, Eigen::RowMajor>;
+    template class Server<float, Eigen::RowMajor>;
+    template class Server<int, Eigen::RowMajor>;
+    template class Server<bool, Eigen::RowMajor>;
 }

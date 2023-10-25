@@ -9,8 +9,8 @@
 
 namespace SharsorIPCpp {
 
-    template <typename Scalar>
-    Client<Scalar>::Client(
+    template <typename Scalar, int Layout>
+    Client<Scalar, Layout>::Client(
                    std::string basename,
                    std::string name_space,
                    bool verbose,
@@ -47,8 +47,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    Client<Scalar>::~Client() {
+    template <typename Scalar, int Layout>
+    Client<Scalar, Layout>::~Client() {
 
         if (!_terminated) {
 
@@ -57,8 +57,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::attach()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::attach()
     {
         if (_verbose &&
             _vlevel > VLevel::V1) {
@@ -91,7 +91,7 @@ namespace SharsorIPCpp {
         // we have now all the info to create the shared tensor
         _initDataMem();
 
-        _tensor_copy = Tensor<Scalar>::Zero(_n_rows,
+        _tensor_copy = Tensor<Scalar, Layout>::Zero(_n_rows,
                                             _n_cols); // used to hold
         // a copy of the shared tensor data
 
@@ -101,8 +101,8 @@ namespace SharsorIPCpp {
         _attached = true;
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::detach()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::detach()
     {
         if (_attached) {
 
@@ -118,39 +118,39 @@ namespace SharsorIPCpp {
         }
     }
 
-    template <typename Scalar>
-    bool Client<Scalar>::isAttached()
+    template <typename Scalar, int Layout>
+    bool Client<Scalar, Layout>::isAttached()
     {
 
         return _attached;
 
     }
 
-    template <typename Scalar>
-    int Client<Scalar>::getNRows()
+    template <typename Scalar, int Layout>
+    int Client<Scalar, Layout>::getNRows()
     {
 
         return _n_rows;
 
     }
 
-    template <typename Scalar>
-    int Client<Scalar>::getNCols()
+    template <typename Scalar, int Layout>
+    int Client<Scalar, Layout>::getNCols()
     {
 
         return _n_cols;
 
     }
 
-    template <typename Scalar>
-    DType Client<Scalar>::getScalarType() const {
+    template <typename Scalar, int Layout>
+    DType Client<Scalar, Layout>::getScalarType() const {
 
         return CppTypeToDType<Scalar>::value;
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::close()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::close()
     {
 
         detach(); // detach from server if not attached
@@ -171,8 +171,8 @@ namespace SharsorIPCpp {
         }
     }
 
-    template <typename Scalar>
-    bool Client<Scalar>::writeTensor(const Tensor<Scalar>& data,
+    template <typename Scalar, int Layout>
+    bool Client<Scalar, Layout>::writeTensor(const Tensor<Scalar, Layout>& data,
                                      int row,
                                      int col) {
 
@@ -211,8 +211,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Client<Scalar>::readTensor(Tensor<Scalar>& output,
+    template <typename Scalar, int Layout>
+    bool Client<Scalar, Layout>::readTensor(Tensor<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_attached) {
@@ -250,8 +250,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Client<Scalar>::readTensor(MMap<Scalar>& output,
+    template <typename Scalar, int Layout>
+    bool Client<Scalar, Layout>::readTensor(MMap<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_attached) {
@@ -289,8 +289,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_waitForServer()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_waitForServer()
     {
         while(!(_isrunning_view(0, 0) > 0)) {
 
@@ -312,8 +312,8 @@ namespace SharsorIPCpp {
         }
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_checkDType()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_checkDType()
     {
         if (_dtype_view(0, 0) != sizeof(Scalar)) {
 
@@ -334,8 +334,8 @@ namespace SharsorIPCpp {
         }
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_acquireSemWait(const std::string& sem_path,
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_acquireSemWait(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
@@ -362,8 +362,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Client<Scalar>::_acquireSemRt(const std::string& sem_path,
+    template <typename Scalar, int Layout>
+    bool Client<Scalar, Layout>::_acquireSemRt(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
@@ -388,8 +388,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_releaseSem(const std::string& sem_path,
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_releaseSem(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = ReturnCode::RESET;
@@ -412,8 +412,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    bool Client<Scalar>::_acquireData(bool blocking)
+    template <typename Scalar, int Layout>
+    bool Client<Scalar, Layout>::_acquireData(bool blocking)
     {
 
         if (blocking) {
@@ -434,8 +434,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_releaseData()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_releaseData()
     {
 
         _releaseSem(_mem_config.mem_path_data_sem,
@@ -443,8 +443,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_cleanMetaMem()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_cleanMetaMem()
     {
         // closing file descriptors and but not unlinking
         // memory
@@ -495,8 +495,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_cleanMems()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_cleanMems()
     {
 
         if (!_terminated) {
@@ -535,8 +535,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_initDataMem()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_initDataMem()
     {
 
         _return_code = _return_code + ReturnCode::RESET;
@@ -548,7 +548,7 @@ namespace SharsorIPCpp {
             !isin(ReturnCode::MEMMAPFAIL,
                  _return_code)) {
 
-            MemUtils::initMem<Scalar>(_n_rows,
+            MemUtils::initMem<Scalar, Layout>(_n_rows,
                             _n_cols,
                             _mem_config.mem_path,
                             _data_shm_fd,
@@ -570,8 +570,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_initMetaMem()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_initMetaMem()
     {
         _return_code = ReturnCode::RESET; // resets return code
 
@@ -644,8 +644,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_initSems()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_initSems()
     {
 
         MemUtils::initSem(_mem_config.mem_path_data_sem,
@@ -657,8 +657,8 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    void Client<Scalar>::_closeSems()
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_closeSems()
     {
         // closes semaphores but doesn't unlink them
         MemUtils::closeSem(_mem_config.mem_path_data_sem,
@@ -671,17 +671,24 @@ namespace SharsorIPCpp {
 
     }
 
-    template <typename Scalar>
-    std::string Client<Scalar>::_getThisName()
+    template <typename Scalar, int Layout>
+    std::string Client<Scalar, Layout>::_getThisName()
     {
 
         return _this_name;
     }
 
     // explicit instantiations for specific supported types
-    template class Client<double>;
-    template class Client<float>;
-    template class Client<int>;
-    template class Client<bool>;
+    // explicit instantiations for specific supported types
+    // and layouts
+    template class Client<double, Eigen::ColMajor>;
+    template class Client<float, Eigen::ColMajor>;
+    template class Client<int, Eigen::ColMajor>;
+    template class Client<bool, Eigen::ColMajor>;
+
+    template class Client<double, Eigen::RowMajor>;
+    template class Client<float, Eigen::RowMajor>;
+    template class Client<int, Eigen::RowMajor>;
+    template class Client<bool, Eigen::RowMajor>;
 }
 

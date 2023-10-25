@@ -120,6 +120,11 @@ protected:
         tensor_block_copy = Tensor<bool>::Zero(rows - 2,
                                          cols - 2);
 
+
+        tensor_block_view = std::make_unique<MMap<bool>>(helpers::createViewFrom(tensor_copy,
+                                                                      1, 1,
+                                                                      rows - 2, cols - 2));
+
         client_ptr->readTensor(tensor_copy);
 
         std::cout << "Detected data of size " << rows << "x" << cols << std::endl;
@@ -147,13 +152,19 @@ protected:
 
     void readData() {
 
-        client_ptr->readTensor(tensor_copy);
+//        client_ptr->readTensor(tensor_copy);
         client_ptr->readTensor(tensor_block_copy,
                                1, 1);
+
+        client_ptr->readTensor(*tensor_block_view,
+                               1, 1); // only update block view
+
         std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
         std::cout << "Read tensor block (copy):" << std::endl;
         std::cout << tensor_block_copy << std::endl;
+        std::cout << "Read tensor block (view):" << std::endl;
+        std::cout << *tensor_block_view << std::endl;
         std::cout << "##############" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -168,6 +179,7 @@ protected:
 
     Tensor<bool> tensor_copy;
     Tensor<bool> tensor_block_copy;
+    std::unique_ptr<MMap<bool>> tensor_block_view;
 
 };
 
@@ -222,20 +234,20 @@ protected:
 
     void readData() {
 
-//        client_ptr->readTensor(tensor_copy);
+        client_ptr->readTensor(tensor_copy);
         client_ptr->readTensor(tensor_block_copy,
                                1, 1);
 
-        client_ptr->readTensor(*tensor_block_view,
-                               1, 1);
+//        client_ptr->readTensor(*tensor_block_view,
+//                               1, 1);
 
         std::cout << "Read tensor (copy):" << std::endl;
         std::cout << tensor_copy << std::endl;
         std::cout << "Read tensor block (copy):" << std::endl;
         std::cout << tensor_block_copy << std::endl;
-        std::cout << "##############" << std::endl;
         std::cout << "Read tensor block (view):" << std::endl;
         std::cout << *tensor_block_view << std::endl;
+        std::cout << "##############" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -430,11 +442,11 @@ TEST_F(ClientReadsFloat, ClientReadRandFloat) {
 
 int main(int argc, char** argv) {
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ClientReadsBool.ClientReadsRandBoolBlock";
-
     ::testing::GTEST_FLAG(filter) =
-        ":ClientReadsFloat.ClientReadRandFloat";
+        ":ClientReadsBool.ClientReadsRandBoolBlock";
+
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ClientReadsFloat.ClientReadRandFloat";
 
 //    ::testing::GTEST_FLAG(filter) +=
 //        ":StringTensorRead.StringTensorCheck";
