@@ -19,7 +19,7 @@
 
 #include <test_utils.hpp>
 
-int N_ITER = 10;
+int N_ITER = 100;
 int N_ITER_STR = 20;
 
 int BLOCK_SIZE = 3;
@@ -121,7 +121,9 @@ protected:
                                          cols - 2);
 
 
-        tensor_block_view = std::make_unique<MMap<bool>>(helpers::createViewFrom(tensor_copy,
+        tensor_block_view = std::make_unique<DMMap<bool>>(
+                                                helpers::createViewFrom<bool, Eigen::ColMajor>(
+                                                                      tensor_copy,
                                                                       1, 1,
                                                                       rows - 2, cols - 2));
 
@@ -167,7 +169,7 @@ protected:
         std::cout << *tensor_block_view << std::endl;
         std::cout << "##############" << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     }
 
@@ -179,7 +181,36 @@ protected:
 
     Tensor<bool> tensor_copy;
     Tensor<bool> tensor_block_copy;
-    std::unique_ptr<MMap<bool>> tensor_block_view;
+    std::unique_ptr<DMMap<bool>> tensor_block_view;
+
+};
+
+class ClientReadsBoolThrow : public ::testing::Test {
+protected:
+
+    ClientReadsBoolThrow() :
+                   client_ptr(new Client<bool, Eigen::RowMajor>(
+                                     "SharsorBool", name_space,
+                                     true,
+                                     VLevel::V3)) {
+
+    }
+
+    void SetUp() override {
+
+        // Initialization code (if needed)
+
+    }
+
+    void TearDown() override {
+
+        client_ptr->close();
+
+        // Cleanup code (if needed)
+
+    }
+
+    Client<bool, Eigen::RowMajor>::UniquePtr client_ptr;
 
 };
 
@@ -187,7 +218,7 @@ class ClientReadsFloat : public ::testing::Test {
 protected:
 
     ClientReadsFloat() :
-                   client_ptr(new Client<float>(
+                   client_ptr(new Client<float, Eigen::RowMajor>(
                                      "SharsorFloat", name_space,
                                      true,
                                      VLevel::V3))
@@ -197,14 +228,16 @@ protected:
 
         getMetaData();
 
-        tensor_copy = Tensor<float>::Zero(rows,
+        tensor_copy = Tensor<float, Eigen::RowMajor>::Zero(rows,
                                          cols);
 
-        tensor_block_view = std::make_unique<MMap<float>>(helpers::createViewFrom(tensor_copy,
-                                                                                  1, 1,
-                                                                                  rows - 2, cols - 2));
+        tensor_block_view = std::make_unique<DMMap<float, Eigen::RowMajor>>(
+                                helpers::createViewFrom<float, Eigen::RowMajor>(
+                                                          tensor_copy,
+                                                          1, 1,
+                                                          rows - 2, cols - 2));
 
-        tensor_block_copy = Tensor<float>::Zero(rows - 2,
+        tensor_block_copy = Tensor<float, Eigen::RowMajor>::Zero(rows - 2,
                                               cols - 2);
 
         client_ptr->readTensor(tensor_copy);
@@ -257,13 +290,13 @@ protected:
     int cols = -1;
     int dtype = -1;
 
-    Client<float>::UniquePtr client_ptr;
+    Client<float, Eigen::RowMajor>::UniquePtr client_ptr;
 
-    Tensor<float> tensor_copy;
+    Tensor<float, Eigen::RowMajor> tensor_copy;
 
-    std::unique_ptr<MMap<float>> tensor_block_view;
+    std::unique_ptr<DMMap<float, Eigen::RowMajor>> tensor_block_view;
 
-    Tensor<float> tensor_block_copy;
+    Tensor<float, Eigen::RowMajor> tensor_block_copy;
 
 };
 
@@ -427,6 +460,13 @@ TEST_F(ClientReadsBool, ClientReadsRandBoolBlock) {
     }
 }
 
+TEST_F(ClientReadsBoolThrow, ClientReadsRandBoolBlock) {
+
+    EXPECT_THROW(client_ptr->attach(),
+                 std::runtime_error);
+
+}
+
 TEST_F(ClientReadsFloat, ClientReadRandFloat) {
 
     check_comp_type(journal);
@@ -443,6 +483,9 @@ TEST_F(ClientReadsFloat, ClientReadRandFloat) {
 int main(int argc, char** argv) {
 
     ::testing::GTEST_FLAG(filter) =
+        ":ClientReadsBoolThrow.ClientReadsRandBoolBlock";
+
+    ::testing::GTEST_FLAG(filter) +=
         ":ClientReadsBool.ClientReadsRandBoolBlock";
 
 //    ::testing::GTEST_FLAG(filter) =

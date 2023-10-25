@@ -39,13 +39,13 @@ namespace SharsorIPCpp{
 
             switch(layout) {
 
-                case Eigen::RowMajor:
+                case RowMajor:
 
-                    return "Eigen::RowMajor";
+                    return "SharsorIPCpp::RowMajor";
 
-                case Eigen::ColMajor:
+                case ColMajor:
 
-                    return "Eigen::ColMajor";
+                    return "SharsorIPCpp::ColMajor";
 
                 default:
 
@@ -54,7 +54,7 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar,
-                  int Layout = Eigen::ColMajor>
+                  int Layout = MemLayoutDefault>
         void initMem(
             std::size_t n_rows,
             std::size_t n_cols,
@@ -152,7 +152,8 @@ namespace SharsorIPCpp{
 
             new (&tensor_view) MMap<Scalar, Layout>(matrix_data,
                                            n_rows,
-                                           n_cols);
+                                           n_cols); // contiguous memory
+            // (no need to specify strides)
 
             return_code = return_code + ReturnCode::MEMMAP;
 
@@ -170,7 +171,7 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar,
-                  int Layout = Eigen::ColMajor>
+                  int Layout = MemLayoutDefault>
         bool canFitTensor(MMap<Scalar, Layout>& mat,
                             int i, int j,
                             Index n_rows2fit,
@@ -225,7 +226,7 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar,
-                  int Layout = Eigen::ColMajor>
+                  int Layout = MemLayoutDefault>
         bool write(const Tensor<Scalar, Layout>& data,
                    MMap<Scalar, Layout>& tensor_view,
                    int row, int col,
@@ -259,7 +260,7 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar,
-                  int Layout = Eigen::ColMajor>
+                  int Layout = MemLayoutDefault>
         bool read(int row, int col,
                   Tensor<Scalar, Layout>& output,
                   MMap<Scalar, Layout>& tensor_view,
@@ -293,9 +294,9 @@ namespace SharsorIPCpp{
         }
 
         template <typename Scalar,
-                  int Layout = Eigen::ColMajor>
+                  int Layout = MemLayoutDefault>
         bool read(int row, int col,
-                  MMap<Scalar, Layout>& output,
+                  DMMap<Scalar, Layout>& output,
                   MMap<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,

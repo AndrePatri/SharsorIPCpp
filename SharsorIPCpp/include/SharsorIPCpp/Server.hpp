@@ -21,7 +21,7 @@
 namespace SharsorIPCpp{
 
     template <typename Scalar,
-              int Layout = Eigen::ColMajor>
+              int Layout = MemLayoutDefault>
     class Server {
 
         public:
@@ -48,7 +48,7 @@ namespace SharsorIPCpp{
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output
 
-            bool readTensor(MMap<Scalar, Layout>& output,
+            bool readTensor(DMMap<Scalar, Layout> &output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output Map
 
@@ -64,6 +64,8 @@ namespace SharsorIPCpp{
             int getNCols();
 
             DType getScalarType() const;
+
+            int getMemLayout() const;
 
         private:
 

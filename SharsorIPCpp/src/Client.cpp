@@ -155,6 +155,13 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
+    int Client<Scalar, Layout>::getMemLayout() const {
+
+        return _mem_layout;
+
+    }
+
+    template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::close()
     {
 
@@ -185,7 +192,8 @@ namespace SharsorIPCpp {
 
             if (_acquireData()) { // non-blocking
 
-                MemUtils::write(data,
+                MemUtils::write<Scalar, Layout>(
+                            data,
                             _tensor_view,
                             row, col,
                             _journal,
@@ -224,7 +232,8 @@ namespace SharsorIPCpp {
 
             if (_acquireData()) { // non-blocking
 
-                MemUtils::read(row, col,
+                MemUtils::read<Scalar, Layout>
+                               (row, col,
                                output,
                                _tensor_view,
                                _journal,
@@ -256,14 +265,15 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::readTensor(MMap<Scalar, Layout>& output,
+    bool Client<Scalar, Layout>::readTensor(DMMap<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_attached) {
 
             if (_acquireData()) { // non-blocking
 
-                MemUtils::read(row, col,
+                MemUtils::read<Scalar, Layout>(
+                               row, col,
                                output,
                                _tensor_view,
                                _journal,
@@ -353,6 +363,7 @@ namespace SharsorIPCpp {
                          true); // actually raise exception
 
         }
+
     }
 
     template <typename Scalar, int Layout>
@@ -720,14 +731,14 @@ namespace SharsorIPCpp {
     // explicit instantiations for specific supported types
     // explicit instantiations for specific supported types
     // and layouts
-    template class Client<double, Eigen::ColMajor>;
-    template class Client<float, Eigen::ColMajor>;
-    template class Client<int, Eigen::ColMajor>;
-    template class Client<bool, Eigen::ColMajor>;
+    template class Client<double, ColMajor>;
+    template class Client<float, ColMajor>;
+    template class Client<int, ColMajor>;
+    template class Client<bool, ColMajor>;
 
-    template class Client<double, Eigen::RowMajor>;
-    template class Client<float, Eigen::RowMajor>;
-    template class Client<int, Eigen::RowMajor>;
-    template class Client<bool, Eigen::RowMajor>;
+    template class Client<double, RowMajor>;
+    template class Client<float, RowMajor>;
+    template class Client<int, RowMajor>;
+    template class Client<bool, RowMajor>;
 }
 

@@ -38,12 +38,13 @@ void PyClient::bindClientT(py::module &m, const char* name) {
 
                 Scalar* ptr = static_cast<Scalar*>(buf_info.ptr);
 
-                // creates a memory map that uses the same memory as the numpy array
-                MMap<Scalar> output_t(ptr,
-                                      np_array.shape(0), // dimensions are taken
-                                      np_array.shape(1)); // directly for the input tensor
+                // creates a (dynamic) memory map that uses the same memory
+                // as the numpy array
+                DMMap<Scalar> output_t(ptr,
+                              np_array.shape(0), // dimensions are taken
+                              np_array.shape(1)); // directly for the input tensor
 
-                // Call the original readTensor method with the MMap
+                // Call the original readTensor method with the DMMap
                 success = client.readTensor(output_t, row, col); // this will
                 // try to copy the data of the shared tensor into the tensor mapped by MMap
 

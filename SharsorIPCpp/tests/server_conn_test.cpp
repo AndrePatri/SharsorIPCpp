@@ -137,6 +137,7 @@ protected:
     void updateData() {
 
       Tensor<bool> myData(N_ROWS - 2, N_COLS - 2);
+      Tensor<bool> myDataFull(N_ROWS, N_COLS);
       myData.setRandom();
 
       std::string message = std::string("Randomizing data block of size (") +
@@ -154,6 +155,12 @@ protected:
       // writing only a block
       server_ptr->writeTensor(myData,
                               1, 1);
+
+      server_ptr->readTensor(myDataFull);
+
+      std::cout << "Full tensor:" << std::endl;
+      std::cout << myDataFull << std::endl;
+      std::cout << "###########" << std::endl;
 
       std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -198,6 +205,7 @@ protected:
 
     void updateData() {
 
+      Tensor<float> myDataFull(N_ROWS, N_COLS);
       Tensor<float> myData(N_ROWS - 2, N_COLS - 2);
       myData.setRandom();
 
@@ -216,6 +224,12 @@ protected:
       // writing only a block
       server_ptr->writeTensor(myData,
                               1, 1);
+
+      server_ptr->readTensor(myDataFull);
+
+      std::cout << "Full tensor:" << std::endl;
+      std::cout << myDataFull << std::endl;
+      std::cout << "###########" << std::endl;
 
       std::this_thread::sleep_for(std::chrono::seconds(1));
 

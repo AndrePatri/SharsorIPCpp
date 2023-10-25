@@ -40,39 +40,29 @@ namespace SharsorIPCpp {
 //                                );
 //        }
 
-        template <typename Scalar>
-        MMap<Scalar> helpers::createViewFrom(
-                                    Tensor<Scalar>& from,
-                                    int row_idx, int col_idx,
-                                    int n_rows, int n_cols) {
+        template <typename Scalar, int Layout = MemLayoutDefault>
+        DMMap<Scalar, Layout> helpers::createViewFrom(
+            Tensor<Scalar, Layout>& from,
+            int row_idx, int col_idx,
+            int n_rows, int n_cols) {
 
-            // Calculating the pointer to the starting position of the block in memory
+            // Manually compute the starting pointer for the block, taking the layout into account
+            Scalar* startPtr = from.data() + (Layout == SharsorIPCpp::ColMajor ?
+                                              col_idx * from.rows() + row_idx :
+                                              row_idx * from.cols() + col_idx);
 
-            Scalar* startPtr;
+            // Define the stride based on the layout of the matrix
+            Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> stride(
+                Layout == SharsorIPCpp::ColMajor ? from.rows() : 1,
+                Layout == SharsorIPCpp::ColMajor ? 1 : from.cols()
+            );
 
-            if (Tensor<Scalar>::IsRowMajor) {
-
-//              check if a matrix (or tensor) is row-major or column-major at compile time
-
-                startPtr = from.data() + // pointer to first element of from
-                           row_idx * from.outerStride() +
-                           col_idx * from.innerStride();
-
-            } else {
-
-                startPtr = from.data() + // pointer to first element of from
-                           col_idx * from.outerStride() +
-                           row_idx * from.innerStride();
-
-            }
-
-            // Return the map view with appropriate sizes and strides
-
-            // Create the view using Eigen::Map
-            return MMap<Scalar>(startPtr, n_rows, n_cols); // this will always match
-            // the right  ordering at compile time, since its defined based on Tensor
-
+            // Use the mapped view with the provided stride to interpret the block correctly
+            return DMMap<Scalar, Layout>(startPtr,
+                         n_rows, n_cols,
+                         stride);
         }
+
     }
 
 }

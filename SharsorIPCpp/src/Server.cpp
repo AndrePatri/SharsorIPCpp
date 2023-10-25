@@ -230,6 +230,13 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
+    int Server<Scalar, Layout>::getMemLayout() const {
+
+        return _mem_layout;
+
+    }
+
+    template <typename Scalar, int Layout>
     bool Server<Scalar, Layout>::writeTensor(const Tensor<Scalar, Layout>& data,
                                  int row,
                                  int col) {
@@ -238,7 +245,8 @@ namespace SharsorIPCpp {
 
             if (_acquireData()) { // non-blocking
 
-                MemUtils::write(data,
+                MemUtils::write<Scalar, Layout>(
+                            data,
                             _tensor_view,
                             row, col,
                             _journal,
@@ -276,7 +284,8 @@ namespace SharsorIPCpp {
 
             if (_acquireData()) { // non-blocking
 
-                MemUtils::read(row, col,
+                MemUtils::read<Scalar, Layout>(
+                               row, col,
                                output,
                                _tensor_view,
                                _journal,
@@ -308,14 +317,15 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Server<Scalar, Layout>::readTensor(MMap<Scalar, Layout>& output,
+    bool Server<Scalar, Layout>::readTensor(DMMap<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_running) {
 
             if (_acquireData()) { // non-blocking
 
-                MemUtils::read(row, col,
+                MemUtils::read<Scalar, Layout>(
+                               row, col,
                                output,
                                _tensor_view,
                                _journal,
@@ -729,13 +739,13 @@ namespace SharsorIPCpp {
 
     // explicit instantiations for specific supported types
     // and layouts
-    template class Server<double, Eigen::ColMajor>;
-    template class Server<float, Eigen::ColMajor>;
-    template class Server<int, Eigen::ColMajor>;
-    template class Server<bool, Eigen::ColMajor>;
+    template class Server<double, ColMajor>;
+    template class Server<float, ColMajor>;
+    template class Server<int, ColMajor>;
+    template class Server<bool, ColMajor>;
 
-    template class Server<double, Eigen::RowMajor>;
-    template class Server<float, Eigen::RowMajor>;
-    template class Server<int, Eigen::RowMajor>;
-    template class Server<bool, Eigen::RowMajor>;
+    template class Server<double, RowMajor>;
+    template class Server<float, RowMajor>;
+    template class Server<int, RowMajor>;
+    template class Server<bool, RowMajor>;
 }

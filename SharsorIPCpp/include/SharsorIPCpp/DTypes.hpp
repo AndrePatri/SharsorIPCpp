@@ -3,13 +3,24 @@
 
 namespace SharsorIPCpp {
 
-    template <typename Scalar, int Layout = Eigen::ColMajor>
-    using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic,
-                                   Layout>;
+    const int RowMajor = Eigen::RowMajor;
+    const int ColMajor = Eigen::ColMajor;
 
-    template <typename Scalar, int Layout = Eigen::ColMajor>
+    const int MemLayoutDefault = ColMajor; // default layout used by this
+    // library (changes here will propagate to the whole library)
+
+    template <typename Scalar, int Layout = MemLayoutDefault>
+    using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Layout>;
+
+    template <typename Scalar, int Layout = MemLayoutDefault>
+    using DMMap = Eigen::Map<Tensor<Scalar, Layout>, // matrix type
+                        Eigen::Unaligned, // specifies the pointer alignment in bytes
+                        Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>; // specifies strides
+    // By default, Map assumes that the data is laid out contiguously in memory
+
+    template <typename Scalar, int Layout = MemLayoutDefault>
     using MMap = Eigen::Map<Tensor<Scalar, Layout>>; // no explicit cleanup needed
-    // for Eigen::Map -> it does not own the memory
+    // for Eigen::Map -> it does not own the memory.
 
     // Define an enum class for data types
     enum class DType {
