@@ -47,20 +47,39 @@ namespace SharsorIPCpp {
             int n_rows, int n_cols) {
 
             // Manually compute the starting pointer for the block, taking the layout into account
-            Scalar* startPtr = from.data() + (Layout == SharsorIPCpp::ColMajor ?
-                                              col_idx * from.rows() + row_idx :
-                                              row_idx * from.cols() + col_idx);
 
-            // Define the stride based on the layout of the matrix
-            Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> stride(
-                Layout == SharsorIPCpp::ColMajor ? from.rows() : 1,
-                Layout == SharsorIPCpp::ColMajor ? 1 : from.cols()
-            );
+            Scalar* startPtr;
 
-            // Use the mapped view with the provided stride to interpret the block correctly
-            return DMMap<Scalar, Layout>(startPtr,
-                         n_rows, n_cols,
-                         stride);
+            if (Layout == SharsorIPCpp::ColMajor) {
+
+                startPtr = from.data() +
+                        col_idx * from.rows() + row_idx;
+
+                // Define the stride based on the layout of the matrix
+                Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> stride(from.rows(),
+                                                                     1);
+
+                // Use the mapped view with the provided stride to interpret the block correctly
+                return DMMap<Scalar, Layout>(startPtr,
+                             n_rows, n_cols,
+                             stride);
+
+            } else {
+
+                startPtr = from.data() +
+                        row_idx * from.cols() + col_idx;
+
+                // Define the stride based on the layout of the matrix
+                Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> stride(1,
+                                                                    from.cols());
+
+                // Use the mapped view with the provided stride to interpret the block correctly
+                return DMMap<Scalar, Layout>(startPtr,
+                             n_rows, n_cols,
+                             stride);
+            }
+
+
         }
 
     }
