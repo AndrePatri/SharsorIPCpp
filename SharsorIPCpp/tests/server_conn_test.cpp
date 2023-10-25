@@ -24,7 +24,7 @@ int N_ROWS = 4;
 int N_COLS = 7;
 int BLOCK_SIZE = 3;
 
-int TENSOR_INCREMENT = 4;
+int TENSOR_INCREMENT = 1;
 
 size_t STR_TENSOR_LENGTH = 10;
 
@@ -40,22 +40,14 @@ class ServerWritesInt : public ::testing::Test {
 protected:
 
     ServerWritesInt() :
-                   server_ptr(new Server<int>(
+                   server_ptr(new Server<int, SharsorIPCpp::MemLayoutDefault>(
                                      N_ROWS, N_COLS,
-                                     "SharsorInt", name_space,
+                                     "SharsorBool", name_space,
                                      true,
                                      VLevel::V3,
                                      true)),
-                   tensor(Tensor<int>::Zero(N_ROWS,
+                   tensor(Tensor<int, SharsorIPCpp::MemLayoutDefault>::Zero(N_ROWS,
                                             N_COLS)){
-
-        // init matrix with incremental values
-        int counter = 1;
-        for (int j = 0; j < N_COLS; ++j) {
-            for (int i = 0; i < N_ROWS; ++i) {
-                tensor(i, j) = counter++;
-            }
-        }
 
         server_ptr->run();
 
@@ -77,29 +69,39 @@ protected:
 
     void updateData() {
 
-      tensor.array() += TENSOR_INCREMENT; // incremening copy
+      Tensor<int, SharsorIPCpp::MemLayoutDefault> myData(N_ROWS - 2, N_COLS - 2);
+      Tensor<int, SharsorIPCpp::MemLayoutDefault> myDataFull(N_ROWS, N_COLS);
+      myData.setRandom();
 
-      // writing only a block
-      server_ptr->writeTensor(tensor.block(0, 0,
-                                           BLOCK_SIZE, BLOCK_SIZE),
-                              0, 0);
-
-      std::string message = std::string("Incrementing data block of size (") +
-                            std::to_string(BLOCK_SIZE) + std::string("x") + std::to_string(BLOCK_SIZE) +
+      std::string message = std::string("Randomizing data block of size (") +
+                            std::to_string(N_ROWS - 2) + std::string("x") + std::to_string(N_COLS - 2) +
                             std::string(") ") +
-                            std::string("at position (0, 0) by ") + std::to_string(TENSOR_INCREMENT) +
+                            std::string("at position (1, 1).") +
                             std::string("\nN. clients connected: ") +
                             std::to_string(server_ptr->getNClients());
 
       journal.log("updateData", message, LogType::INFO);
 
+      std::cout << "Writing block:" << std::endl;
+      std::cout << myData << std::endl;
+
+      // writing only a block
+      server_ptr->writeTensor(myData,
+                              1, 1);
+
+      server_ptr->readTensor(myDataFull);
+
+      std::cout << "Full tensor:" << std::endl;
+      std::cout << myDataFull << std::endl;
+      std::cout << "###########" << std::endl;
+
       std::this_thread::sleep_for(std::chrono::seconds(1));
 
     }
 
-    Server<int>::UniquePtr server_ptr;
+    Server<int, SharsorIPCpp::MemLayoutDefault>::UniquePtr server_ptr;
 
-    Tensor<int> tensor;
+    Tensor<int, SharsorIPCpp::MemLayoutDefault> tensor;
 
 };
 
@@ -107,13 +109,13 @@ class ServerWritesBool : public ::testing::Test {
 protected:
 
     ServerWritesBool() :
-                   server_ptr(new Server<bool>(
+                   server_ptr(new Server<bool, SharsorIPCpp::MemLayoutDefault>(
                                      N_ROWS, N_COLS,
                                      "SharsorBool", name_space,
                                      true,
                                      VLevel::V3,
                                      true)),
-                   tensor(Tensor<bool>::Zero(N_ROWS,
+                   tensor(Tensor<bool, SharsorIPCpp::MemLayoutDefault>::Zero(N_ROWS,
                                             N_COLS)){
 
         server_ptr->run();
@@ -136,8 +138,8 @@ protected:
 
     void updateData() {
 
-      Tensor<bool> myData(N_ROWS - 2, N_COLS - 2);
-      Tensor<bool> myDataFull(N_ROWS, N_COLS);
+      Tensor<bool, SharsorIPCpp::MemLayoutDefault> myData(N_ROWS - 2, N_COLS - 2);
+      Tensor<bool, SharsorIPCpp::MemLayoutDefault> myDataFull(N_ROWS, N_COLS);
       myData.setRandom();
 
       std::string message = std::string("Randomizing data block of size (") +
@@ -166,78 +168,9 @@ protected:
 
     }
 
-    Server<bool>::UniquePtr server_ptr;
+    Server<bool, SharsorIPCpp::MemLayoutDefault>::UniquePtr server_ptr;
 
-    Tensor<bool> tensor;
-
-};
-
-class ServerWritesFloat : public ::testing::Test {
-protected:
-
-    ServerWritesFloat() :
-                   server_ptr(new Server<float>(
-                                     N_ROWS, N_COLS,
-                                     "SharsorFloat", name_space,
-                                     true,
-                                     VLevel::V3,
-                                     true)),
-                   tensor(Tensor<float>::Zero(N_ROWS,
-                                            N_COLS)){
-
-        server_ptr->run();
-
-    }
-
-    void SetUp() override {
-
-        // Initialization code (if needed)
-
-    }
-
-    void TearDown() override {
-
-        server_ptr->close();
-
-        // Cleanup code (if needed)
-
-    }
-
-    void updateData() {
-
-      Tensor<float> myDataFull(N_ROWS, N_COLS);
-      Tensor<float> myData(N_ROWS - 2, N_COLS - 2);
-      myData.setRandom();
-
-      std::string message = std::string("Randomizing data block of size (") +
-                            std::to_string(N_ROWS - 2) + std::string("x") + std::to_string(N_COLS - 2) +
-                            std::string(") ") +
-                            std::string("at position (1, 1).") +
-                            std::string("\nN. clients connected: ") +
-                            std::to_string(server_ptr->getNClients());
-
-      journal.log("updateData", message, LogType::INFO);
-
-      std::cout << "Writing block:" << std::endl;
-      std::cout << myData << std::endl;
-
-      // writing only a block
-      server_ptr->writeTensor(myData,
-                              1, 1);
-
-      server_ptr->readTensor(myDataFull);
-
-      std::cout << "Full tensor:" << std::endl;
-      std::cout << myDataFull << std::endl;
-      std::cout << "###########" << std::endl;
-
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    }
-
-    Server<float>::UniquePtr server_ptr;
-
-    Tensor<float> tensor;
+    Tensor<bool, SharsorIPCpp::MemLayoutDefault> tensor;
 
 };
 
@@ -320,19 +253,6 @@ TEST_F(StringTensorWrite, StringTensorCheck) {
 
 }
 
-TEST_F(ServerWritesInt, ServerWriteIntBlock) {
-
-    check_comp_type(journal);
-
-    journal.log("ServerWritesInt", "\n Starting to write ...\n",
-                Journal::LogType::STAT);
-
-    for (int i = 0; i < N_ITER; ++i) {
-
-        updateData();
-    }
-}
-
 TEST_F(ServerWritesBool, ServerWriteBoolRandBlock) {
 
     check_comp_type(journal);
@@ -346,11 +266,11 @@ TEST_F(ServerWritesBool, ServerWriteBoolRandBlock) {
     }
 }
 
-TEST_F(ServerWritesFloat, ServerWritesRandFloatBlock) {
+TEST_F(ServerWritesInt, ServerWriteIntRandBlock) {
 
     check_comp_type(journal);
 
-    journal.log("ServerWritesFloat", "\n Starting to randomize ...\n",
+    journal.log("ServerWritesInt", "\n Starting to randomize ...\n",
                 Journal::LogType::STAT);
 
     for (int i = 0; i < N_ITER; ++i) {
@@ -361,11 +281,11 @@ TEST_F(ServerWritesFloat, ServerWritesRandFloatBlock) {
 
 int main(int argc, char** argv) {
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ServerWritesInt.ServerWriteIntBlock";
-
     ::testing::GTEST_FLAG(filter) =
-        ":ServerWritesBool.ServerWriteBoolRandBlock";
+        ":ServerWritesInt.ServerWriteIntRandBlock";
+
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesFloat.ServerWritesRandFloatBlock";
