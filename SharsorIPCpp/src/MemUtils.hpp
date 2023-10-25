@@ -35,6 +35,24 @@ namespace SharsorIPCpp{
                 std::is_same<Scalar, typename DTypeToCppType<DType::Bool>::type>::value;
         };
 
+        inline std::string getLayoutName(int layout) {
+
+            switch(layout) {
+
+                case Eigen::RowMajor:
+
+                    return "Eigen::RowMajor";
+
+                case Eigen::ColMajor:
+
+                    return "Eigen::ColMajor";
+
+                default:
+
+                    return "Unknown memory layout";
+            }
+        }
+
         template <typename Scalar,
                   int Layout = Eigen::ColMajor>
         void initMem(

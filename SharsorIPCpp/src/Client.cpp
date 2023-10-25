@@ -36,6 +36,9 @@ namespace SharsorIPCpp {
           _isrunning_view(nullptr,
                           1,
                           1),
+          _mem_layout_view(nullptr,
+                      1,
+                      1),
           _journal(Journal(_getThisName()))
     {
 
@@ -83,6 +86,8 @@ namespace SharsorIPCpp {
         _acquireData(true); // blocking
 
         _checkDType(); // checks data type consistency
+
+        _checkMemLayout(); // checks memory layout consistency
 
         _n_rows = _n_rows_view(0, 0);
         _n_cols = _n_cols_view(0, 0);
@@ -319,17 +324,33 @@ namespace SharsorIPCpp {
 
             // not impeccable: different types may have in general different sizes
 
-            if (_verbose) {
+            std::string error = std::string("Client initialized with element size of ") +
+                    std::to_string(sizeof(Scalar)) +
+                    std::string(", while the Server was initialized with size ") +
+                    std::to_string(_dtype_view(0, 0));
 
-                std::string error = std::string("Client initialized with element size of ") +
-                        std::to_string(sizeof(Scalar)) +
-                        std::string(", while the Server was initialized with size ") +
-                        std::to_string(_dtype_view(0, 0));
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP,
+                         true); // actually raise exception
 
-                _journal.log(__FUNCTION__,
-                             error,
-                             LogType::EXCEP);
-            }
+        }
+    }
+
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_checkMemLayout()
+    {
+        if (_mem_layout_view(0, 0) != _mem_layout) {
+
+            std::string error = std::string("Client initialized with memory layout ") +
+                    MemUtils::getLayoutName(_mem_layout) +
+                    std::string(", while the Server was initialized with layout ") +
+                    MemUtils::getLayoutName(_mem_layout_view(0, 0));
+
+            _journal.log(__FUNCTION__,
+                         error,
+                         LogType::EXCEP,
+                         true); // actually raise exception
 
         }
     }
@@ -491,6 +512,14 @@ namespace SharsorIPCpp {
                              _vlevel,
                              _unlink_data);
 
+        MemUtils::cleanUpMem(_mem_config.mem_path_mem_layout,
+                             _mem_layout_shm_fd,
+                             _journal,
+                             _return_code,
+                             _verbose,
+                             _vlevel,
+                             _unlink_data);
+
         _return_code = ReturnCode::RESET;
 
     }
@@ -621,6 +650,16 @@ namespace SharsorIPCpp {
                         _mem_config.mem_path_isrunning,
                         _isrunning_shm_fd,
                         _isrunning_view,
+                        _journal,
+                        _return_code,
+                        _verbose,
+                        _vlevel);
+
+        MemUtils::initMem<int>(1,
+                        1,
+                        _mem_config.mem_path_mem_layout,
+                        _mem_layout_shm_fd,
+                        _mem_layout_view,
                         _journal,
                         _return_code,
                         _verbose,

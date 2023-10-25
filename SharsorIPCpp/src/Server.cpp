@@ -41,6 +41,9 @@ namespace SharsorIPCpp {
           _isrunning_view(nullptr,
                       1,
                       1),
+          _mem_layout_view(nullptr,
+                      1,
+                      1),
           _journal(Journal(_getThisName()))
     {
 
@@ -491,8 +494,8 @@ namespace SharsorIPCpp {
                              _vlevel,
                              _unlink_data);
 
-        MemUtils::cleanUpMem(_mem_config.mem_path_isrunning,
-                             _isrunning_shm_fd,
+        MemUtils::cleanUpMem(_mem_config.mem_path_mem_layout,
+                             _mem_layout_shm_fd,
                              _journal,
                              _return_code,
                              _verbose,
@@ -597,6 +600,16 @@ namespace SharsorIPCpp {
                         _verbose,
                         _vlevel);
 
+        MemUtils::initMem<int>(1,
+                        1,
+                        _mem_config.mem_path_mem_layout,
+                        _mem_layout_shm_fd,
+                        _mem_layout_view,
+                        _journal,
+                        _return_code,
+                        _verbose,
+                        _vlevel);
+
         if (!isin(ReturnCode::MEMCREATFAIL,
                 _return_code) &&
             !isin(ReturnCode::MEMSETFAIL,
@@ -611,6 +624,8 @@ namespace SharsorIPCpp {
             _n_clients_view(0, 0) = 0; // to be improved
             // (what happens when server crashes and clients remain appended?)
             _isrunning_view(0, 0) = 0;
+
+            _mem_layout_view(0, 0) = _mem_layout; // mem layout
 
             _dtype_view(0, 0) = sizeof(Scalar);
 

@@ -88,10 +88,13 @@ namespace SharsorIPCpp{
                 _ncols_shm_fd,
                 _n_clients_shm_fd,
                 _dtype_shm_fd,
-                _isrunning_shm_fd;
+                _isrunning_shm_fd,
+                _mem_layout_shm_fd;
+
+            static const int _mem_layout = Layout;
 
             int _n_sem_acq_fail = 0;
-            int _n_acq_trials = 10;
+            int _n_acq_trials = 10;       
 
             std::string _this_name = "SharsorIPCpp::Server";
 
@@ -114,7 +117,8 @@ namespace SharsorIPCpp{
             MMap<int, Layout> _n_rows_view,
                       _n_cols_view,
                       _n_clients_view,
-                      _dtype_view;
+                      _dtype_view,
+                      _mem_layout_view;
             MMap<bool, Layout> _isrunning_view;
 
             std::string _getThisName();

@@ -27,6 +27,8 @@ namespace SharsorIPCpp{
 
             mem_path_isrunning = "/" + _namespace + _name + "_" + MemDef::isSrvrRunningName();
 
+            mem_path_mem_layout = "/" + _namespace + _name + "_" + MemDef::memLayoutName();
+
             mem_path_server_sem = "/" + _namespace + _name + "_" + MemDef::SrvrSemName();
 
             mem_path_data_sem = "/" + _namespace + _name + "_" + MemDef::DataSemName();
@@ -42,6 +44,7 @@ namespace SharsorIPCpp{
         std::string mem_path_dtype;
         std::string mem_path_clients_counter;
         std::string mem_path_isrunning;
+        std::string mem_path_mem_layout;
 
         // semaphores
         std::string mem_path_server_sem;

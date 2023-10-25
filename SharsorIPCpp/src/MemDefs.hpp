@@ -38,6 +38,13 @@ namespace SharsorIPCpp{
 
             }
 
+            static std::string memLayoutName() {
+
+                return std::string("memLayoutType");
+
+
+            }
+
             static std::string SrvrSemName() {
 
                 return std::string("srvrSem");
