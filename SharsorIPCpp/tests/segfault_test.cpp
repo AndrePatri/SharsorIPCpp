@@ -16,35 +16,54 @@
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharedMemConfig.hpp>
 
-using namespace SharsorIPCpp;
+void testMem() {
 
-ReturnCode return_code = ReturnCode::RESET;
-Journal journal = Journal("aaa");
+  using namespace SharsorIPCpp;
 
-int _data_shm_fd; // shared memory file descriptor
-SharedMemConfig mem_config;
+  ReturnCode return_code = ReturnCode::RESET;
+  Journal journal = Journal("aaa");
 
-MMap<int, RowMajor> tensor_view(nullptr,
-                                -1,
-                                -1); // view of the tensor
+  int data_shm_fd; // shared memory file descriptor
+  SharedMemConfig mem_config("SharsorInt", "ConnectionTests");
 
-std::unique_ptr<DMMap<int, RowMajor>> tensor_block_view;
-tensor_block_view = std::make_unique<DMMap<int, RowMajor>>(
-                                    helpers::createViewFrom<int, RowMajor>(
-                                                          tensor_copy,
-                                                          1, 1,
-                                                          rows - 2, cols - 2));
+  MMap<int, RowMajor> tensor_view(nullptr,
+                                  -1,
+                                  -1); // view of the tensor
 
-MemUtils::initMem<Scalar, Layout>(4,
-                7,
-                mem_config.mem_path,
-                data_shm_fd,
-                tensor_view,
-                journal,
-                return_code,
-                true,
-                VLevel::V3);
+  Tensor<int, RowMajor> tensor_copy = Tensor<int, RowMajor>::Zero(4,
+                                   7);
 
-output = tensor_view.block(row, col,
-                           output.rows(),
-                           output.cols()).eval();
+  std::unique_ptr<DMMap<int, RowMajor>> tensor_block_view = std::make_unique<DMMap<int, RowMajor>>(
+                                      helpers::createViewFrom<int, RowMajor>(
+                                                            tensor_copy,
+                                                            1, 1,
+                                                            4 - 2, 7 - 2));
+
+  MemUtils::initMem<int, SharsorIPCpp::RowMajor>(
+                  4,
+                  7,
+                  mem_config.mem_path,
+                  data_shm_fd,
+                  tensor_view,
+                  journal,
+                  return_code,
+                  true,
+                  VLevel::V3);
+
+  MemUtils::read<int, SharsorIPCpp::RowMajor>(
+                 1, 1,
+                 *tensor_block_view,
+                 tensor_view,
+                 journal,
+                 return_code,
+                 false,
+                 VLevel::V3);
+
+}
+
+
+int main() {
+
+    testMem();
+
+}

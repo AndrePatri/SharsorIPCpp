@@ -281,11 +281,11 @@ TEST_F(ServerWritesInt, ServerWriteIntRandBlock) {
 
 int main(int argc, char** argv) {
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ServerWritesInt.ServerWriteIntRandBlock";
-
     ::testing::GTEST_FLAG(filter) =
-        ":ServerWritesBool.ServerWriteBoolRandBlock";
+        ":ServerWritesInt.ServerWriteIntRandBlock";
+
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesFloat.ServerWritesRandFloatBlock";
