@@ -56,8 +56,8 @@ namespace SharsorIPCpp {
                         col_idx * from.rows() + row_idx;
 
                 // Define the stride based on the layout of the matrix
-                Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> stride(from.rows(),
-                                                                     1);
+                DStrides stride(from.rows(),
+                                1);
 
                 // Use the mapped view with the provided stride to interpret the block correctly
                 return DMMap<Scalar, Layout>(startPtr,
@@ -70,8 +70,8 @@ namespace SharsorIPCpp {
                         row_idx * from.cols() + col_idx;
 
                 // Define the stride based on the layout of the matrix
-                Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic> stride(1,
-                                                                    from.cols());
+                DStrides stride(1,
+                                from.cols());
 
                 // Use the mapped view with the provided stride to interpret the block correctly
                 return DMMap<Scalar, Layout>(startPtr,

@@ -45,11 +45,11 @@ class TestAddFunction(unittest.TestCase):
     def test_init_client(self):
 
         # Create a client
-        client = ClientFactory(basename = "SharsorFloat",
+        client = ClientFactory(basename = "SharsorBool",
                               namespace = namespace,
                               verbose = True,
                               vlevel = VLevel.V3,
-                              dtype=dtype.Float)
+                              dtype=dtype.Bool)
 
         client.attach() # attach to server or wait for it
 

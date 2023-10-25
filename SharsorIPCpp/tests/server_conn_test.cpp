@@ -42,7 +42,7 @@ protected:
     ServerWritesInt() :
                    server_ptr(new Server<int, SharsorIPCpp::MemLayoutDefault>(
                                      N_ROWS, N_COLS,
-                                     "SharsorBool", name_space,
+                                     "SharsorInt", name_space,
                                      true,
                                      VLevel::V3,
                                      true)),
@@ -281,11 +281,11 @@ TEST_F(ServerWritesInt, ServerWriteIntRandBlock) {
 
 int main(int argc, char** argv) {
 
-    ::testing::GTEST_FLAG(filter) =
-        ":ServerWritesInt.ServerWriteIntRandBlock";
-
 //    ::testing::GTEST_FLAG(filter) =
-//        ":ServerWritesBool.ServerWriteBoolRandBlock";
+//        ":ServerWritesInt.ServerWriteIntRandBlock";
+
+    ::testing::GTEST_FLAG(filter) =
+        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesFloat.ServerWritesRandFloatBlock";

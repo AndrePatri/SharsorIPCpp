@@ -37,7 +37,7 @@ protected:
 
     ClientReadsInt() :
                    client_ptr(new Client<int, SharsorIPCpp::MemLayoutDefault>(
-                                     "SharsorBool", name_space,
+                                     "SharsorInt", name_space,
                                      true,
                                      VLevel::V3)) {
 
@@ -294,11 +294,11 @@ int main(int argc, char** argv) {
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ClientReadsBoolThrow.ClientReadsRandBoolBlock";
 
-    ::testing::GTEST_FLAG(filter) =
-        ":ClientReadsInt.ClientReadingInt";
-
 //    ::testing::GTEST_FLAG(filter) =
-//        ":ClientReadsBool.ClientReadsRandBoolBlock";
+//        ":ClientReadsInt.ClientReadingInt";
+
+    ::testing::GTEST_FLAG(filter) =
+        ":ClientReadsBool.ClientReadsRandBoolBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ClientReadsFloat.ClientReadRandFloat";

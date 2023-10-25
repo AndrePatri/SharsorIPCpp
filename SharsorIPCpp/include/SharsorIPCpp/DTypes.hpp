@@ -6,6 +6,8 @@ namespace SharsorIPCpp {
     const int RowMajor = Eigen::RowMajor;
     const int ColMajor = Eigen::ColMajor;
 
+    using DStrides = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
+
     const int MemLayoutDefault = ColMajor; // default layout used by this
     // library (changes here will propagate to the whole library)
 
