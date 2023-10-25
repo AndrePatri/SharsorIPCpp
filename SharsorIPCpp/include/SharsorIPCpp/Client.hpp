@@ -102,7 +102,7 @@ namespace SharsorIPCpp{
 
             sem_t* _data_sem; // semaphore for safe data access
 
-            ReturnCode _return_code; // overwritten by all methods
+            ReturnCode _return_code = ReturnCode::RESET; // overwritten by all methods
             // this is to avoid dyn. allocation
 
             Journal _journal; // for rt-friendly logging
