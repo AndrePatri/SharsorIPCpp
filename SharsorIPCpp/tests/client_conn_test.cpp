@@ -292,13 +292,10 @@ TEST_F(ClientReadsBool, ClientReadsRandBoolBlock) {
 int main(int argc, char** argv) {
 
 //    ::testing::GTEST_FLAG(filter) =
-//        ":ClientReadsBoolThrow.ClientReadsRandBoolBlock";
+//        ":ClientReadsInt.ClientReadingInt";
 
     ::testing::GTEST_FLAG(filter) =
-        ":ClientReadsInt.ClientReadingInt";
-
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ClientReadsBool.ClientReadsRandBoolBlock";
+        ":ClientReadsBool.ClientReadsRandBoolBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ClientReadsFloat.ClientReadRandFloat";

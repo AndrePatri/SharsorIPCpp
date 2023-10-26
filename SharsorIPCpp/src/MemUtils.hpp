@@ -172,17 +172,153 @@ namespace SharsorIPCpp{
 
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
-        bool canFitTensor(MMap<Scalar, Layout>& mat,
-                            int i, int j,
-                            Index n_rows2fit,
-                            Index n_cols2fit,
-                            Journal& journal,
-                            ReturnCode& return_code,
-                            bool verbose = true,
-                            VLevel vlevel = Journal::VLevel::V0) {
+        void initMem(
+            std::size_t n_rows,
+            std::size_t n_cols,
+            const std::string& mem_path,
+            int& shm_fd,
+            std::unique_ptr<DMMap<Scalar, Layout>>& tensor_view_ptr,
+            Journal& journal,
+            ReturnCode& return_code,
+            bool verbose = true,
+            VLevel vlevel = Journal::VLevel::V0
+            )
+        {
+
+            // Determine the size based on the Scalar type
+            std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
+
+            // Create shared memory
+            shm_fd = shm_open(mem_path.c_str(),
+                              O_CREAT | O_RDWR,
+                              S_IRUSR | S_IWUSR);
+
+            if (shm_fd == -1) {
+
+                if (verbose) {
+
+                    std::string error = "Could not create shared memory at " +
+                            mem_path;
+
+                    journal.log(__FUNCTION__,
+                        error,
+                        LogType::EXCEP);
+                }
+
+                return_code = return_code + ReturnCode::MEMCREATFAIL;
+
+                return;
+
+            }
+
+            // Set size
+            if (ftruncate(shm_fd, data_size) == -1) {
+
+                if (verbose) {
+
+                    std::string error = "Could not set shared memory at " +
+                            mem_path;
+
+                    journal.log(__FUNCTION__,
+                                error,
+                                LogType::EXCEP);
+                }
+
+                return_code = return_code + ReturnCode::MEMSETFAIL;
+
+                return;
+
+            }
+
+            return_code = return_code + ReturnCode::MEMOPEN;
+
+            if (verbose &&
+                    vlevel > VLevel::V2) {
+
+                std::string info = "Opened shared memory at " +
+                        mem_path;
+
+                journal.log(__FUNCTION__,
+                            info,
+                            LogType::INFO);
+
+            }
+
+            // Map the shared memory (contiguous)
+            Scalar* matrix_data = static_cast<Scalar*>(mmap(nullptr,
+                                                        data_size,
+                                                        PROT_READ | PROT_WRITE,
+                                                        MAP_SHARED,
+                                                        shm_fd,
+                                                        0));
+
+            if (matrix_data == MAP_FAILED) {
+
+                if (verbose) {
+
+                    journal.log(__FUNCTION__,
+                                "Could not map memory size.",
+                                LogType::EXCEP);
+                }
+
+                return_code = return_code + ReturnCode::MEMMAPFAIL;
+
+                return;
+
+            }
+
+            // create a map of it using the right strides depending
+            // on the desired layout
+            if (Layout == SharsorIPCpp::ColMajor) {
+
+                // Define the stride based on the layout of the matrix
+                DStrides strides(n_rows,
+                                1);
+
+                tensor_view_ptr = std::make_unique<DMMap<Scalar, Layout>>(
+                                                    DMMap<Scalar, Layout>(matrix_data,
+                                                                        n_rows,
+                                                                        n_cols,
+                                                                        strides));
+            } else {
+
+                DStrides strides(1,
+                                n_cols);
+
+                tensor_view_ptr = std::make_unique<DMMap<Scalar, Layout>>(
+                                                    DMMap<Scalar, Layout>(matrix_data,
+                                                                        n_rows,
+                                                                        n_cols,
+                                                                        strides));
+            }
+
+            return_code = return_code + ReturnCode::MEMMAP;
+
+            if (verbose && vlevel > VLevel::V2) {
+
+                std::string info = "Mapped shared memory at " +
+                        mem_path;
+
+                journal.log(__FUNCTION__,
+                            info,
+                            LogType::INFO);
+
+            }
+
+        }
+
+        inline bool canFitTensor(Index n_rows,
+                        Index n_cols,
+                        int i, int j,
+                        Index n_rows2fit,
+                        Index n_cols2fit,
+                        Journal& journal,
+                        ReturnCode& return_code,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0) {
 
             // Check if the indices (i, j) are within the matrix
-            if (i < 0 || i >= mat.rows() || j < 0 || j >= mat.cols()) {
+            if (i < 0 || i >= n_rows || j < 0 || j >= n_cols) {
 
                 if (verbose &&
                         vlevel > VLevel::V0) {
@@ -202,8 +338,8 @@ namespace SharsorIPCpp{
             }
 
             // Check if there's enough space for the submatrix
-            if (i + n_rows2fit > mat.rows() ||
-                j + n_cols2fit > mat.cols()) {
+            if (i + n_rows2fit > n_rows ||
+                j + n_cols2fit > n_cols) {
 
                 if (verbose &&
                         vlevel > VLevel::V0) {
@@ -235,7 +371,45 @@ namespace SharsorIPCpp{
                    bool verbose = true,
                    VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor<Scalar, Layout>(tensor_view,
+            bool success = canFitTensor(
+                         tensor_view.rows(),
+                         tensor_view.cols(),
+                         row, col,
+                         data.rows(), data.cols(),
+                         journal,
+                         return_code,
+                         verbose,
+                         vlevel);
+
+            if (success) {
+
+                tensor_view.block(row, col,
+                              data.rows(),
+                              data.cols()) = data;
+            }
+
+            if (!success) {
+
+                return_code = return_code + ReturnCode::WRITEFAIL;
+            }
+
+            return success;
+
+        }
+
+        template <typename Scalar,
+                  int Layout = MemLayoutDefault>
+        bool write(const Tensor<Scalar, Layout>& data,
+                   DMMap<Scalar, Layout>& tensor_view,
+                   int row, int col,
+                   Journal& journal,
+                   ReturnCode& return_code,
+                   bool verbose = true,
+                   VLevel vlevel = Journal::VLevel::V0) {
+
+            bool success = canFitTensor(
+                         tensor_view.rows(),
+                         tensor_view.cols(),
                          row, col,
                          data.rows(), data.cols(),
                          journal,
@@ -269,7 +443,45 @@ namespace SharsorIPCpp{
                   bool verbose = true,
                   VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor<Scalar, Layout>(tensor_view,
+            bool success = canFitTensor(
+                         tensor_view.rows(),
+                         tensor_view.cols(),
+                         row, col,
+                         output.rows(), output.cols(),
+                         journal,
+                         return_code,
+                         verbose,
+                         vlevel);
+
+            if (success) {
+
+                output = tensor_view.block(row, col,
+                                           output.rows(),
+                                           output.cols());
+            }
+
+            if (!success) {
+
+                return_code = return_code + ReturnCode::READFAIL;
+            }
+
+            return success;
+
+        }
+
+        template <typename Scalar,
+                  int Layout = MemLayoutDefault>
+        bool read(int row, int col,
+                  Tensor<Scalar, Layout>& output,
+                  DMMap<Scalar, Layout>& tensor_view,
+                  Journal& journal,
+                  ReturnCode& return_code,
+                  bool verbose = true,
+                  VLevel vlevel = Journal::VLevel::V0) {
+
+            bool success = canFitTensor(
+                         tensor_view.rows(),
+                         tensor_view.cols(),
                          row, col,
                          output.rows(), output.cols(),
                          journal,
@@ -305,7 +517,9 @@ namespace SharsorIPCpp{
 
             // copy data pointed from tensor_view
             // into the matrix output points
-            bool success = canFitTensor<Scalar, Layout>(tensor_view,
+            bool success = canFitTensor(
+                         tensor_view.rows(),
+                         tensor_view.cols(),
                          row, col,
                          output.rows(), output.cols(),
                          journal,
@@ -315,9 +529,83 @@ namespace SharsorIPCpp{
 
             if (success) {
 
-                output = tensor_view.block(row, col,
+                auto blockResult  = tensor_view.block(row, col,
                                            output.rows(),
                                            output.cols()).eval();
+
+                constexpr bool isRowMajor = decltype(blockResult)::IsRowMajor;
+//                constexpr bool isOutputRowMajor = decltype(output)::IsRowMajor;
+
+                std::cout << "###########" << std::endl;
+                std::cout << "is block row major: " << isRowMajor << std::endl;
+                std::cout << "is output row major: " << Layout << std::endl;
+                std::cout << "block nrows: " << blockResult.rows() << std::endl;
+                std::cout << "block ncols: " << blockResult.cols() << std::endl;
+                std::cout << "output nrows: " << output.rows() << std::endl;
+                std::cout << "output ncols: " << output.cols() << std::endl;
+                std::cout << "output row: " << row << std::endl;
+                std::cout << "output col: " << col << std::endl;
+                std::cout << "###########" << std::endl;
+
+                output = blockResult;
+
+                //.eval(), forces Eigen to evaluate the block expression
+                // and produce an actual matrix
+            }
+
+            if (!success) {
+
+                return_code = return_code + ReturnCode::READFAIL;
+            }
+
+            return success;
+
+        }
+
+        template <typename Scalar,
+                  int Layout = MemLayoutDefault>
+        bool read(int row, int col,
+                  DMMap<Scalar, Layout>& output,
+                  DMMap<Scalar, Layout>& tensor_view,
+                  Journal& journal,
+                  ReturnCode& return_code,
+                  bool verbose = true,
+                  VLevel vlevel = Journal::VLevel::V0) {
+
+            // copy data pointed from tensor_view
+            // into the matrix output points
+            bool success = canFitTensor(
+                         tensor_view.rows(),
+                         tensor_view.cols(),
+                         row, col,
+                         output.rows(), output.cols(),
+                         journal,
+                         return_code,
+                         verbose,
+                         vlevel);
+
+            if (success) {
+
+                auto blockResult  = tensor_view.block(row, col,
+                                           output.rows(),
+                                           output.cols()).eval();
+
+                constexpr bool isRowMajor = decltype(blockResult)::IsRowMajor;
+//                constexpr bool isOutputRowMajor = decltype(output)::IsRowMajor;
+
+                std::cout << "###########" << std::endl;
+                std::cout << "is block row major: " << isRowMajor << std::endl;
+                std::cout << "is output row major: " << Layout << std::endl;
+                std::cout << "block nrows: " << blockResult.rows() << std::endl;
+                std::cout << "block ncols: " << blockResult.cols() << std::endl;
+                std::cout << "output nrows: " << output.rows() << std::endl;
+                std::cout << "output ncols: " << output.cols() << std::endl;
+                std::cout << "output row: " << row << std::endl;
+                std::cout << "output col: " << col << std::endl;
+                std::cout << "###########" << std::endl;
+
+                output = blockResult;
+
                 //.eval(), forces Eigen to evaluate the block expression
                 // and produce an actual matrix
             }
@@ -631,8 +919,10 @@ namespace SharsorIPCpp{
 
                 if (verbose) {
 
+                    std::string error = std::string("Failed to acquire semaphore at ") +
+                                    sem_path;
                     journal.log(__FUNCTION__,
-                                 "Failed to acquire semaphore at",
+                                 error,
                                  LogType::EXCEP);
 
                 }

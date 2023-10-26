@@ -9,39 +9,14 @@ namespace SharsorIPCpp {
 
     namespace helpers{
 
-//        template <typename Scalar>
-//        void createViewFrom(MMap<Scalar>& view,
-//                            Tensor<Scalar>& from,
-//                            int row_idx, int col_idx,
-//                            int n_rows, int n_cols);
-
-        template <typename Scalar>
-        MMap<Scalar> createViewFrom(Tensor<Scalar>& from,
+        template <typename Scalar, int Layout = MemLayoutDefault>
+        DMMap<Scalar, Layout> createViewFrom(
+                                    Tensor<Scalar, Layout>& from,
                                     int row_idx, int col_idx,
                                     int n_rows, int n_cols);
 
-
-//        template <typename Scalar>
-//        void helpers::createViewFrom(MMap<Scalar>& view,
-//                            Tensor<Scalar>& from,
-//                            int row_idx, int col_idx,
-//                            int n_rows, int n_cols) {
-
-//            // Calculating the pointer to the starting position of the block in memory
-//            Scalar* startPtr = from.data() +
-//                               row_idx * from.outerStride() +
-//                               col_idx * from.innerStride();
-
-//            // Setup the map view with appropriate sizes and strides
-//            view = MMap<Scalar>(startPtr,
-//                                n_rows, n_cols,
-//                                Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>(from.outerStride(),
-//                                                                              from.innerStride())
-//                                );
-//        }
-
-        template <typename Scalar, int Layout = MemLayoutDefault>
-        DMMap<Scalar, Layout> helpers::createViewFrom(
+        template <typename Scalar, int Layout>
+        DMMap<Scalar, Layout> createViewFrom(
             Tensor<Scalar, Layout>& from,
             int row_idx, int col_idx,
             int n_rows, int n_cols) {
@@ -78,7 +53,6 @@ namespace SharsorIPCpp {
                              n_rows, n_cols,
                              stride);
             }
-
 
         }
 

@@ -24,43 +24,56 @@ void testMem() {
   Journal journal = Journal("aaa");
 
   int data_shm_fd; // shared memory file descriptor
-  SharedMemConfig mem_config("SharsorInt", "ConnectionTests");
+  SharedMemConfig mem_config("SharsorBool", "ConnectionTests");
 
-  MMap<int, RowMajor> tensor_view(nullptr,
-                                  -1,
-                                  -1); // view of the tensor
+  std::unique_ptr<DMMap<bool, MemLayoutDefault>> tensor_view_ptr;
 
-  Tensor<int, RowMajor> tensor_copy = Tensor<int, RowMajor>::Zero(4,
+  Tensor<bool, MemLayoutDefault> tensor_copy = Tensor<bool, MemLayoutDefault>::Zero(4,
                                    7);
+  Tensor<bool, MemLayoutDefault> data2write(2, 5);
+  data2write.setRandom();
 
-  std::unique_ptr<DMMap<int, RowMajor>> tensor_block_view = std::make_unique<DMMap<int, RowMajor>>(
-                                      helpers::createViewFrom<int, RowMajor>(
+  std::unique_ptr<DMMap<bool, MemLayoutDefault>> tensor_block_view = std::make_unique<DMMap<bool, MemLayoutDefault>>(
+                                      helpers::createViewFrom<bool, MemLayoutDefault>(
                                                             tensor_copy,
                                                             1, 1,
                                                             4 - 2, 7 - 2));
 
-  MemUtils::initMem<int, SharsorIPCpp::RowMajor>(
+  MemUtils::initMem<bool, MemLayoutDefault>(
                   4,
                   7,
                   mem_config.mem_path,
                   data_shm_fd,
-                  tensor_view,
+                  tensor_view_ptr,
                   journal,
                   return_code,
                   true,
                   VLevel::V3);
 
-  MemUtils::read<int, SharsorIPCpp::RowMajor>(
-                 1, 1,
+  // write random block to mem
+  MemUtils::write<bool, MemLayoutDefault>(data2write,
+             *tensor_view_ptr,
+             1, 1,
+             journal,
+             return_code,
+             true,
+             Journal::VLevel::V3);
+
+  // only copy data to block view
+  MemUtils::read<bool, SharsorIPCpp::MemLayoutDefault>(
+                 0, 0,
                  *tensor_block_view,
-                 tensor_view,
+                 *tensor_view_ptr,
                  journal,
                  return_code,
                  false,
                  VLevel::V3);
 
-}
+  std::cout << "Written block " << data2write << std::endl;
+//  std::cout << "Block view " << *tensor_block_view << std::endl;
+  std::cout << "Original Tensor " << tensor_copy << std::endl;
 
+}
 
 int main() {
 

@@ -23,7 +23,6 @@ namespace SharsorIPCpp{
 
     template <typename Scalar,
               int Layout = MemLayoutDefault>
-
     class Client {
 
         public:
