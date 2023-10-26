@@ -8,44 +8,46 @@
 
 #include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Journal.hpp>
+#include <SharsorIPCpp/DTypes.hpp>
 
 namespace py = pybind11;
 
-using namespace SharsorIPCpp;
+using VLevel = SharsorIPCpp::Journal::VLevel;
+using DType = SharsorIPCpp::DType;
 
-using VLevel = Journal::VLevel;
+namespace PySharsorIPC::PyClient {
 
-namespace PyClient{
+        class ClientWrapper {
 
-    class ClientWrapper {
+            public:
 
-        public:
+                ClientWrapper(py::object* clientObj);
 
-            ClientWrapper(py::object* clientObj);
+                template<typename Func>
+                auto execute(Func&& f) -> decltype(f(std::declval<py::object&>()));
 
-            template<typename Func>
-            auto execute(Func&& f) -> decltype(f(std::declval<py::object&>()));
+            private:
 
-        private:
+                std::unique_ptr<py::object> client;
 
-            std::unique_ptr<py::object> client;
+        };
 
-    };
+        py::object ClientFactory(std::string basename = "MySharedMemory",
+                                std::string name_space = "",
+                                bool verbose = false,
+                                VLevel vlevel = VLevel::V0,
+                                SharsorIPCpp::DType dtype = SharsorIPCpp::DType::Float,
+                                int layout = SharsorIPCpp::ColMajor);
 
-    py::object ClientFactory(std::string basename = "MySharedMemory",
-                            std::string name_space = "",
-                            bool verbose = false,
-                            VLevel vlevel = VLevel::V0,
-                            DType dtype = DType::Float);
+        void bind_ClientWrapper(py::module& m);
 
-    void bind_ClientWrapper(py::module& m);
+        template <typename Scalar,
+                  int Layout = SharsorIPCpp::MemLayoutDefault>
+        void bindClientT(py::module &m, const char* name);
 
-    template <typename Scalar>
-    void bindClientT(py::module &m, const char* name);
+        void bindClients(py::module &m);
 
-    void bindClients(py::module &m);
-
-    void bindFactory(py::module &m, const char* name = "ClientFactory");
+        void bindFactory(py::module &m, const char* name = "ClientFactory");
 
 }
 

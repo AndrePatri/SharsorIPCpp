@@ -8,6 +8,7 @@
 namespace py = pybind11;
 
 using namespace SharsorIPCpp;
+using namespace PySharsorIPC;
 
 PYBIND11_MODULE(PySharsorIPC, m) {
 
