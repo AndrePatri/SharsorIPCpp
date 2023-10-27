@@ -12,13 +12,13 @@ namespace SharsorIPCpp {
     namespace helpers{
 
         template <typename Scalar, int Layout = MemLayoutDefault>
-        DMMap<Scalar, Layout> createViewFrom(
+        TensorView<Scalar, Layout> createViewFrom(
                                     Tensor<Scalar, Layout>& from,
                                     int row_idx, int col_idx,
                                     int n_rows, int n_cols);
 
         template <typename Scalar, int Layout>
-        DMMap<Scalar, Layout> createViewFrom(
+        TensorView<Scalar, Layout> createViewFrom(
             Tensor<Scalar, Layout>& from,
             int row_idx, int col_idx,
             int n_rows, int n_cols) {
@@ -64,7 +64,7 @@ namespace SharsorIPCpp {
                                 1);
 
                 // Use the mapped view with the provided stride to interpret the block correctly
-                return DMMap<Scalar, Layout>(startPtr,
+                return TensorView<Scalar, Layout>(startPtr,
                              n_rows, n_cols,
                              stride);
 
@@ -79,7 +79,7 @@ namespace SharsorIPCpp {
                                 1);
 
                 // Use the mapped view with the provided stride to interpret the block correctly
-                return DMMap<Scalar, Layout>(startPtr,
+                return TensorView<Scalar, Layout>(startPtr,
                              n_rows, n_cols,
                              stride);
             }

@@ -15,7 +15,7 @@ namespace SharsorIPCpp {
     using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Layout>;
 
     template <typename Scalar, int Layout = MemLayoutDefault>
-    using DMMap = Eigen::Map<Tensor<Scalar, Layout>, // matrix type
+    using TensorView = Eigen::Map<Tensor<Scalar, Layout>, // matrix type
                         Eigen::Unaligned, // specifies the pointer alignment in bytes
                         Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>; // specifies strides
     // By default, Map assumes that the data is laid out contiguously in memory

@@ -52,7 +52,7 @@ protected:
                                          cols - 2);
 
 
-        tensor_block_view = std::make_unique<DMMap<int, SharsorIPCpp::MemLayoutDefault>>(
+        tensor_block_view = std::make_unique<TensorView<int, SharsorIPCpp::MemLayoutDefault>>(
                                                 helpers::createViewFrom<int, SharsorIPCpp::MemLayoutDefault>(
                                                                       tensor_copy,
                                                                       1, 1,
@@ -112,7 +112,7 @@ protected:
 
     Tensor<int, SharsorIPCpp::MemLayoutDefault> tensor_copy;
     Tensor<int, SharsorIPCpp::MemLayoutDefault> tensor_block_copy;
-    std::unique_ptr<DMMap<int, SharsorIPCpp::MemLayoutDefault>> tensor_block_view;
+    std::unique_ptr<TensorView<int, SharsorIPCpp::MemLayoutDefault>> tensor_block_view;
 
 };
 
@@ -136,7 +136,7 @@ protected:
                                          cols - 2);
 
 
-        tensor_block_view = std::make_unique<DMMap<bool, SharsorIPCpp::MemLayoutDefault>>(
+        tensor_block_view = std::make_unique<TensorView<bool, SharsorIPCpp::MemLayoutDefault>>(
                                                 helpers::createViewFrom<bool, SharsorIPCpp::MemLayoutDefault>(
                                                                       tensor_copy,
                                                                       1, 1,
@@ -196,7 +196,7 @@ protected:
 
     Tensor<bool, SharsorIPCpp::MemLayoutDefault> tensor_copy;
     Tensor<bool, SharsorIPCpp::MemLayoutDefault> tensor_block_copy;
-    std::unique_ptr<DMMap<bool, SharsorIPCpp::MemLayoutDefault>> tensor_block_view;
+    std::unique_ptr<TensorView<bool, SharsorIPCpp::MemLayoutDefault>> tensor_block_view;
 
 };
 

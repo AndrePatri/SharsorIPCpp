@@ -46,9 +46,10 @@ namespace SharsorIPCpp{
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output
 
-            bool readTensor(DMMap<Scalar, Layout>& output,
+            bool readTensor(TensorView<Scalar, Layout>& output,
                             int row = 0, int col = 0); // copies
-            // underlying shared tensor data to the output Map
+            // underlying shared tensor data to a view of another
+            // Tensor
 
             void attach();
             void detach();

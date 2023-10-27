@@ -176,7 +176,7 @@ namespace SharsorIPCpp{
             std::size_t n_cols,
             const std::string& mem_path,
             int& shm_fd,
-            std::unique_ptr<DMMap<Scalar, Layout>>& tensor_view_ptr,
+            std::unique_ptr<TensorView<Scalar, Layout>>& tensor_view_ptr,
             Journal& journal,
             ReturnCode& return_code,
             bool verbose = true,
@@ -274,8 +274,8 @@ namespace SharsorIPCpp{
                 DStrides strides(n_rows,
                                 1);
 
-                tensor_view_ptr = std::make_unique<DMMap<Scalar, Layout>>(
-                                                    DMMap<Scalar, Layout>(matrix_data,
+                tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
+                                                    TensorView<Scalar, Layout>(matrix_data,
                                                                         n_rows,
                                                                         n_cols,
                                                                         strides));
@@ -284,8 +284,8 @@ namespace SharsorIPCpp{
                 DStrides strides(1,
                                 n_cols);
 
-                tensor_view_ptr = std::make_unique<DMMap<Scalar, Layout>>(
-                                                    DMMap<Scalar, Layout>(matrix_data,
+                tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
+                                                    TensorView<Scalar, Layout>(matrix_data,
                                                                         n_rows,
                                                                         n_cols,
                                                                         strides));
@@ -346,7 +346,7 @@ namespace SharsorIPCpp{
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
         bool write(const Tensor<Scalar, Layout>& data,
-                   DMMap<Scalar, Layout>& tensor_view,
+                   TensorView<Scalar, Layout>& tensor_view,
                    int row, int col,
                    Journal& journal,
                    ReturnCode& return_code,
@@ -419,7 +419,7 @@ namespace SharsorIPCpp{
                   int Layout = MemLayoutDefault>
         bool read(int row, int col,
                   Tensor<Scalar, Layout>& output,
-                  DMMap<Scalar, Layout>& tensor_view,
+                  TensorView<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,
                   bool verbose = true,
@@ -454,7 +454,7 @@ namespace SharsorIPCpp{
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
         bool read(int row, int col,
-                  DMMap<Scalar, Layout>& output,
+                  TensorView<Scalar, Layout>& output,
                   MMap<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,
@@ -511,8 +511,8 @@ namespace SharsorIPCpp{
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
         bool read(int row, int col,
-                  DMMap<Scalar, Layout>& output,
-                  DMMap<Scalar, Layout>& tensor_view,
+                  TensorView<Scalar, Layout>& output,
+                  TensorView<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,
                   bool verbose = true,

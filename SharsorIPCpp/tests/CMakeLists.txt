@@ -15,9 +15,6 @@ target_link_libraries(client_conn_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBR
 add_executable(jitter_test rt_jitter_test.cpp)
 target_link_libraries(jitter_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
-add_executable(segfault_test segfault_test.cpp)
-target_link_libraries(segfault_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
-
 # Setting aux. variables
 set(SERVER_CONN_TEST "server_conn_test")
 set(CLIENT_CONN_TEST "client_conn_test")

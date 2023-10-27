@@ -45,15 +45,15 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
 
                 // creates a (dynamic) memory map that uses the same memory
                 // and layout as the numpy array
-                SharsorIPCpp::DMMap<Scalar, Layout> output_t(ptr,
+                SharsorIPCpp::TensorView<Scalar, Layout> output_t(ptr,
                               np_array.shape(0), // dimensions are taken
                               np_array.shape(1),
                               strides); // directly for the input tensor
 
-                // Call the original readTensor method with the DMMap
+                // Call the original readTensor method with the TensorView
                 success = client.readTensor(output_t, row, col); // this will
                 // try to copy the data of the shared tensor into the
-                // tensor mapped by DMMap
+                // tensor mapped by TensorView
 
                 // the numpy array should now be updated in place
 
@@ -65,7 +65,7 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
                 SharsorIPCpp::DStrides strides(1,
                                 np_array.shape(1));
 
-                SharsorIPCpp::DMMap<Scalar, Layout> output_t(ptr,
+                SharsorIPCpp::TensorView<Scalar, Layout> output_t(ptr,
                               np_array.shape(0),
                               np_array.shape(1),
                               strides);

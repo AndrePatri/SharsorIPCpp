@@ -317,7 +317,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Server<Scalar, Layout>::readTensor(DMMap<Scalar, Layout>& output,
+    bool Server<Scalar, Layout>::readTensor(TensorView<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_running) {

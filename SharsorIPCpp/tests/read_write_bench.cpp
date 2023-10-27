@@ -290,6 +290,9 @@ TEST_F(ServerTestBool, WriteReadBenchmark) {
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
+
+        // we measure the time to read a copy of the tensor using a
+
     }
 
     journal.log("ServerTestBool", "\nrunning post-processing steps...\n",
