@@ -54,9 +54,11 @@ ToDo:
 - [x] continuous integration  
 - [ ] python bindings with Numpy and PyTorch support
   - [x] bind StringTensor
-  - [ ] bind Client and Server: write factory method, so that it's not necessary to have a different name for each different type of data
+  - [ ] bind Server
   - [x] write utils method to create a tensor view from a tensor using MMap. this is useful to have only part of a matrix be updated with the shared data. 
-  - [ ] add benchmarks of reading in a TensorView to tests
+  - [x] add benchmarks of reading in a TensorView to tests
+  - [ ] create a NumpyClient and a NumpyServer child class of Client and Server. Make some private arguments protected so that they can be access by these. Make so that Eigen Map are not necessary and replicate tensor view and all the other methods using numpy. This should allow for mimimum latency
+  - [ ] add roundtrip checks on write/read consistency
   - [ ] Numpy support
   - [ ] write some read/write unittests to benchmark performance impacts of additional dynamic allocations in bindings
   - [ ] add python tests to CI

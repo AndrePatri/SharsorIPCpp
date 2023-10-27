@@ -54,6 +54,5 @@ PYBIND11_MODULE(PySharsorIPC, m) {
     declare_StringTensorClient(m);
 
 
-
 }
 

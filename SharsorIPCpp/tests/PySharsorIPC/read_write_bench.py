@@ -56,15 +56,17 @@ class TestAddFunction(unittest.TestCase):
         # dtype must be consistent
         output = np.zeros((client.getNRows(),
                         client.getNCols()) ,
-                        dtype=toNumpyDType(client.getScalarType()))
+                        dtype=toNumpyDType(client.getScalarType()),
+                        order = 'F')
 
         output_view = output[1:-1, 1:-1]
         #(to ensure consistency)
 
         for i in range(0, 1000): # we are connected
 
+            success = False
             # read the shared tensor (copy)
-            success = client.readTensor(output_view, 1, 1)
+            success = client.readTensor(output, 0, 0)
 
             # Check the success flag
             if success:

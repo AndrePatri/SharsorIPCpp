@@ -281,8 +281,8 @@ namespace SharsorIPCpp{
                                                                         strides));
             } else {
 
-                DStrides strides(1,
-                                n_cols);
+                DStrides strides(n_cols,
+                                1);
 
                 tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
                                                     TensorView<Scalar, Layout>(matrix_data,

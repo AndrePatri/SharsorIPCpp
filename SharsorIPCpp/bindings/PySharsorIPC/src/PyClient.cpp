@@ -35,9 +35,15 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
 
             bool success = false;
 
-            if (Layout == SharsorIPCpp::ColMajor) {// col major
+            Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
 
-                Scalar* ptr = static_cast<Scalar*>(buf_info.ptr);
+            bool is_columnmajor = np_array.flags() & py::array::f_style;
+
+            bool is_colmaj_coherent = (is_columnmajor && (Layout == SharsorIPCpp::ColMajor));
+            bool is_rowmaj_coherent = (!is_columnmajor && (Layout == SharsorIPCpp::RowMajor));
+
+            if (is_colmaj_coherent) // col. major client layout
+            { // array and client are consistent
 
                 // Define the stride based on the layout of the matrix
                 SharsorIPCpp::DStrides strides(np_array.shape(0),
@@ -45,34 +51,37 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
 
                 // creates a (dynamic) memory map that uses the same memory
                 // and layout as the numpy array
-                SharsorIPCpp::TensorView<Scalar, Layout> output_t(ptr,
+                SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
                               np_array.shape(0), // dimensions are taken
                               np_array.shape(1),
                               strides); // directly for the input tensor
 
                 // Call the original readTensor method with the TensorView
-                success = client.readTensor(output_t, row, col); // this will
+                success = client.readTensor(output_t,
+                                            row, col); // this will
                 // try to copy the data of the shared tensor into the
                 // tensor mapped by TensorView
 
-                // the numpy array should now be updated in place
-
             }
-            else { // row major
+            if (is_rowmaj_coherent)
+            { // array and client are consistent
 
-                Scalar* ptr = static_cast<Scalar*>(buf_info.ptr);
+                SharsorIPCpp::DStrides strides(np_array.shape(1),
+                                               1);
 
-                SharsorIPCpp::DStrides strides(1,
-                                np_array.shape(1));
-
-                SharsorIPCpp::TensorView<Scalar, Layout> output_t(ptr,
+                SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
                               np_array.shape(0),
                               np_array.shape(1),
                               strides);
 
-                success = client.readTensor(output_t, row, col);
+                success = client.readTensor(output_t,
+                                            row, col);
 
             }
+//            if (!is_colmaj_coherent && !is_rowmaj_coherent) { // not coherent
+
+
+//            }
 
             return success;
 
