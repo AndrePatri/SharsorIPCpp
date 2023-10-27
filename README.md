@@ -55,7 +55,8 @@ ToDo:
 - [ ] python bindings with Numpy and PyTorch support
   - [x] bind StringTensor
   - [ ] bind Client and Server: write factory method, so that it's not necessary to have a different name for each different type of data
-  - [ ] write utils method to create a tensor view from a tensor using MMap. this is useful to have only part of a matrix be updated with the shared data. 
+  - [x] write utils method to create a tensor view from a tensor using MMap. this is useful to have only part of a matrix be updated with the shared data. 
+  - [ ] add benchmarks of reading in a TensorView to tests
   - [ ] Numpy support
   - [ ] write some read/write unittests to benchmark performance impacts of additional dynamic allocations in bindings
   - [ ] add python tests to CI
