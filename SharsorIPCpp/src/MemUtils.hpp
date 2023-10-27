@@ -475,26 +475,9 @@ namespace SharsorIPCpp{
 
             if (success) {
 
-                auto blockResult  = tensor_view.block(row, col,
+                output  = tensor_view.block(row, col,
                                            output.rows(),
                                            output.cols()).eval();
-
-                constexpr bool isRowMajor = decltype(blockResult)::IsRowMajor;
-//                constexpr bool isOutputRowMajor = decltype(output)::IsRowMajor;
-
-                std::cout << "###########" << std::endl;
-                std::cout << "is block row major: " << isRowMajor << std::endl;
-                std::cout << "is output row major: " << Layout << std::endl;
-                std::cout << "block nrows: " << blockResult.rows() << std::endl;
-                std::cout << "block ncols: " << blockResult.cols() << std::endl;
-                std::cout << "output nrows: " << output.rows() << std::endl;
-                std::cout << "output ncols: " << output.cols() << std::endl;
-                std::cout << "output row: " << row << std::endl;
-                std::cout << "output col: " << col << std::endl;
-                std::cout << "###########" << std::endl;
-
-                output = blockResult;
-
                 //.eval(), forces Eigen to evaluate the block expression
                 // and produce an actual matrix
             }
@@ -532,26 +515,9 @@ namespace SharsorIPCpp{
 
             if (success) {
 
-                auto blockResult  = tensor_view.block(row, col,
+                output  = tensor_view.block(row, col,
                                            output.rows(),
                                            output.cols()).eval();
-
-                constexpr bool isRowMajor = decltype(blockResult)::IsRowMajor;
-//                constexpr bool isOutputRowMajor = decltype(output)::IsRowMajor;
-
-                std::cout << "###########" << std::endl;
-                std::cout << "is block row major: " << isRowMajor << std::endl;
-                std::cout << "is output row major: " << Layout << std::endl;
-                std::cout << "block nrows: " << blockResult.rows() << std::endl;
-                std::cout << "block ncols: " << blockResult.cols() << std::endl;
-                std::cout << "output nrows: " << output.rows() << std::endl;
-                std::cout << "output ncols: " << output.cols() << std::endl;
-                std::cout << "output row: " << row << std::endl;
-                std::cout << "output col: " << col << std::endl;
-                std::cout << "###########" << std::endl;
-
-                output = blockResult;
-
                 //.eval(), forces Eigen to evaluate the block expression
                 // and produce an actual matrix
             }

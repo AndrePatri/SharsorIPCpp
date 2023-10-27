@@ -70,7 +70,6 @@ namespace SharsorIPCpp {
 
             } else {
 
-                std::cout << "#############à" << std::endl;
                 startPtr = from.data() +
                         row_idx * from.cols() + col_idx;
 
