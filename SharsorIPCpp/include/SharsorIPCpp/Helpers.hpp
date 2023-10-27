@@ -4,6 +4,8 @@
 #include <Eigen/Dense>
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
+#include <PrivUtils.hpp>
+#include <SharsorIPCpp/ReturnCodes.hpp>
 
 namespace SharsorIPCpp {
 
@@ -21,9 +23,36 @@ namespace SharsorIPCpp {
             int row_idx, int col_idx,
             int n_rows, int n_cols) {
 
-            // Manually compute the starting pointer for the block, taking the layout into account
+            // note: this is not meant to be used in RT and hence should only be called during
+            // initialization phases.
 
-            Scalar* startPtr;
+            ReturnCode return_code = ReturnCode::RESET; // unused; just to call the method
+
+            Journal journal = Journal("");
+
+            bool success = canFitTensor( // we check that are creating a valid view of "from"
+                         from.rows(),
+                         from.cols(),
+                         row_idx, col_idx,
+                         n_rows, n_cols,
+                         journal,
+                         return_code,
+                         true,
+                         VLevel::V3);
+
+            if (!success) {
+
+                std::string excep =
+                        std::string("View does not fit in original tensor!!!");
+
+                journal.log(__FUNCTION__,
+                             excep,
+                             LogType::EXCEP,
+                             true // throw runtime exception
+                             );
+            } // if ok, we go on
+
+            Scalar* startPtr; // start pointer from which to create the view
 
             if (Layout == SharsorIPCpp::ColMajor) {
 
@@ -41,12 +70,13 @@ namespace SharsorIPCpp {
 
             } else {
 
+                std::cout << "#############à" << std::endl;
                 startPtr = from.data() +
                         row_idx * from.cols() + col_idx;
 
                 // Define the stride based on the layout of the matrix
-                DStrides stride(1,
-                                from.cols());
+                DStrides stride(from.cols(),
+                                1);
 
                 // Use the mapped view with the provided stride to interpret the block correctly
                 return DMMap<Scalar, Layout>(startPtr,

@@ -8,7 +8,7 @@ namespace SharsorIPCpp {
 
     using DStrides = Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>;
 
-    const int MemLayoutDefault = ColMajor; // default layout used by this
+    const int MemLayoutDefault = RowMajor; // default layout used by this
     // library (changes here will propagate to the whole library)
 
     template <typename Scalar, int Layout = MemLayoutDefault>
