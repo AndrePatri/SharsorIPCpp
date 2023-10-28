@@ -52,10 +52,12 @@ namespace SharsorIPCpp {
             void run();
 
             bool write(const std::vector<std::string>& vec,
-                       int index = 0);
+                       int index = 0); // to be preferred,
+            // more efficient
 
             bool write(const std::string& str,
-                       int index = 0);
+                       int index = 0); // less efficient if writing
+            // multiple strings
 
             bool read(std::vector<std::string>& vec,
                       int index = 0);
@@ -83,7 +85,7 @@ namespace SharsorIPCpp {
 
             int _tmp_value = 0; // tmp val to avoid dyn allocations
 
-            Tensor<int> _buffer = Tensor<int>(_n_rows, 1); // to avoid dyn. allocations
+            Tensor<int> _buffer; // to avoid dyn. allocations
 
             ShMemType _sh_mem;
 

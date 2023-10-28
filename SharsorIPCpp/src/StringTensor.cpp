@@ -59,7 +59,8 @@ namespace SharsorIPCpp {
                          basename, name_space,
                          verbose, vlevel,
                          force_reconnection)),
-      _length(length) {
+      _length(length),
+      _buffer(Tensor<int>(_n_rows, length)){ // we can initialize buffer
 
     }
 
@@ -72,6 +73,8 @@ namespace SharsorIPCpp {
 
             _length =_sh_mem.getNCols(); // getting from
             // client (client gets this from server)
+
+            _buffer = Tensor<int>(_n_rows, _length); // we can now initialize the buffer
 
             _running = true;
         }
@@ -108,7 +111,11 @@ namespace SharsorIPCpp {
 
         if(isRunning()) {
 
-            return _decode_vec(vec, col_index);
+            _sh_mem.readTensor(_buffer, 0, 0); // updates the whole buffer
+            // from shared mem (using a TensorView would make it more efficient)
+
+            return _decode_vec(vec, col_index); // writing in vec the memory, starting
+            // from col_index
 
         }
         else {
@@ -126,6 +133,10 @@ namespace SharsorIPCpp {
         if(isRunning()) {
 
             if (col_index >= 0 && col_index < _length) {
+
+              _sh_mem.readTensor(_buffer, 0, 0); // updates the whole buffer
+              // from shared mem (using a TensorView would make it
+              // much more efficient, for a single string)
 
               _decode_str(str, col_index);
 
@@ -151,6 +162,10 @@ namespace SharsorIPCpp {
 
             return _encode_vec(vec, col_index);
 
+            _sh_mem.writeTensor(_buffer.block(0, col_index,
+                                              _n_rows, vec.size()),
+                           0, col_index); // writes updated buffer block to memory
+
         }
         else {
 
@@ -169,6 +184,10 @@ namespace SharsorIPCpp {
             if (col_index >= 0 && col_index < _length) {
 
                 _encode_str(str, col_index);
+
+                _sh_mem.writeTensor(_buffer.block(0, col_index,
+                                                  _n_rows, 1),
+                               0, col_index); // writes buffer column to memory
 
                 return true;
             }
@@ -216,6 +235,7 @@ namespace SharsorIPCpp {
       for (const auto& str : vec) { // for each string
 
           _encode_str(str, col_index); // encodes string in buffer
+          // at the right index
 
           ++col_index; // go to next column (i.e. string)
       }
@@ -246,12 +266,9 @@ namespace SharsorIPCpp {
 
             }
 
-            _buffer(row, 0) = _tmp_value; // write to tmp buffer
+            _buffer(row, col_index) = _tmp_value; // write to tmp buffer
 
         }
-
-        _sh_mem.writeTensor(_buffer,
-                       0, col_index); // write column to tensor
 
     }
 
@@ -261,12 +278,9 @@ namespace SharsorIPCpp {
 
         str.clear();
 
-        _sh_mem.readTensor(_buffer, 0, col_index); // puts current
-        // data into buffer
-
         for (int row = 0; row < _n_rows; ++row) { // for each chunk
 
-            _tmp_value = _buffer(row, 0);
+            _tmp_value = _buffer(row, col_index);
 
             for (size_t j = 0; j < sizeof(int); ++j) {
 
