@@ -90,12 +90,12 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH = Thresholds<ScalarType>::READ_T_MAX_THRESH;
-    double READ_TV_MAX_THRESH = Thresholds<ScalarType>::READ_TV_MAX_THRESH;
-    double WRITE_T_MAX_THRESH = Thresholds<ScalarType>::WRITE_T_MAX_THRESH;
-    double READ_T_AVRG_THRESH = Thresholds<ScalarType>::READ_T_AVRG_THRESH;
-    double READ_TV_AVRG_THRESH = Thresholds<ScalarType>::READ_TV_AVRG_THRESH;
-    double WRITE_T_AVRG_THRESH = Thresholds<ScalarType>::WRITE_T_AVRG_THRESH;
+    double READ_T_MAX_THRESH = Thresholds<ScalarType, layout>::READ_T_MAX_THRESH;
+    double READ_TV_MAX_THRESH = Thresholds<ScalarType, layout>::READ_TV_MAX_THRESH;
+    double WRITE_T_MAX_THRESH = Thresholds<ScalarType, layout>::WRITE_T_MAX_THRESH;
+    double READ_T_AVRG_THRESH = Thresholds<ScalarType, layout>::READ_T_AVRG_THRESH;
+    double READ_TV_AVRG_THRESH = Thresholds<ScalarType, layout>::READ_TV_AVRG_THRESH;
+    double WRITE_T_AVRG_THRESH = Thresholds<ScalarType, layout>::WRITE_T_AVRG_THRESH;
 
     std::vector<double> readTimes;
     std::vector<double> readTimesView;

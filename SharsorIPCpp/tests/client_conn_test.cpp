@@ -240,7 +240,7 @@ protected:
                     std::string("\n") + result + std::string("\n"),
                     Journal::LogType::STAT);
 
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     }
 
@@ -294,14 +294,14 @@ int main(int argc, char** argv) {
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ClientReadsInt.ClientReadingInt";
 
-    ::testing::GTEST_FLAG(filter) =
-        ":ClientReadsBool.ClientReadsRandBoolBlock";
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ClientReadsBool.ClientReadsRandBoolBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ClientReadsFloat.ClientReadRandFloat";
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":StringTensorRead.StringTensorCheck";
+    ::testing::GTEST_FLAG(filter) =
+        ":StringTensorRead.StringTensorCheck";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

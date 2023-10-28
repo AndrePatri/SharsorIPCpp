@@ -67,7 +67,7 @@ namespace SharsorIPCpp{
 
             int getMemLayout() const;
 
-        private:
+        protected:
 
             bool _unlink_data = true; // will also unlink data
             // when freeing shared memory

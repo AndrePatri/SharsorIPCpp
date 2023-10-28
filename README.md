@@ -54,12 +54,11 @@ ToDo:
 - [x] continuous integration  
 - [ ] python bindings with Numpy and PyTorch support
   - [x] bind StringTensor
-  - [ ] bind Server
   - [x] write utils method to create a tensor view from a tensor using MMap. this is useful to have only part of a matrix be updated with the shared data. 
   - [x] add benchmarks of reading in a TensorView to tests
   - [x] make bench tests using typed gtests to improve readability
   - [x] add bench. tests using RowMajor layout
-  - [ ] benchmark pybinds and see if it's necessary to create a new interface class to minimize dynamic allocations
+  - [ ] create a PyClient and PyServer inheriting from Client and Server and adding methods to write and read numpy arrays
   - [ ] make read and write methods of string tensor more efficient on vectors
   - [ ] add roundtrip tests for checking write/read consistency (for both ColMajor and RowMajor layouts, for all datatypes and also StringTensor)
   - [ ] add roudntrip tests to CI

@@ -184,7 +184,8 @@ protected:
                                      true,
                                      VLevel::V3,
                                      true)),
-                   str_vec(STR_TENSOR_LENGTH) {
+                   str_vec(STR_TENSOR_LENGTH),
+                   str_vec_check(STR_TENSOR_LENGTH){
 
         str_vec[0] = "MaremmaMaiala";
 
@@ -212,7 +213,9 @@ protected:
 
     void updateData() {
 
-        string_t_ptr->write(str_vec, 0);
+        bool succes_write = string_t_ptr->write(str_vec, 0);
+
+        bool success_check = string_t_ptr->read(str_vec_check, 0);
 
         str_vec[random_int(str_vec.size() - 1)] = random_string(5); // random
         // update at random index
@@ -224,10 +227,10 @@ protected:
                                              [&delimiter](const std::string& a, const std::string& b) {
                                                  return a.empty() ? b : a + delimiter + b;
                                              });
+
         journal.log("StringTensorRead",
                     std::string("\nWritten vector:\n") + result + std::string("\n"),
                     Journal::LogType::STAT);
-
 
         std::this_thread::sleep_for(std::chrono::seconds(5));
 
@@ -236,6 +239,8 @@ protected:
     StringTensor<StrServer>::UniquePtr string_t_ptr;
 
     std::vector<std::string> str_vec;
+
+    std::vector<std::string> str_vec_check;
 
 };
 
@@ -284,14 +289,14 @@ int main(int argc, char** argv) {
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesInt.ServerWriteIntRandBlock";
 
-    ::testing::GTEST_FLAG(filter) =
-        ":ServerWritesBool.ServerWriteBoolRandBlock";
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesFloat.ServerWritesRandFloatBlock";
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":StringTensorWrite.StringTensorCheck";
+    ::testing::GTEST_FLAG(filter) =
+        ":StringTensorWrite.StringTensorCheck";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
