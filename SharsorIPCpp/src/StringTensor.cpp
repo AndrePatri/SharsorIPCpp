@@ -1,4 +1,4 @@
-#include <SharsorIPCpp/StringTensor.hpp>
+﻿#include <SharsorIPCpp/StringTensor.hpp>
 
 namespace SharsorIPCpp {
 

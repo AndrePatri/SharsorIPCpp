@@ -284,14 +284,14 @@ int main(int argc, char** argv) {
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesInt.ServerWriteIntRandBlock";
 
-    ::testing::GTEST_FLAG(filter) =
-        ":ServerWritesBool.ServerWriteBoolRandBlock";
+//    ::testing::GTEST_FLAG(filter) =
+//        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesFloat.ServerWritesRandFloatBlock";
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":StringTensorWrite.StringTensorCheck";
+    ::testing::GTEST_FLAG(filter) =
+        ":StringTensorWrite.StringTensorCheck";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

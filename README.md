@@ -57,15 +57,17 @@ ToDo:
   - [ ] bind Server
   - [x] write utils method to create a tensor view from a tensor using MMap. this is useful to have only part of a matrix be updated with the shared data. 
   - [x] add benchmarks of reading in a TensorView to tests
-  - [ ] create a NumpyClient and a NumpyServer child class of Client and Server. Make some private arguments protected so that they can be access by these. Make so that Eigen Map are not necessary and replicate tensor view and all the other methods using numpy. This should allow for mimimum latency
-  - [ ] add roundtrip checks on write/read consistency
-  - [ ] Numpy support
-  - [ ] write some read/write unittests to benchmark performance impacts of additional dynamic allocations in bindings
-  - [ ] add python tests to CI
+  - [x] make bench tests using typed gtests to improve readability
+  - [ ] add bench. tests using RowMajor layout
+  - [ ] benchmark pybinds and see if it's necessary to create a new interface class to minimize dynamic allocations
+  - [ ] make read and write methods of string tensor more efficient on vectors
+  - [ ] add roundtrip tests for checking write/read consistency (for both ColMajor and RowMajor layouts, for all datatypes and also StringTensor)
+  - [ ] add roudntrip tests to CI
+  - [ ] python unit tests for bindings
 - [] start to add documentation
   - [x] doc page initialization
   - [ ] fill with simple Cpp examples and also reference tests
   - [ ] Python interface examples
 - [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
+- [ ] test use from other package (check linking) 
 - [ ] deploy on Anaconda 
-- [ ] test use from other package 

@@ -25,13 +25,36 @@ static std::string name_space = "PerfTests";
 
 static Journal journal("PerfTests");
 
-template <typename T>
+// Define a structure to hold both the scalar type and the memory layout
+template<typename T, int Layout>
+struct TypeWithLayout {
+    using type = T;
+    static const int layout = Layout;
+};
+
+// List of types to test against
+using MyTypes = ::testing::Types<
+    TypeWithLayout<bool, ColMajor>,
+    TypeWithLayout<bool, RowMajor>,
+    TypeWithLayout<int, ColMajor>,
+    TypeWithLayout<int, RowMajor>,
+    TypeWithLayout<float, ColMajor>,
+    TypeWithLayout<float, RowMajor>,
+    TypeWithLayout<double, ColMajor>,
+    TypeWithLayout<double, RowMajor>
+>;
+
+template <typename P>
 class PerfTest : public ::testing::Test {
 protected:
+
+    using ScalarType = typename P::type;
+    static const int layout = P::layout;
+
     PerfTest() : rows(100),
                    cols(60),
                    iterations(N_ITERATIONS),
-                   server_ptr(new Server<T>(rows, cols,
+                   server_ptr(new Server<ScalarType, layout>(rows, cols,
                                      "SharsorIPCpp",
                                      name_space,
                                      true,
@@ -53,32 +76,26 @@ protected:
     int rows;
     int cols;
     int iterations;
-    typename Server<T>::UniquePtr server_ptr;
-    Tensor<T> tensor_copy;
+    typename Server<ScalarType, layout>::UniquePtr server_ptr;
+    Tensor<ScalarType, layout> tensor_copy;
 
 };
 
-// Type aliases for simplicity
-using PerfTestBool = PerfTest<bool>;
-using PerfTestInt = PerfTest<int>;
-using PerfTestFloat = PerfTest<float>;
-using PerfTestDoubleloat = PerfTest<double>;
-
-// Actual test function
-TYPED_TEST_CASE_P(PerfTest);
+TYPED_TEST_SUITE_P(PerfTest);
 
 TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
-    // Your test code here. You can use 'TypeParam' as the type.
-    // This will be replaced by each of the types you listed below.
+
+    using ScalarType = typename TestFixture::ScalarType;
+    const int layout = TestFixture::layout;
 
     check_comp_type(journal);
 
-    double READ_T_MAX_THRESH = Thresholds<TypeParam>::READ_T_MAX_THRESH;
-    double READ_TV_MAX_THRESH = Thresholds<TypeParam>::READ_TV_MAX_THRESH;
-    double WRITE_T_MAX_THRESH = Thresholds<TypeParam>::WRITE_T_MAX_THRESH;
-    double READ_T_AVRG_THRESH = Thresholds<TypeParam>::READ_T_AVRG_THRESH;
-    double READ_TV_AVRG_THRESH = Thresholds<TypeParam>::READ_TV_AVRG_THRESH;
-    double WRITE_T_AVRG_THRESH = Thresholds<TypeParam>::WRITE_T_AVRG_THRESH;
+    double READ_T_MAX_THRESH = Thresholds<ScalarType>::READ_T_MAX_THRESH;
+    double READ_TV_MAX_THRESH = Thresholds<ScalarType>::READ_TV_MAX_THRESH;
+    double WRITE_T_MAX_THRESH = Thresholds<ScalarType>::WRITE_T_MAX_THRESH;
+    double READ_T_AVRG_THRESH = Thresholds<ScalarType>::READ_T_AVRG_THRESH;
+    double READ_TV_AVRG_THRESH = Thresholds<ScalarType>::READ_TV_AVRG_THRESH;
+    double WRITE_T_AVRG_THRESH = Thresholds<ScalarType>::WRITE_T_AVRG_THRESH;
 
     std::vector<double> readTimes;
     std::vector<double> readTimesView;
@@ -87,10 +104,10 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
     journal.log("PerfTest", "\nBenchmarking performance...\n",
                 Journal::LogType::STAT);
 
-    Tensor<TypeParam> tensor_other = Tensor<TypeParam>::Zero(3 * this->rows,
+    Tensor<ScalarType, layout> tensor_other = Tensor<ScalarType, layout>::Zero(3 * this->rows,
                                        2 * this->cols); // tensor of which a view is created
 
-    TensorView<TypeParam> block_view = helpers::createViewFrom<TypeParam>(
+    TensorView<ScalarType, layout> block_view = helpers::createViewFrom<ScalarType, layout>(
                                                     tensor_other,
                                                     this->rows, this->cols, // indeces
                                                     this->rows, this->cols); // dimensions
@@ -98,7 +115,7 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
     for (int i = 0; i < this->iterations; ++i) {
 
-        Tensor<TypeParam> myData(this->rows, this->cols);
+        Tensor<ScalarType, layout> myData(this->rows, this->cols);
         myData.setRandom(); // we generate a random tensor of the right size
 
         // we measure the time to write it on the memory
@@ -180,10 +197,9 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
 }
 
-// List of types we want to test
-REGISTER_TYPED_TEST_CASE_P(PerfTest, WriteReadBenchmark);
-using MyTypes = ::testing::Types<bool, int, float, double>;
-INSTANTIATE_TYPED_TEST_CASE_P(MyInstantiation, PerfTest, MyTypes);
+// Register the tests
+REGISTER_TYPED_TEST_SUITE_P(PerfTest, WriteReadBenchmark);
+INSTANTIATE_TYPED_TEST_SUITE_P(My, PerfTest, MyTypes);
 
 class StringTensorWrite : public ::testing::Test {
 protected:
@@ -299,28 +315,7 @@ TEST_F(StringTensorWrite, StringTensorWriteBenchmark) {
     ASSERT_LT(averageWriteTime, WRITE_T_AVRG_THRESH);
 //    ASSERT_LT(maxWriteTime, WRITE_T_MAX_THRESH);
 
-
-    // satisfying the expected performance
 }
-
-//int main(int argc, char** argv) {
-
-//    // This example runs performance benchmarking of writing and reading functions
-//    // of SharsorIPCpp for all the supported data types (bool, int, float, double) and,
-//    // additionally, also for the StringTensor wrapper. Since the employed methods are
-//    // exactly the same between Server and Client, here we only employ servers.
-//    // The used memory layout is the default one (set in SharsorIPCpp/DTypes.hpp).
-
-//    ::testing::GTEST_FLAG(filter) =
-//            "JournalTest.TestJournal";
-
-//    ::testing::GTEST_FLAG(filter) += ":PerfTestBool.WriteReadBenchmark";
-////    ::testing::GTEST_FLAG(filter) += ":StringTensorWrite.WriteReadStrTensorBenchmark";
-
-//    ::testing::InitGoogleTest(&argc, argv);
-//    return RUN_ALL_TESTS();
-
-//}
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
