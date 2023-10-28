@@ -66,7 +66,7 @@ class TestAddFunction(unittest.TestCase):
 
             success = False
             # read the shared tensor (copy)
-            success = client.readTensor(output, 0, 0)
+            success = client.readTensor(output_view, 1, 1)
 
             # Check the success flag
             if success:

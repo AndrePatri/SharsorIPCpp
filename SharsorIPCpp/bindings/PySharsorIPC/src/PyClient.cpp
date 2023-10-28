@@ -42,7 +42,7 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
             bool is_colmaj_coherent = (is_columnmajor && (Layout == SharsorIPCpp::ColMajor));
             bool is_rowmaj_coherent = (!is_columnmajor && (Layout == SharsorIPCpp::RowMajor));
 
-            if (is_colmaj_coherent) // col. major client layout
+            if (Layout == SharsorIPCpp::ColMajor) // col. major client layout
             { // array and client are consistent
 
                 // Define the stride based on the layout of the matrix
@@ -63,7 +63,7 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
                 // tensor mapped by TensorView
 
             }
-            if (is_rowmaj_coherent)
+            if (Layout == SharsorIPCpp::RowMajor)
             { // array and client are consistent
 
                 SharsorIPCpp::DStrides strides(np_array.shape(1),

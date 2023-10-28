@@ -58,7 +58,7 @@ ToDo:
   - [x] write utils method to create a tensor view from a tensor using MMap. this is useful to have only part of a matrix be updated with the shared data. 
   - [x] add benchmarks of reading in a TensorView to tests
   - [x] make bench tests using typed gtests to improve readability
-  - [ ] add bench. tests using RowMajor layout
+  - [x] add bench. tests using RowMajor layout
   - [ ] benchmark pybinds and see if it's necessary to create a new interface class to minimize dynamic allocations
   - [ ] make read and write methods of string tensor more efficient on vectors
   - [ ] add roundtrip tests for checking write/read consistency (for both ColMajor and RowMajor layouts, for all datatypes and also StringTensor)
