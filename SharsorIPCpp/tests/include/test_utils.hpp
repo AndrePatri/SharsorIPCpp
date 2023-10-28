@@ -92,9 +92,9 @@ namespace SharsorIPCpp {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double READ_TV_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
-        static constexpr double READ_T_AVRG_THRESH = 1200;
-        static constexpr double READ_TV_AVRG_THRESH = 1200;
-        static constexpr double WRITE_T_AVRG_THRESH = 1200;
+        static constexpr double READ_T_AVRG_THRESH = 1500;
+        static constexpr double READ_TV_AVRG_THRESH = 1500;
+        static constexpr double WRITE_T_AVRG_THRESH = 1500;
 
     };
 

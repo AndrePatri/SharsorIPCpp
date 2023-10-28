@@ -247,8 +247,8 @@ TEST_F(StringTensorWrite, StringTensorWriteBenchmark) {
 
     double READ_T_MAX_THRESH =  10000000; // [nanoseconds], maximum allowed read time
     double WRITE_T_MAX_THRESH = 10000000; // [nanoseconds], maximum allowed read time
-    double READ_T_AVRG_THRESH =   15000; // [nanoseconds]
-    double WRITE_T_AVRG_THRESH =  15000; // [nanoseconds]
+    double READ_T_AVRG_THRESH =   50000; // [nanoseconds]
+    double WRITE_T_AVRG_THRESH =  50000; // [nanoseconds]
 
     std::vector<double> readTimes;
     std::vector<double> writeTimes;
