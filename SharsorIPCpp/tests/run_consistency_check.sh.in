@@ -3,7 +3,7 @@
 ./@CONSISTENCY_CHECKS_SERVER@ &  # Start server script in the background
 SERVER_CONN_TEST_PID=$!  # Get the PID
 
-./@CONSISTENCY_CHECKS_CLIENT@ &  # Start client script in the background
+./@CONSISTENCY_CHECKS_CLIENT@ > /dev/null 2>&1 &  # Start client script in the background (suppress output)
 CLIENT_CONN_TEST_PID=$!  # Get the PID
 
 # Wait for both tests to complete

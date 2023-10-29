@@ -49,20 +49,20 @@ protected:
     ConsistencyChecks() :
                    client_ping_ptr(new Client<ScalarType, layout>("SharsorIPCpp_ping",
                                      name_space + getTypeAsString<ScalarType>() + std::to_string(layout),
-                                     true,
-                                     VLevel::V1)),
+                                     false,
+                                     VLevel::V3)),
                    client_pong_ptr(new Client<ScalarType, layout>("SharsorIPCpp_pong",
                                      name_space + getTypeAsString<ScalarType>() + std::to_string(layout),
-                                     true,
-                                     VLevel::V1)),
+                                     false,
+                                     VLevel::V3)),
                    client_terminate_ptr(new Client<bool>("SharsorIPCpp_terminate",
                                      name_space + getTypeAsString<ScalarType>() + std::to_string(layout),
-                                     true,
-                                     VLevel::V1)),
+                                     false,
+                                     VLevel::V3)),
                    client_flag_ptr(new Client<bool>("SharsorIPCpp_flag",
                                      name_space + getTypeAsString<ScalarType>() + std::to_string(layout),
-                                     true,
-                                     VLevel::V1)){
+                                     false,
+                                     VLevel::V3)){
 
         // run all clients
         client_ping_ptr->attach();
@@ -82,11 +82,37 @@ protected:
 
         while (!terminate(0, 0)) { // exit if received a signal from server
 
+            while (!client_terminate_ptr->readTensor(terminate)) {
+
+                // try again
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+            }
+
+            while (!client_flag_ptr->readTensor(flag)) {
+
+                // try again
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+            }
+
             while (!flag(0,0)){
+
+                while (!client_terminate_ptr->readTensor(terminate)) {
+
+                    // try again
+                    std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+                }
+                if (terminate(0, 0)) {
+
+                    return;
+                }
 
                 client_flag_ptr->readTensor(flag); // reads flag from client
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(1)); // wait
+                std::this_thread::sleep_for(std::chrono::microseconds(1)); // wait
+
             }
 
             // server has written new ping memory, let's read it
@@ -99,9 +125,12 @@ protected:
 
             // signaling the server that the read/write operation was completed
             flag(0, 0) = false;
-            client_flag_ptr->writeTensor(flag);
+            while (!client_flag_ptr->writeTensor(flag)) {
 
-            client_terminate_ptr->readTensor(terminate); // updated termination flag from server
+                // try again
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+            }
 
         }
 

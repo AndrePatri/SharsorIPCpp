@@ -17,8 +17,8 @@ target_link_libraries(consistency_checks_srvr PRIVATE ${PROJECT_NAME} ${GTEST_BO
 #add_executable(client_conn_test client_conn_test.cpp)
 #target_link_libraries(client_conn_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
-add_executable(jitter_test rt_jitter_test.cpp)
-target_link_libraries(jitter_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+#add_executable(jitter_test rt_jitter_test.cpp)
+#target_link_libraries(jitter_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
 # Setting aux. variables
 set(CONSISTENCY_CHECKS_CLIENT "consistency_checks_clnt")
@@ -46,8 +46,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC/
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC
     FILES_MATCHING PATTERN "*.py")
 
-
-
-
 gtest_discover_tests(read_write_bench)
+gtest_discover_tests(consistency_checks_srvr)
+gtest_discover_tests(consistency_checks_clnt)
 
