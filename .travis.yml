@@ -35,5 +35,5 @@ script:
 - cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=OFF ..
 - make
 - ctest --output-on-failure --verbose
-# - cd tests
-#- ./run_parallel_conn_tests.sh
+- cd tests
+- ./run_consistency_check.sh

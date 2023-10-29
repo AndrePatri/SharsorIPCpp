@@ -117,11 +117,16 @@ protected:
 
             // server has written new ping memory, let's read it
 
-            client_ping_ptr->readTensor(data_read, 0, 0);
+            while (!client_ping_ptr->readTensor(data_read, 0, 0)) {
+
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+            }
 
             // and write it on the pong memory
 
-            client_pong_ptr->writeTensor(data_read, 0, 0);
+            while (!client_pong_ptr->writeTensor(data_read, 0, 0)) {
+
+            }
 
             // signaling the server that the read/write operation was completed
             flag(0, 0) = false;

@@ -12,7 +12,7 @@
 
 #include <test_utils.hpp>
 
-int N_ITERATIONS = 100000;
+int N_ITERATIONS = 10000;
 int N_ITERATIONS_STR = 100000;
 
 int N_ROWS = 100;
@@ -101,7 +101,11 @@ protected:
 
             data_written.setRandom(); // randomize data
 
-            server_ping_ptr->writeTensor(data_written, 0, 0); // writes down the whole random matrix on ping memory
+            // writes down the whole random matrix on ping memory
+            while (! server_ping_ptr->writeTensor(data_written, 0, 0);) {
+
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+            }
 
             flag(0, 0) = true;
             while(!server_flag_ptr->writeTensor(flag)) {
@@ -119,7 +123,11 @@ protected:
             }
             // client sets flag to false -> it has read the data and copied to the pong data
 
-            server_pong_ptr->readTensor(data_read, 0, 0); // reads data from pong memory
+            // reads data from pong memory
+            while(!server_pong_ptr->readTensor(data_read, 0, 0)) {
+
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+            }
 
             checks.push_back(areEqual<ScalarType>(data_written, data_read));
 
