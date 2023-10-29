@@ -1,0 +1,12 @@
+#!/bin/bash
+
+./@CONSISTENCY_CHECKS_SERVER@ &  # Start server script in the background
+SERVER_CONN_TEST_PID=$!  # Get the PID
+
+./@CONSISTENCY_CHECKS_CLIENT@ &  # Start client script in the background
+CLIENT_CONN_TEST_PID=$!  # Get the PID
+
+# Wait for both tests to complete
+wait $SERVER_CONN_TEST_PID
+wait $CLIENT_CONN_TEST_PID
+

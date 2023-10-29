@@ -73,6 +73,31 @@ namespace SharsorIPCpp {
         return dist(rng);
     }
 
+    template <typename T>
+    std::string getTypeAsString() {
+        return "Unknown";
+    }
+
+    template <>
+    std::string getTypeAsString<bool>() {
+        return "bool";
+    }
+
+    template <>
+    std::string getTypeAsString<int>() {
+        return "int";
+    }
+
+    template <>
+    std::string getTypeAsString<float>() {
+        return "float";
+    }
+
+    template <>
+    std::string getTypeAsString<double>() {
+        return "double";
+    }
+
     template <typename T, int Layout>
     struct Thresholds;
 
@@ -147,6 +172,60 @@ namespace SharsorIPCpp {
         static constexpr double WRITE_T_AVRG_THRESH = 5000;
 
     };
+
+    template <typename Scalar, const int Layout>
+    bool areEqual(const Tensor<Scalar, Layout>& A,
+                  const Tensor<Scalar, Layout>& B) {
+
+        return A.isApprox(B); // suitable for float and double
+
+    }
+
+    // Specialization for int
+    template <>
+    bool areEqual<int, ColMajor>(const Tensor<int, ColMajor>& A,
+                  const Tensor<int, ColMajor>& B) {
+
+        return A == B;
+
+    }
+
+    template <>
+    bool areEqual<int, RowMajor>(const Tensor<int, RowMajor>& A,
+                  const Tensor<int, RowMajor>& B) {
+
+        return A == B;
+
+    }
+
+    // Specialization for bool
+    template <>
+    bool areEqual<bool, ColMajor>(const Tensor<bool, ColMajor>& A,
+                  const Tensor<bool, ColMajor>& B) {
+
+        return A == B;
+
+    }
+
+    template <>
+    bool areEqual<bool, RowMajor>(const Tensor<bool, RowMajor>& A,
+                  const Tensor<bool, RowMajor>& B) {
+
+        return A == B;
+
+    }
+
+    bool allTrue(const std::vector<bool>& vec,
+                 int& countFalse) {
+        countFalse = 0;
+        for (bool val : vec) {
+            if (!val) {
+                countFalse++;
+            }
+        }
+        return countFalse == 0;
+    }
+
 }
 
 
