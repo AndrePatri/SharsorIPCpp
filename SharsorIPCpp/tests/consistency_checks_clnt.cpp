@@ -191,9 +191,160 @@ protected:
 
 };
 
+class StringTensorCheck : public ::testing::Test {
+protected:
+
+    StringTensorCheck() :
+
+                    string_t_ping_ptr(new StringTensor<StrClient>(
+                                     "SharedStrTensor_ping",
+                                     name_space,
+                                     false,
+                                     VLevel::V3)),
+                    string_t_pong_ptr(new StringTensor<StrClient>(
+                                     "SharedStrTensor_pong",
+                                     name_space,
+                                     false,
+                                     VLevel::V3)),
+                    client_terminate_ptr(new Client<bool>(
+                                   "SharedStrTensor_terminate",
+                                   name_space,
+                                   false,
+                                   VLevel::V3)),
+                    client_flag_ptr(new Client<bool>(
+                                   "SharedStrTensor_flag",
+                                   name_space,
+                                   false,
+                                   VLevel::V3))
+    {
+
+        string_t_ping_ptr->run();
+        string_t_pong_ptr->run();
+        client_terminate_ptr->attach();
+        client_flag_ptr->attach();
+
+        getDataFromServer();
+
+        data_read.resize(length);
+
+    }
+
+    void getDataFromServer() {
+
+        length = string_t_ping_ptr->getLength();
+
+        // reads initializations from Server
+
+        terminate = Tensor<bool>::Zero(client_terminate_ptr->getNRows(),
+                                       client_terminate_ptr->getNCols());
+        flag = Tensor<bool>::Zero(client_flag_ptr->getNRows(),
+                                  client_flag_ptr->getNCols());
+
+        client_terminate_ptr->readTensor(terminate);
+        client_flag_ptr->readTensor(flag);
+
+
+    }
+
+    void SetUp() override {
+
+    }
+
+    void TearDown() override {
+
+        string_t_ping_ptr->close();
+        string_t_pong_ptr->close();
+        client_terminate_ptr->close();
+        client_flag_ptr->close();
+
+    }
+
+    void Run() {
+
+        while (!terminate(0, 0)) { // exit if received a signal from server
+
+            while (!client_terminate_ptr->readTensor(terminate)) {
+
+                // try again
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+            }
+
+            while (!client_flag_ptr->readTensor(flag)) {
+
+                // try again
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+            }
+
+            while (!flag(0,0)){
+
+                while (!client_terminate_ptr->readTensor(terminate)) {
+
+                    // try again
+                    std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+                }
+                if (terminate(0, 0)) {
+
+                    return;
+                }
+
+                client_flag_ptr->readTensor(flag); // reads flag from client
+
+                std::this_thread::sleep_for(std::chrono::microseconds(1)); // wait
+
+            }
+
+            // server has written new ping memory, let's read it
+
+            while (!string_t_ping_ptr->read(data_read, 0)) {
+
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+            }
+
+            // and write it on the pong memory
+
+            while (!string_t_pong_ptr->write(data_read, 0)) {
+
+            }
+
+            // signaling the server that the read/write operation was completed
+            flag(0, 0) = false;
+            while (!client_flag_ptr->writeTensor(flag)) {
+
+                // try again
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+            }
+
+        }
+
+    }
+
+    int length;
+    int iterations;
+    typename StringTensor<StrClient>::UniquePtr string_t_ping_ptr,
+                                                string_t_pong_ptr;
+
+
+    typename Client<bool>::UniquePtr client_terminate_ptr,
+                                client_flag_ptr;
+
+    std::vector<std::string> data_read;
+
+    Tensor<bool> terminate = Tensor<bool>::Zero(1, 1); // flags to false
+    Tensor<bool> flag = Tensor<bool>::Zero(1, 1);
+
+    std::vector<bool> checks;
+
+};
+
 TYPED_TEST_SUITE_P(ConsistencyChecks);
 
 TYPED_TEST_P(ConsistencyChecks, CheckConsistencyDTypes) {
+
+   check_comp_type(journal);
 
    this->Run(); // run round-trip checks with client
 
@@ -203,6 +354,14 @@ TYPED_TEST_P(ConsistencyChecks, CheckConsistencyDTypes) {
 REGISTER_TYPED_TEST_SUITE_P(ConsistencyChecks, CheckConsistencyDTypes);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(My, ConsistencyChecks, MyTypes);
+
+TEST_F(StringTensorCheck, StringTensorChecks) {
+
+    check_comp_type(journal);
+
+    this->Run();
+
+}
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
