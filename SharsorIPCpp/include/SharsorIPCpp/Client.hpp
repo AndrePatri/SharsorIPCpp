@@ -38,11 +38,11 @@ namespace SharsorIPCpp{
 
             ~Client();
 
-            bool writeTensor(const Tensor<Scalar, Layout>& data,
+            bool writeTensor(const TRef<Scalar, Layout> data,
                              int row = 0,
                              int col = 0);
 
-            bool readTensor(Tensor<Scalar, Layout>& output,
+            bool readTensor(TRef<Scalar, Layout> output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output
 

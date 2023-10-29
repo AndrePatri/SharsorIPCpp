@@ -91,10 +91,8 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
     check_comp_type(journal);
 
     double READ_T_MAX_THRESH = Thresholds<ScalarType, layout>::READ_T_MAX_THRESH;
-    double READ_TV_MAX_THRESH = Thresholds<ScalarType, layout>::READ_TV_MAX_THRESH;
     double WRITE_T_MAX_THRESH = Thresholds<ScalarType, layout>::WRITE_T_MAX_THRESH;
     double READ_T_AVRG_THRESH = Thresholds<ScalarType, layout>::READ_T_AVRG_THRESH;
-    double READ_TV_AVRG_THRESH = Thresholds<ScalarType, layout>::READ_TV_AVRG_THRESH;
     double WRITE_T_AVRG_THRESH = Thresholds<ScalarType, layout>::WRITE_T_AVRG_THRESH;
 
     std::vector<double> readTimes;
@@ -106,12 +104,6 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
     Tensor<ScalarType, layout> tensor_other = Tensor<ScalarType, layout>::Zero(3 * this->rows,
                                        2 * this->cols); // tensor of which a view is created
-
-    TensorView<ScalarType, layout> block_view = helpers::createViewFrom<ScalarType, layout>(
-                                                    tensor_other,
-                                                    this->rows, this->cols, // indeces
-                                                    this->rows, this->cols); // dimensions
-    // we create a view of the central block of the tensor
 
     for (int i = 0; i < this->iterations; ++i) {
 
@@ -127,18 +119,10 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        this->server_ptr->readTensor(this->tensor_copy);
+        this->server_ptr->readTensor(this->tensor_copy, 0, 0);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
-
-        // we measure the time to read a copy of the tensor using a TensorView
-        auto startReadView = std::chrono::high_resolution_clock::now();
-        this->server_ptr->readTensor(block_view,
-                               0, 0);
-        auto endReadView = std::chrono::high_resolution_clock::now();
-        double readTimeView = std::chrono::duration_cast<std::chrono::nanoseconds>(endReadView - startReadView).count();
-        readTimesView.push_back(readTimeView);
 
     }
 
@@ -147,15 +131,12 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
     // some post-processing
     double averageReadTime = 0;
-    double averageReadTimeView = 0;
     double averageWriteTime = 0;
     double maxReadTime = std::numeric_limits<double>::min();
-    double maxReadTimeView = std::numeric_limits<double>::min();
     double maxWriteTime = std::numeric_limits<double>::min();
 
     for (int i = 0; i < this->iterations; ++i) {
         averageReadTime += readTimes[i];
-        averageReadTimeView += readTimesView[i];
         averageWriteTime += writeTimes[i];
 
         if (readTimes[i] > maxReadTime) {
@@ -165,29 +146,21 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
         if (writeTimes[i] > maxWriteTime) {
             maxWriteTime = writeTimes[i];
         }
-
-        if (readTimesView[i] > maxReadTimeView) {
-            maxReadTimeView = readTimesView[i];
-        }
     }
 
     averageReadTime /= this->iterations;
-    averageReadTimeView /= this->iterations;
     averageWriteTime /= this->iterations;
 
     std::cout << "Number of performed iterations: " << this->iterations << std::endl;
     std::cout << "Average Read (with copy) Time: " << averageReadTime << " ns" << std::endl;
-    std::cout << "Average Read (with copy, into TensorView) Time: " << averageReadTimeView << " ns" << std::endl;
     std::cout << "Average Write Time: " << averageWriteTime << " ns" << std::endl;
     std::cout << "Maximum Read (with copy) Time: " << maxReadTime << " ns" << std::endl;
-    std::cout << "Maximum Read (with copy, into TensorView) Time: " << maxReadTimeView << " ns" << std::endl;
     std::cout << "Maximum Write Time: " << maxWriteTime << " ns\n" << std::endl;
 
     // Checking if perf. req. were met
 
     // reading (avrg)
     ASSERT_LT(averageReadTime, READ_T_AVRG_THRESH);
-    ASSERT_LT(averageReadTimeView, READ_TV_AVRG_THRESH);
     ASSERT_LT(averageWriteTime, WRITE_T_AVRG_THRESH);
 
     // reading (max)

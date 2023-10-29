@@ -15,6 +15,9 @@ namespace SharsorIPCpp {
     using Tensor = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Layout>;
 
     template <typename Scalar, int Layout = MemLayoutDefault>
+    using TRef = Eigen::Ref<Tensor<Scalar, Layout>>; // eigen reference
+
+    template <typename Scalar, int Layout = MemLayoutDefault>
     using TensorView = Eigen::Map<Tensor<Scalar, Layout>, // matrix type
                         Eigen::Unaligned, // specifies the pointer alignment in bytes
                         Eigen::Stride<Eigen::Dynamic, Eigen::Dynamic>>; // specifies strides

@@ -138,7 +138,7 @@ protected:
 
     void updateData() {
 
-      Tensor<bool, SharsorIPCpp::MemLayoutDefault> myData(N_ROWS - 2, N_COLS - 2);
+      Tensor<bool, SharsorIPCpp::MemLayoutDefault> myData(N_ROWS, N_COLS);
       Tensor<bool, SharsorIPCpp::MemLayoutDefault> myDataFull(N_ROWS, N_COLS);
       myData.setRandom();
 
@@ -155,7 +155,7 @@ protected:
       std::cout << myData << std::endl;
 
       // writing only a block
-      server_ptr->writeTensor(myData,
+      server_ptr->writeTensor(myData.block(1, 1, N_ROWS - 2, N_COLS - 2),
                               1, 1);
 
       server_ptr->readTensor(myDataFull);
@@ -289,14 +289,14 @@ int main(int argc, char** argv) {
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesInt.ServerWriteIntRandBlock";
 
-//    ::testing::GTEST_FLAG(filter) =
-//        ":ServerWritesBool.ServerWriteBoolRandBlock";
+    ::testing::GTEST_FLAG(filter) =
+        ":ServerWritesBool.ServerWriteBoolRandBlock";
 
 //    ::testing::GTEST_FLAG(filter) =
 //        ":ServerWritesFloat.ServerWritesRandFloatBlock";
 
-    ::testing::GTEST_FLAG(filter) =
-        ":StringTensorWrite.StringTensorCheck";
+//    ::testing::GTEST_FLAG(filter) =
+//        ":StringTensorWrite.StringTensorCheck";
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

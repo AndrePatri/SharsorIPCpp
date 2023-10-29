@@ -169,147 +169,147 @@ namespace SharsorIPCpp{
 
         }
 
+//        template <typename Scalar,
+//                  int Layout = MemLayoutDefault>
+//        void initMem(
+//            std::size_t n_rows,
+//            std::size_t n_cols,
+//            const std::string& mem_path,
+//            int& shm_fd,
+//            std::unique_ptr<TensorView<Scalar, Layout>>& tensor_view_ptr,
+//            Journal& journal,
+//            ReturnCode& return_code,
+//            bool verbose = true,
+//            VLevel vlevel = Journal::VLevel::V0
+//            )
+//        {
+
+//            // Determine the size based on the Scalar type
+//            std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
+
+//            // Create shared memory
+//            shm_fd = shm_open(mem_path.c_str(),
+//                              O_CREAT | O_RDWR,
+//                              S_IRUSR | S_IWUSR);
+
+//            if (shm_fd == -1) {
+
+//                if (verbose) {
+
+//                    std::string error = "Could not create shared memory at " +
+//                            mem_path;
+
+//                    journal.log(__FUNCTION__,
+//                        error,
+//                        LogType::EXCEP);
+//                }
+
+//                return_code = return_code + ReturnCode::MEMCREATFAIL;
+
+//                return;
+
+//            }
+
+//            // Set size
+//            if (ftruncate(shm_fd, data_size) == -1) {
+
+//                if (verbose) {
+
+//                    std::string error = "Could not set shared memory at " +
+//                            mem_path;
+
+//                    journal.log(__FUNCTION__,
+//                                error,
+//                                LogType::EXCEP);
+//                }
+
+//                return_code = return_code + ReturnCode::MEMSETFAIL;
+
+//                return;
+
+//            }
+
+//            return_code = return_code + ReturnCode::MEMOPEN;
+
+//            if (verbose &&
+//                    vlevel > VLevel::V2) {
+
+//                std::string info = "Opened shared memory at " +
+//                        mem_path;
+
+//                journal.log(__FUNCTION__,
+//                            info,
+//                            LogType::INFO);
+
+//            }
+
+//            // Map the shared memory (contiguous)
+//            Scalar* matrix_data = static_cast<Scalar*>(mmap(nullptr,
+//                                                        data_size,
+//                                                        PROT_READ | PROT_WRITE,
+//                                                        MAP_SHARED,
+//                                                        shm_fd,
+//                                                        0));
+
+//            if (matrix_data == MAP_FAILED) {
+
+//                if (verbose) {
+
+//                    journal.log(__FUNCTION__,
+//                                "Could not map memory size.",
+//                                LogType::EXCEP);
+//                }
+
+//                return_code = return_code + ReturnCode::MEMMAPFAIL;
+
+//                return;
+
+//            }
+
+//            // create a map of it using the right strides depending
+//            // on the desired layout
+//            if (Layout == SharsorIPCpp::ColMajor) {
+
+//                // Define the stride based on the layout of the matrix
+//                DStrides strides(n_rows,
+//                                1);
+
+//                tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
+//                                                    TensorView<Scalar, Layout>(matrix_data,
+//                                                                        n_rows,
+//                                                                        n_cols,
+//                                                                        strides));
+//            } else {
+
+//                DStrides strides(n_cols,
+//                                1);
+
+//                tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
+//                                                    TensorView<Scalar, Layout>(matrix_data,
+//                                                                        n_rows,
+//                                                                        n_cols,
+//                                                                        strides));
+//            }
+
+//            return_code = return_code + ReturnCode::MEMMAP;
+
+//            if (verbose && vlevel > VLevel::V2) {
+
+//                std::string info = "Mapped shared memory at " +
+//                        mem_path;
+
+//                journal.log(__FUNCTION__,
+//                            info,
+//                            LogType::INFO);
+
+//            }
+
+//        }
+
+
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
-        void initMem(
-            std::size_t n_rows,
-            std::size_t n_cols,
-            const std::string& mem_path,
-            int& shm_fd,
-            std::unique_ptr<TensorView<Scalar, Layout>>& tensor_view_ptr,
-            Journal& journal,
-            ReturnCode& return_code,
-            bool verbose = true,
-            VLevel vlevel = Journal::VLevel::V0
-            )
-        {
-
-            // Determine the size based on the Scalar type
-            std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
-
-            // Create shared memory
-            shm_fd = shm_open(mem_path.c_str(),
-                              O_CREAT | O_RDWR,
-                              S_IRUSR | S_IWUSR);
-
-            if (shm_fd == -1) {
-
-                if (verbose) {
-
-                    std::string error = "Could not create shared memory at " +
-                            mem_path;
-
-                    journal.log(__FUNCTION__,
-                        error,
-                        LogType::EXCEP);
-                }
-
-                return_code = return_code + ReturnCode::MEMCREATFAIL;
-
-                return;
-
-            }
-
-            // Set size
-            if (ftruncate(shm_fd, data_size) == -1) {
-
-                if (verbose) {
-
-                    std::string error = "Could not set shared memory at " +
-                            mem_path;
-
-                    journal.log(__FUNCTION__,
-                                error,
-                                LogType::EXCEP);
-                }
-
-                return_code = return_code + ReturnCode::MEMSETFAIL;
-
-                return;
-
-            }
-
-            return_code = return_code + ReturnCode::MEMOPEN;
-
-            if (verbose &&
-                    vlevel > VLevel::V2) {
-
-                std::string info = "Opened shared memory at " +
-                        mem_path;
-
-                journal.log(__FUNCTION__,
-                            info,
-                            LogType::INFO);
-
-            }
-
-            // Map the shared memory (contiguous)
-            Scalar* matrix_data = static_cast<Scalar*>(mmap(nullptr,
-                                                        data_size,
-                                                        PROT_READ | PROT_WRITE,
-                                                        MAP_SHARED,
-                                                        shm_fd,
-                                                        0));
-
-            if (matrix_data == MAP_FAILED) {
-
-                if (verbose) {
-
-                    journal.log(__FUNCTION__,
-                                "Could not map memory size.",
-                                LogType::EXCEP);
-                }
-
-                return_code = return_code + ReturnCode::MEMMAPFAIL;
-
-                return;
-
-            }
-
-            // create a map of it using the right strides depending
-            // on the desired layout
-            if (Layout == SharsorIPCpp::ColMajor) {
-
-                // Define the stride based on the layout of the matrix
-                DStrides strides(n_rows,
-                                1);
-
-                tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
-                                                    TensorView<Scalar, Layout>(matrix_data,
-                                                                        n_rows,
-                                                                        n_cols,
-                                                                        strides));
-            } else {
-
-                DStrides strides(n_cols,
-                                1);
-
-                tensor_view_ptr = std::make_unique<TensorView<Scalar, Layout>>(
-                                                    TensorView<Scalar, Layout>(matrix_data,
-                                                                        n_rows,
-                                                                        n_cols,
-                                                                        strides));
-            }
-
-            return_code = return_code + ReturnCode::MEMMAP;
-
-            if (verbose && vlevel > VLevel::V2) {
-
-                std::string info = "Mapped shared memory at " +
-                        mem_path;
-
-                journal.log(__FUNCTION__,
-                            info,
-                            LogType::INFO);
-
-            }
-
-        }
-
-
-        template <typename Scalar,
-                  int Layout = MemLayoutDefault>
-        bool write(const Tensor<Scalar, Layout>& data,
+        bool write(const TRef<Scalar, Layout> data, // eigen reference (works also with blocks)
                    MMap<Scalar, Layout>& tensor_view,
                    int row, int col,
                    Journal& journal,
@@ -345,44 +345,8 @@ namespace SharsorIPCpp{
 
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
-        bool write(const Tensor<Scalar, Layout>& data,
-                   TensorView<Scalar, Layout>& tensor_view,
-                   int row, int col,
-                   Journal& journal,
-                   ReturnCode& return_code,
-                   bool verbose = true,
-                   VLevel vlevel = Journal::VLevel::V0) {
-
-            bool success = canFitTensor(
-                         tensor_view.rows(),
-                         tensor_view.cols(),
-                         row, col,
-                         data.rows(), data.cols(),
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel);
-
-            if (success) {
-
-                tensor_view.block(row, col,
-                              data.rows(),
-                              data.cols()) = data;
-            }
-
-            if (!success) {
-
-                return_code = return_code + ReturnCode::WRITEFAIL;
-            }
-
-            return success;
-
-        }
-
-        template <typename Scalar,
-                  int Layout = MemLayoutDefault>
         bool read(int row, int col,
-                  Tensor<Scalar, Layout>& output,
+                  TRef<Scalar, Layout> output,
                   MMap<Scalar, Layout>& tensor_view,
                   Journal& journal,
                   ReturnCode& return_code,
@@ -415,41 +379,41 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar,
-                  int Layout = MemLayoutDefault>
-        bool read(int row, int col,
-                  Tensor<Scalar, Layout>& output,
-                  TensorView<Scalar, Layout>& tensor_view,
-                  Journal& journal,
-                  ReturnCode& return_code,
-                  bool verbose = true,
-                  VLevel vlevel = Journal::VLevel::V0) {
+//        template <typename Scalar,
+//                  int Layout = MemLayoutDefault>
+//        bool read(int row, int col,
+//                  Tensor<Scalar, Layout>& output,
+//                  TensorView<Scalar, Layout>& tensor_view,
+//                  Journal& journal,
+//                  ReturnCode& return_code,
+//                  bool verbose = true,
+//                  VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor(
-                         tensor_view.rows(),
-                         tensor_view.cols(),
-                         row, col,
-                         output.rows(), output.cols(),
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel);
+//            bool success = canFitTensor(
+//                         tensor_view.rows(),
+//                         tensor_view.cols(),
+//                         row, col,
+//                         output.rows(), output.cols(),
+//                         journal,
+//                         return_code,
+//                         verbose,
+//                         vlevel);
 
-            if (success) {
+//            if (success) {
 
-                output = tensor_view.block(row, col,
-                                           output.rows(),
-                                           output.cols());
-            }
+//                output = tensor_view.block(row, col,
+//                                           output.rows(),
+//                                           output.cols());
+//            }
 
-            if (!success) {
+//            if (!success) {
 
-                return_code = return_code + ReturnCode::READFAIL;
-            }
+//                return_code = return_code + ReturnCode::READFAIL;
+//            }
 
-            return success;
+//            return success;
 
-        }
+//        }
 
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
@@ -491,45 +455,45 @@ namespace SharsorIPCpp{
 
         }
 
-        template <typename Scalar,
-                  int Layout = MemLayoutDefault>
-        bool read(int row, int col,
-                  TensorView<Scalar, Layout>& output,
-                  TensorView<Scalar, Layout>& tensor_view,
-                  Journal& journal,
-                  ReturnCode& return_code,
-                  bool verbose = true,
-                  VLevel vlevel = Journal::VLevel::V0) {
+//        template <typename Scalar,
+//                  int Layout = MemLayoutDefault>
+//        bool read(int row, int col,
+//                  TensorView<Scalar, Layout>& output,
+//                  TensorView<Scalar, Layout>& tensor_view,
+//                  Journal& journal,
+//                  ReturnCode& return_code,
+//                  bool verbose = true,
+//                  VLevel vlevel = Journal::VLevel::V0) {
 
-            // copy data pointed from tensor_view
-            // into the matrix output points
-            bool success = canFitTensor(
-                         tensor_view.rows(),
-                         tensor_view.cols(),
-                         row, col,
-                         output.rows(), output.cols(),
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel);
+//            // copy data pointed from tensor_view
+//            // into the matrix output points
+//            bool success = canFitTensor(
+//                         tensor_view.rows(),
+//                         tensor_view.cols(),
+//                         row, col,
+//                         output.rows(), output.cols(),
+//                         journal,
+//                         return_code,
+//                         verbose,
+//                         vlevel);
 
-            if (success) {
+//            if (success) {
 
-                output  = tensor_view.block(row, col,
-                                           output.rows(),
-                                           output.cols()).eval();
-                //.eval(), forces Eigen to evaluate the block expression
-                // and produce an actual matrix
-            }
+//                output  = tensor_view.block(row, col,
+//                                           output.rows(),
+//                                           output.cols()).eval();
+//                //.eval(), forces Eigen to evaluate the block expression
+//                // and produce an actual matrix
+//            }
 
-            if (!success) {
+//            if (!success) {
 
-                return_code = return_code + ReturnCode::READFAIL;
-            }
+//                return_code = return_code + ReturnCode::READFAIL;
+//            }
 
-            return success;
+//            return success;
 
-        }
+//        }
 
         inline void failWithCode(ReturnCode fail_code,
                                  Journal journal) {

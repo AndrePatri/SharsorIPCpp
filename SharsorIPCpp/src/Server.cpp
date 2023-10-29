@@ -237,7 +237,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Server<Scalar, Layout>::writeTensor(const Tensor<Scalar, Layout>& data,
+    bool Server<Scalar, Layout>::writeTensor(const TRef<Scalar, Layout> data,
                                  int row,
                                  int col) {
 
@@ -277,7 +277,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Server<Scalar, Layout>::readTensor(Tensor<Scalar, Layout>& output,
+    bool Server<Scalar, Layout>::readTensor(TRef<Scalar, Layout> output,
                                     int row, int col) {
 
         if (_running) {
