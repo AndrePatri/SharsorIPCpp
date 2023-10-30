@@ -1,4 +1,4 @@
-name: "Jammy CI Build (dev)"
+name: "Jammy CI Build"
 
 on:
   schedule:
