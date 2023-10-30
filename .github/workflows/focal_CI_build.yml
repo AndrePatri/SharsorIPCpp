@@ -1,4 +1,4 @@
-name: Jammy CI Build
+name: Focal CI Build
 
 on:
   schedule:
