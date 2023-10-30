@@ -1,0 +1,57 @@
+name: Jammy CI Build
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # trigger build at 2 a.m.
+  workflow_dispatch: # or upon user request
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
+        dist: [jammy]
+        compiler: [g++]
+
+    runs-on: ${{ matrix.os }}
+
+    # Only run on main
+    if: (github.ref == 'refs/heads/devel' && github.event_name == 'schedule') || (github.ref == 'refs/heads/devel' && github.event_name == 'workflow_dispatch')
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up environment
+      run: |
+        rm -rf /opt/pyenv
+        sudo apt-get update
+        sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release
+
+    - name: Build and test
+      run: |
+        set +e
+        mkdir build
+        cd build
+        UBUNTU_MAJOR_FULL=$(lsb_release -rs)
+        WITH_TESTS=ON
+        if echo "$UBUNTU_MAJOR_FULL" | grep -q "18"; then WITH_PYTHON='OFF'; else WITH_PYTHON='ON'; fi
+        cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=OFF ..
+        make
+        ctest --output-on-failure --verbose
+        cd tests
+        ./run_consistency_check.sh
+
+    - name: Notify on failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{secrets.MAIL_USERNAME}}
+        password: ${{secrets.MAIL_PASSWORD}}
+        subject: GitHub Actions Build Failure
+        to: andreapatrizi1b6e6@gmail.com
+        body: The build failed. Please check the logs.
+
