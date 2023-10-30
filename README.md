@@ -13,10 +13,10 @@ Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSI
   <td colspan="2"> <!-- This will span the cell across two columns to accommodate the nested table -->
   <table>
     <tr>
-      <td><img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/focal_CI_build_main.yml/badge.svg?event=schedule&branch=main" alt="CI Focal"></td>
+      <td><img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/focal_CI_build_main.yml/badge.svg" alt="CI Focal"></td>
     </tr>
     <tr>
-      <td><img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_main.yml/badge.svg?event=schedule&branch=main" alt="CI Jammy"></td>
+      <td><img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_main.yml/badge.svg" alt="CI Jammy"></td>
     </tr>
   </table>
   </td>
