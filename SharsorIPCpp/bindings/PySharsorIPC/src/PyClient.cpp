@@ -91,8 +91,12 @@ void PySharsorIPC::bindClientT(py::module &m, const char* name) {
 
             }
 
-//            auto np_strides = arr.attr("strides").cast<std::pair<int, int>>();
+            auto np_strides = arr.strides();
 
+            int stride_row = strides[0] / sizeof(Scalar);
+            int stride_col = strides[1] / sizeof(Scalar);
+
+            std::cout << "strides: " << stride_row << stride_col << std::endl;
 //            std::cout << "Is view "<< !arr.attr("base").is_none() << std::endl;
 //            std::cout << "Stride first  "<< np_strides.first << "Stride second" << np_strides.second << std::endl;
 
