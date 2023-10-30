@@ -6,11 +6,20 @@ Rt-safe Shared Tensors through Inter Process Communication (IPC) on C++ for POSI
 
 <center>
 <table>
-  <tr>
+  <tc>
     <td><img src="https://img.shields.io/badge/License-GPLv2-purple.svg" alt="License"></td>
     <td><img src="https://img.shields.io/badge/Docs-WIP-yellow" alt="Docs"></td>
-    <td><img src="https://app.travis-ci.com/AndrePatri/SharsorIPCpp.svg?branch=main" alt="CI"></td>
-  </tr>
+  </tc>
+  <td colspan="2"> <!-- This will span the cell across two columns to accommodate the nested table -->
+  <table>
+    <tr>
+      <td><img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/focal_CI_build_main.yml/badge.svg?event=schedule&branch=main" alt="CI Focal"></td>
+    </tr>
+    <tr>
+      <td><img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_main.yml/badge.svg?event=schedule&branch=main" alt="CI Jammy"></td>
+    </tr>
+  </table>
+  </td>
 </table>
 </center>
 

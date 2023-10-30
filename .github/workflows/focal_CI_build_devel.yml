@@ -1,4 +1,4 @@
-name: Focal CI Build
+name: "Focal CI Build"
 
 on:
   schedule:
