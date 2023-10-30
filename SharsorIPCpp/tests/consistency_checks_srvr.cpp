@@ -13,7 +13,7 @@
 #include <test_utils.hpp>
 
 int N_ITERATIONS = 100000;
-int N_ITERATIONS_STR = 10000;
+int N_ITERATIONS_STR = 100000;
 
 int N_ROWS = 100;
 int N_COLS = 60;
