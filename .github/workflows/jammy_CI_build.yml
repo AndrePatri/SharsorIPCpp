@@ -1,4 +1,4 @@
-name: CI Build
+name: Jammy CI Build
 
 on:
   schedule:
@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
-        dist: [focal, jammy]
+        dist: [jammy]
         compiler: [g++]
 
     runs-on: ${{ matrix.os }}
