@@ -40,8 +40,8 @@ jobs:
         cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=OFF ..
         make
         ctest --output-on-failure --verbose
-       cd tests
-       ./run_consistency_check.sh
+        cd tests
+        ./run_consistency_check.sh
 
     - name: Notify on failure
       if: failure()
