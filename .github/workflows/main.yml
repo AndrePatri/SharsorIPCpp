@@ -1,12 +1,9 @@
 name: CI Build
 
-on: [push, pull_request]
-
 on:
   schedule:
     - cron: '0 2 * * *' # trigger build at 2 a.m.
   workflow_dispatch: # or upon user request
-
 
 jobs:
   build:
