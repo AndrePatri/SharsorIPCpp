@@ -2,7 +2,10 @@
 #define STRINGTENSOR_HPP
 
 #include <vector>
+#include <array>
+
 #include <string>
+#include <thread>
 
 #include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Server.hpp>
@@ -75,6 +78,9 @@ namespace SharsorIPCpp {
 
             int _length = -1; // string tensor length
 
+//            constexpr int MAX_THREADS = std::thread::hardware_concurrency() ?
+//                        std::thread::hardware_concurrency() : 4; // fallback to 4 threads
+
             bool _running = false;
 
             // assuming maximum characters in a string are max_chars
@@ -88,6 +94,8 @@ namespace SharsorIPCpp {
             Tensor<int> _buffer; // to avoid dyn. allocations
 
             ShMemType _sh_mem;
+
+//            std::array<std::thread, MAX_THREADS> threads; // preallocate threads
 
             // Helper methods to initialize _sh_mem
             ShMemType _initServer(int length,

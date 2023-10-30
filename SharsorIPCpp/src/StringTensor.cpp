@@ -157,8 +157,8 @@ namespace SharsorIPCpp {
     bool StringTensor<ShMemType>::write(const std::string& str,
                                         int col_index) {
 
-        if (!isRunning() |
-            col_index < 0 |
+        if (!isRunning() ||
+            col_index < 0 ||
             col_index >= _length) {
 
             return false;
