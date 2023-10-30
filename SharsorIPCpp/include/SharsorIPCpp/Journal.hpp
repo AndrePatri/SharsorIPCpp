@@ -124,12 +124,57 @@ namespace SharsorIPCpp{
 
             }
 
-        private:
+            static void log(const std::string& classname,
+                            const std::string& methodname,
+                            const std::string& message,
+                            LogType log_type,
+                            bool throw_when_excep = false) {
 
-            std::string _classname;
+                        // Map LogType to corresponding string
+                        const char* logTypeStr = logTypeToString(log_type);
 
-            // Helper function to convert LogType to string
-            const char* logTypeToString(LogType log_type) {
+                        // You can simplify your code by using a switch or if-else chain
+                        // without repeating the same printf structure
+                        std::string color;
+                        switch(log_type) {
+                            case LogType::EXCEP: color = Colors::kBoldRed; break;
+                            case LogType::WARN: color = Colors::kBoldYellow; break;
+                            case LogType::INFO: color = Colors::kBoldGreen; break;
+                            case LogType::STAT: color = Colors::kBoldBlue; break;
+                            default: color = ""; break;
+                        }
+
+                        if (log_type == LogType::EXCEP && throw_when_excep) {
+                            std::string exception =
+                                            color +
+                                            std::string("[") +
+                                            classname +
+                                            std::string("]") +
+                                            std::string("[") +
+                                            methodname +
+                                            std::string("]") +
+                                            std::string("[") +
+                                            logTypeStr +
+                                            std::string("]: ") +
+                                            message +
+                                            std::string(", error code ") +
+                                            std::string(std::strerror(errno)) +
+                                            Colors::kEndl;
+
+                            throw std::runtime_error(exception);
+                        } else {
+                            std::printf("%s[%s][%s][%s]: %s%s\n",
+                                        color.c_str(),
+                                        classname.c_str(),
+                                        methodname.c_str(),
+                                        logTypeStr,
+                                        message.c_str(),
+                                        Colors::kEndl.c_str());
+                        }
+                    }
+
+            static const char* logTypeToString(LogType log_type) {
+
                 switch (log_type) {
                     case LogType::WARN:
                         return "WARN";
@@ -142,7 +187,13 @@ namespace SharsorIPCpp{
                     default:
                         return "~";
                 }
+
             }
+
+        private:
+
+            std::string _classname;
+
     };
 
 }

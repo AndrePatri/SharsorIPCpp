@@ -1,87 +1,161 @@
 #include <PySharsorIPC/PyClient.hpp>
-#include <PyDTypes.hpp>
-
-PySharsorIPC::PyClient::ClientWrapper::ClientWrapper(py::object* clientObj) :
-
-    client(std::unique_ptr<py::object>(clientObj)) {
-
-}
-
-template<typename Func>
-auto PySharsorIPC::PyClient::ClientWrapper::execute(Func&& f) -> decltype(f(std::declval<py::object&>())) {
-
-    return f(*client);
-
-}
+#include <SharsorIPCpp/Journal.hpp>
 
 template <typename Scalar, int Layout>
-void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
+void PySharsorIPC::bindClientT(py::module &m, const char* name) {
 
     // bindings of Client for Python
+
+    using Journal = SharsorIPCpp::Journal;
 
     py::class_<SharsorIPCpp::Client<Scalar, Layout>,
             std::shared_ptr<SharsorIPCpp::Client<Scalar, Layout>>>(m, name)
 
         .def(py::init<std::string, std::string, bool, SharsorIPCpp::VLevel>())
 
-        .def("writeTensor", &SharsorIPCpp::Client<Scalar, Layout>::writeTensor)
+//        .def("writeTensor", [](SharsorIPCpp::Client<Scalar, Layout>& self,
+//                       PySharsorIPC::NumpyArray<Scalar, Layout>& arr,
+//                       int row, int col) {
 
-        .def("readTensor", [](SharsorIPCpp::Client<Scalar, Layout>& client,
-             NumpyArray<Scalar, Layout>& np_array,
-             int row, int col) {
+//            // Check dtype
+//            if (!arr.dtype().is(py::dtype::of<Scalar>())) {
+
+//                std::string expected_dtype = py::format_descriptor<Scalar>::format();
+//                std::string given_dtype(1, arr.dtype().kind());
+//                std::string errorMsg = "Data type mismatch. Expected dtype: " +
+//                        expected_dtype +
+//                        ", but got: " +
+//                        given_dtype + ".";
+
+//                SharsorIPCpp::Journal::log("PyClient", "writeTensor",
+//                                           errorMsg,
+//                                           SharsorIPCpp::Journal::LogType::EXCEP,
+//                                           true // throw exception
+//                                           );
+
+//                throw std::runtime_error("Invalid data type.");
+
+//            }
+
+//            // Check layout compatibility
+//            if (Layout == SharsorIPCpp::ColMajor && !(arr.flags() & py::array::f_style)) {
+
+//                Journal::log("PyClient",
+//                             "writeTensor",
+//                             "Expected a column-major (Fortran-contiguous) array.",
+//                             Journal::LogType::EXCEP,
+//                             true // throw exception
+//                             );
+
+//            }
+//            else if (Layout == SharsorIPCpp::RowMajor && !(arr.flags() & py::array::c_style)) {
+
+
+//                Journal::log("PyClient",
+//                             "writeTensor",
+//                             "Expected a row-major (C-contiguous)  array.",
+//                             Journal::LogType::EXCEP,
+//                             true // throw exception
+//                             );
+
+//            }
+
+//            // will not create a dynamic allocation
+//            Eigen::Ref<SharsorIPCpp::Tensor<Scalar, Layout>> tensor_ref = arr;
+
+//            return self.writeTensor(tensor_ref, row, col);
+
+//        })
+
+        .def("readTensor", [](SharsorIPCpp::Client<Scalar, Layout>& self,
+                       PySharsorIPC::NumpyArray<Scalar>& arr,
+                       int row, int col) {
+
+            // Check dtype
+            if (!arr.dtype().is(py::dtype::of<Scalar>())) {
+
+                std::string expected_dtype = py::format_descriptor<Scalar>::format();
+                std::string given_dtype(1, arr.dtype().kind());
+                std::string errorMsg = "Data type mismatch. Expected dtype: " +
+                        expected_dtype +
+                        ", but got: " +
+                        given_dtype + ".";
+
+                SharsorIPCpp::Journal::log("PyClient", "readTensor",
+                                           errorMsg,
+                                           SharsorIPCpp::Journal::LogType::EXCEP,
+                                           true // throw exception
+                                           );
+
+                throw std::runtime_error("Invalid data type.");
+
+            }
+
+//            auto np_strides = arr.attr("strides").cast<std::pair<int, int>>();
+
+//            std::cout << "Is view "<< !arr.attr("base").is_none() << std::endl;
+//            std::cout << "Stride first  "<< np_strides.first << "Stride second" << np_strides.second << std::endl;
+
+//            if (!(arr.flags() & py::array::f_style) && // nor f or c style (it's probably a view)
+//                !(arr.flags() & py::array::c_style)) {
+
+//                auto strides = arr.attr("strides").cast<std::pair<int, int>>();
+
+//            }
+
+            // Check layout compatibility
+            if (Layout == SharsorIPCpp::ColMajor && !(arr.flags() & py::array::f_style)) {
+
+                Journal::log("PyClient",
+                             "readTensor",
+                             "Expected a column-major (Fortran-contiguous) array",
+                             Journal::LogType::EXCEP,
+                             true // throw exception
+                             );
+
+            }
+            else if (Layout == SharsorIPCpp::RowMajor && !(arr.flags() & py::array::c_style)) {
+
+
+                Journal::log("PyClient",
+                             "readTensor",
+                             "Expected a row-major (C-contiguous)  array",
+                             Journal::LogType::EXCEP,
+                             true // throw exception
+                             );
+
+            }
 
             // Ensure the numpy array is mutable and get a pointer to its data
-            py::buffer_info buf_info = np_array.request();
+            py::buffer_info buf_info = arr.request();
 
             bool success = false;
 
             Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
 
-            bool is_columnmajor = np_array.flags() & py::array::f_style;
+            SharsorIPCpp::DStrides strides;
 
-            bool is_colmaj_coherent = (is_columnmajor && (Layout == SharsorIPCpp::ColMajor));
-            bool is_rowmaj_coherent = (!is_columnmajor && (Layout == SharsorIPCpp::RowMajor));
+//            SharsorIPCpp::DStrides strides(np_strides.first,
+//                                           np_strides.second);
 
-            if (Layout == SharsorIPCpp::ColMajor) // col. major client layout
-            { // array and client are consistent
+            if (Layout == SharsorIPCpp::ColMajor){
 
-                // Define the stride based on the layout of the matrix
-                SharsorIPCpp::DStrides strides(np_array.shape(0),
-                                1);
-
-                // creates a (dynamic) memory map that uses the same memory
-                // and layout as the numpy array
-                SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
-                              np_array.shape(0), // dimensions are taken
-                              np_array.shape(1),
-                              strides); // directly for the input tensor
-
-                // Call the original readTensor method with the TensorView
-                success = client.readTensor(output_t,
-                                            row, col); // this will
-                // try to copy the data of the shared tensor into the
-                // tensor mapped by TensorView
-
+                strides = SharsorIPCpp::DStrides(arr.shape(0),
+                                                 1);
             }
-            if (Layout == SharsorIPCpp::RowMajor)
-            { // array and client are consistent
+            if (Layout == SharsorIPCpp::RowMajor){
 
-                SharsorIPCpp::DStrides strides(np_array.shape(1),
-                                               1);
-
-                SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
-                              np_array.shape(0),
-                              np_array.shape(1),
-                              strides);
-
-                success = client.readTensor(output_t,
-                                            row, col);
-
+                strides = SharsorIPCpp::DStrides(arr.shape(1),
+                                                 1);
             }
-//            if (!is_colmaj_coherent && !is_rowmaj_coherent) { // not coherent
 
+            SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
+                                          arr.shape(0),
+                                          arr.shape(1),
+                                          strides);
 
-//            }
+            success = self.readTensor(output_t,
+                                        row, col);
 
             return success;
 
@@ -102,7 +176,7 @@ void PySharsorIPC::PyClient::bindClientT(py::module &m, const char* name) {
         .def("getNCols", &SharsorIPCpp::Client<Scalar, Layout>::getNCols);
 }
 
-py::object PySharsorIPC::PyClient::ClientFactory(std::string basename,
+py::object PySharsorIPC::ClientFactory(std::string basename,
                         std::string name_space,
                         bool verbose,
                         VLevel vlevel,
@@ -117,28 +191,28 @@ py::object PySharsorIPC::PyClient::ClientFactory(std::string basename,
 
                 case DType::Bool:
 
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                           py::cast(std::make_shared<SharsorIPCpp::Client<bool, SharsorIPCpp::ColMajor>>(basename,
                                                                                 name_space,
                                                                                 verbose,
                                                                                 vlevel)))));
                 case DType::Int:
 
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<int, SharsorIPCpp::ColMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Float:
 
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<float, SharsorIPCpp::ColMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Double:
 
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<double, SharsorIPCpp::ColMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
@@ -154,25 +228,25 @@ py::object PySharsorIPC::PyClient::ClientFactory(std::string basename,
 
                 case DType::Bool:
 
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<bool, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Int:
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<int, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Float:
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<float, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Double:
-                    return py::cast(ClientWrapper(new py::object(
+                    return py::cast(PySharsorIPC::Wrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<double, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
@@ -189,7 +263,7 @@ py::object PySharsorIPC::PyClient::ClientFactory(std::string basename,
     }
 }
 
-void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
+void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     // By handling everything in Python-space,
     // we eliminate the need to handle the type
@@ -198,9 +272,9 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     // (here we are calling python code from C++)
 
-    py::class_<ClientWrapper> cls(m, "Client");
+    py::class_<PySharsorIPC::Wrapper> cls(m, "Client");
 
-    cls.def("attach", [](ClientWrapper& wrapper) {
+    cls.def("attach", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -210,7 +284,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("detach", [](ClientWrapper& wrapper) {
+    cls.def("detach", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -220,7 +294,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("close", [](ClientWrapper& wrapper) {
+    cls.def("close", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -230,7 +304,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("isAttached", [](ClientWrapper& wrapper) {
+    cls.def("isAttached", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -240,7 +314,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("getNRows", [](ClientWrapper& wrapper) {
+    cls.def("getNRows", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -250,7 +324,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("getNCols", [](ClientWrapper& wrapper) {
+    cls.def("getNCols", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -260,7 +334,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("getScalarType", [](ClientWrapper& wrapper) {
+    cls.def("getScalarType", [](PySharsorIPC::Wrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -270,7 +344,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("writeTensor", [](ClientWrapper& wrapper,
+    cls.def("writeTensor", [](PySharsorIPC::Wrapper& wrapper,
                               const py::array& np_array,
                               int row, int col) {
 
@@ -282,7 +356,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
 
     }, py::arg("data"), py::arg("row") = 0, py::arg("col") = 0);
 
-    cls.def("readTensor", [](ClientWrapper& wrapper,
+    cls.def("readTensor", [](PySharsorIPC::Wrapper& wrapper,
                              py::array& np_array,
                              int row, int col) {
 
@@ -347,7 +421,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(py::module& m) {
     }, py::arg("tensor"), py::arg("row") = 0, py::arg("col") = 0);
 }
 
-void PySharsorIPC::PyClient::bindClients(py::module& m) {
+void PySharsorIPC::bindClients(py::module& m) {
 
     bindClientT<bool, SharsorIPCpp::ColMajor>(m, "__PyClientBoolColMaj");
     bindClientT<bool, SharsorIPCpp::RowMajor>(m, "__PyClientBoolRowMaj");
@@ -363,16 +437,16 @@ void PySharsorIPC::PyClient::bindClients(py::module& m) {
 
 }
 
-void PySharsorIPC::PyClient::bindFactory(py::module& m,
+void PySharsorIPC::bindClientFactory(py::module& m,
                            const char* name) {
 
-    m.def(name, &PyClient::ClientFactory,
+    m.def(name, &ClientFactory,
           py::arg("basename") = "MySharedMemory",
           py::arg("namespace") = "",
           py::arg("verbose") = false,
           py::arg("vlevel") = VLevel::V0,
           py::arg("dtype") = DType::Float,
-          py::arg("layout") = SharsorIPCpp::ColMajor,
+          py::arg("layout") = SharsorIPCpp::RowMajor, // default of numpy and pytorch
           "Create a new client with the specified arguments and dtype.");
 
 }

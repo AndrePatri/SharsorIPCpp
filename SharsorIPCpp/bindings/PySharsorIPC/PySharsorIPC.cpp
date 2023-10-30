@@ -20,6 +20,9 @@ PYBIND11_MODULE(PySharsorIPC, m) {
         .value("Float", DType::Float)
         .value("Double", DType::Double);
 
+    m.attr("RowMajor") = RowMajor;
+    m.attr("ColMajor") = ColMajor;
+
     py::enum_<VLevel>(m, "VLevel")
         .value("V0", Journal::VLevel::V0)
         .value("V1", Journal::VLevel::V1)
@@ -39,20 +42,19 @@ PYBIND11_MODULE(PySharsorIPC, m) {
         }
     });
 
-//    bind_Server(m);
-
     // Client bindings
-    PyClient::bindClients(m); // binds all client types
+    bindClients(m); // binds all client types
 
-    PyClient::bind_ClientWrapper(m); // binds the client wrapper
+    bind_ClientWrapper(m); // binds the client wrapper
 
-    PyClient::bindFactory(m); // binds the factory (runtime Client creation)
+    bindClientFactory(m); // binds the factory for Clients
+
+    // Server bindings
 
     // String tensor bindings
     declare_StringTensorServer(m);
 
     declare_StringTensorClient(m);
-
 
 }
 

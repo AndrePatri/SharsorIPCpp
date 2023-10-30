@@ -61,7 +61,7 @@ ToDo:
 - [ ] add cpp tests just for PyClient and PyServer
 - [ ] bind PyClient and PyServer
 - [ ] add python unit tests for the bindings (performance and consistency checks)
-- [ ] make read and write methods of string tensor more efficient on vectors (multithreaded encoding?)
+- [ ] make read and write methods of string tensor more efficient (multithreaded encoding?)
 - [x] make all gtests types (dtype and layout)
 - [x] add roundtrip consistency checks to CI
 - [] start to add documentation

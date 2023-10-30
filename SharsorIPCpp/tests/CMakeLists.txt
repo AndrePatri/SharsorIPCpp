@@ -11,8 +11,8 @@ target_link_libraries(consistency_checks_clnt PRIVATE ${PROJECT_NAME} ${GTEST_BO
 add_executable(consistency_checks_srvr consistency_checks_srvr.cpp)
 target_link_libraries(consistency_checks_srvr PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
-#add_executable(server_conn_test server_conn_test.cpp)
-#target_link_libraries(server_conn_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+add_executable(server_conn_test server_conn_test.cpp)
+target_link_libraries(server_conn_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
 #add_executable(client_conn_test client_conn_test.cpp)
 #target_link_libraries(client_conn_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
