@@ -93,8 +93,8 @@ void PySharsorIPC::bindClientT(py::module &m, const char* name) {
 
             auto np_strides = arr.strides();
 
-            int stride_row = strides[0] / sizeof(Scalar);
-            int stride_col = strides[1] / sizeof(Scalar);
+            int stride_row = np_strides[0] / sizeof(Scalar);
+            int stride_col = np_strides[1] / sizeof(Scalar);
 
             std::cout << "strides: " << stride_row << stride_col << std::endl;
 //            std::cout << "Is view "<< !arr.attr("base").is_none() << std::endl;
