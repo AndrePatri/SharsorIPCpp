@@ -7,11 +7,11 @@
 
 namespace PySharsorIPC {
 
-    class Wrapper {
+    class ServerWrapper {
 
         public:
 
-            Wrapper(pybind11::object* Obj);
+            ServerWrapper(pybind11::object* Obj);
 
             template<typename Func>
             auto execute(Func&& f) -> decltype(f(std::declval<pybind11::object&>()));
@@ -22,19 +22,23 @@ namespace PySharsorIPC {
 
     };
 
-    Wrapper::Wrapper(pybind11::object* Obj) :
+    class ClientWrapper {
 
-        wrapped(std::unique_ptr<pybind11::object>(Obj)) {
+        public:
 
-    }
+            ClientWrapper(pybind11::object* Obj);
 
-    template<typename Func>
-    auto Wrapper::execute(Func&& f) -> decltype(f(std::declval<pybind11::object&>())) {
+            template<typename Func>
+            auto execute(Func&& f) -> decltype(f(std::declval<pybind11::object&>()));
 
-        return f(*wrapped);
+        private:
 
-    }
+            std::unique_ptr<pybind11::object> wrapped;
+
+    };
 
 }
+
+#include "WrapUtils.inl"
 
 #endif // WRAPUTILS_HPP

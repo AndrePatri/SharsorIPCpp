@@ -51,6 +51,12 @@ PYBIND11_MODULE(PySharsorIPC, m) {
 
     // Server bindings
 
+    bindServers(m); // binds all client types
+
+    bind_ServerWrapper(m); // binds the client wrapper
+
+    bindServerFactory(m); // binds the factory for Clients
+
     // String tensor bindings
     declare_StringTensorServer(m);
 

@@ -11,6 +11,39 @@ void PySharsorIPC::bindClientT(py::module &m, const char* name) {
 
         .def(py::init<std::string, std::string, bool, SharsorIPCpp::VLevel>())
 
+        .def("writeTensor", [](SharsorIPCpp::Client<Scalar, Layout>& self,
+                       PySharsorIPC::NumpyArray<Scalar>& arr,
+                       int row, int col) {
+
+            // runtime argument type checks are run the Wrapper
+
+            // we get the strides directly from the array
+            // (since we use the strides, we don't care if it's rowmajor
+            // or colmajor, the readTensor will handle it smoothly)
+
+            auto np_strides = arr.strides();
+
+            SharsorIPCpp::DStrides strides(np_strides[0] / sizeof(Scalar),
+                                           np_strides[1] / sizeof(Scalar));
+
+            // Ensure the numpy array is mutable and get a pointer to its data
+            py::buffer_info buf_info = arr.request();
+
+            bool success = false;
+
+            Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
+            SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
+                                          arr.shape(0),
+                                          arr.shape(1),
+                                          strides);
+
+            success = self.writeTensor(output_t,
+                                      row, col);
+
+            return success;
+
+        })
+
         .def("readTensor", [](SharsorIPCpp::Client<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
                        int row, int col) {
@@ -74,28 +107,28 @@ py::object PySharsorIPC::ClientFactory(std::string basename,
 
                 case DType::Bool:
 
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                           py::cast(std::make_shared<SharsorIPCpp::Client<bool, SharsorIPCpp::ColMajor>>(basename,
                                                                                 name_space,
                                                                                 verbose,
                                                                                 vlevel)))));
                 case DType::Int:
 
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<int, SharsorIPCpp::ColMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Float:
 
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<float, SharsorIPCpp::ColMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Double:
 
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<double, SharsorIPCpp::ColMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
@@ -111,25 +144,25 @@ py::object PySharsorIPC::ClientFactory(std::string basename,
 
                 case DType::Bool:
 
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<bool, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Int:
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<int, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Float:
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<float, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
                                                                                             vlevel)))));
                 case DType::Double:
-                    return py::cast(PySharsorIPC::Wrapper(new py::object(
+                    return py::cast(PySharsorIPC::ClientWrapper(new py::object(
                                                       py::cast(std::make_shared<SharsorIPCpp::Client<double, SharsorIPCpp::RowMajor>>(basename,
                                                                                             name_space,
                                                                                             verbose,
@@ -159,9 +192,9 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     // (here we are calling python code from C++)
 
-    py::class_<PySharsorIPC::Wrapper> cls(m, "Client");
+    py::class_<PySharsorIPC::ClientWrapper> cls(m, "Client");
 
-    cls.def("attach", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("attach", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -171,7 +204,7 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("detach", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("detach", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -181,7 +214,7 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("close", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("close", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -191,7 +224,7 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("isAttached", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("isAttached", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -201,7 +234,7 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("getNRows", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("getNRows", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -211,7 +244,7 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("getNCols", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("getNCols", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -221,7 +254,7 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("getScalarType", [](PySharsorIPC::Wrapper& wrapper) {
+    cls.def("getScalarType", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](py::object& client) {
 
@@ -231,19 +264,107 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
     });
 
-    cls.def("writeTensor", [](PySharsorIPC::Wrapper& wrapper,
-                              const py::array& np_array,
-                              int row, int col) {
+    cls.def("writeTensor", [](PySharsorIPC::ClientWrapper& wrapper,
+                             py::array& np_array,
+                             int row, int col) {
 
-        return wrapper.execute([&](py::object& client) {
+        return wrapper.execute([&](py::object& server) -> bool {
 
-            return client.attr("writeTensor")(np_array, row, col);
+            // we need to check data compatibility at runtime
+            // (this was not necessary in C++, since it's something
+            // checked at compile time)
+            // this introduces a slight overhead, but avoids unpredicted
+            // behavior when the user passes non-compatible types
+
+            // and of the input np array
+            py::dtype np_dtype = np_array.dtype();
+
+            switch (server.attr("getScalarType")().cast<DType>()) {
+
+            case DType::Bool:
+
+                if (!np_dtype.is(py::dtype::of<bool>())) {
+
+                    std::string error = std::string("Mismatched dtype: expected bool numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
+                    SharsorIPCpp::Journal::log("Server",
+                                 "writeTensor",
+                                 error,
+                                 SharsorIPCpp::LogType::EXCEP,
+                                 true);
+
+                }
+
+                break;
+
+            case DType::Int:
+
+                if (!np_dtype.is(py::dtype::of<int>())) {
+
+                    std::string error = std::string("Mismatched dtype: expected int numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
+                    SharsorIPCpp::Journal::log("Server",
+                                 "writeTensor",
+                                 error,
+                                 SharsorIPCpp::LogType::EXCEP,
+                                 true);
+                }
+
+                break;
+
+            case DType::Float:
+
+                if (!np_dtype.is(py::dtype::of<float>())) {
+
+                    std::string error = std::string("Mismatched dtype: expected float numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
+                    SharsorIPCpp::Journal::log("Server",
+                                 "writeTensor",
+                                 error,
+                                 SharsorIPCpp::LogType::EXCEP,
+                                 true);
+                }
+
+                break;
+
+            case DType::Double:
+
+                if (!np_dtype.is(py::dtype::of<double>())) {
+
+                    std::string error = std::string("Mismatched dtype: expected double numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
+                    SharsorIPCpp::Journal::log("Server",
+                                 "writeTensor",
+                                 error,
+                                 SharsorIPCpp::LogType::EXCEP,
+                                 true);
+                }
+
+                break;
+
+            default:
+
+                SharsorIPCpp::Journal::log("Server",
+                             "writeTensor",
+                             "Mismatched dtype: provided dtype not supported.",
+                             SharsorIPCpp::LogType::EXCEP,
+                             true);
+
+            }
+
+            // now we can safely read the tensor
+            return server.attr("writeTensor")(np_array,
+                                             row, col).cast<bool>();
 
         });
 
     }, py::arg("data"), py::arg("row") = 0, py::arg("col") = 0);
 
-    cls.def("readTensor", [](PySharsorIPC::Wrapper& wrapper,
+    cls.def("readTensor", [](PySharsorIPC::ClientWrapper& wrapper,
                              py::array& np_array,
                              int row, int col) {
 
@@ -264,9 +385,12 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
                 if (!np_dtype.is(py::dtype::of<bool>())) {
 
+                    std::string error = std::string("Mismatched dtype: expected bool numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
                     SharsorIPCpp::Journal::log("Client",
                                  "readTensor",
-                                 "Mismatched dtype: expected boolean numpy array.",
+                                 error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
 
@@ -278,9 +402,12 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
                 if (!np_dtype.is(py::dtype::of<int>())) {
 
+                    std::string error = std::string("Mismatched dtype: expected int numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
                     SharsorIPCpp::Journal::log("Client",
                                  "readTensor",
-                                 "Mismatched dtype: expected integer numpy array.",
+                                 error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
                 }
@@ -291,9 +418,12 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
                 if (!np_dtype.is(py::dtype::of<float>())) {
 
+                    std::string error = std::string("Mismatched dtype: expected float numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
                     SharsorIPCpp::Journal::log("Client",
                                  "readTensor",
-                                 "Mismatched dtype: expected float numpy array.",
+                                 error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
                 }
@@ -304,9 +434,12 @@ void PySharsorIPC::bind_ClientWrapper(py::module& m) {
 
                 if (!np_dtype.is(py::dtype::of<double>())) {
 
+                    std::string error = std::string("Mismatched dtype: expected double numpy array but got ") +
+                                    py::str(np_dtype).cast<std::string>();
+
                     SharsorIPCpp::Journal::log("Client",
                                  "readTensor",
-                                 "Mismatched dtype: expected double numpy array.",
+                                 error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
                 }

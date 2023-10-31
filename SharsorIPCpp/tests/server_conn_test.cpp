@@ -109,13 +109,13 @@ class ServerWritesBool : public ::testing::Test {
 protected:
 
     ServerWritesBool() :
-                   server_ptr(new Server<bool, SharsorIPCpp::MemLayoutDefault>(
+                   server_ptr(new Server<float, SharsorIPCpp::MemLayoutDefault>(
                                      N_ROWS, N_COLS,
                                      "SharsorBool", name_space,
                                      true,
                                      VLevel::V3,
                                      true)),
-                   tensor(Tensor<bool, SharsorIPCpp::MemLayoutDefault>::Zero(N_ROWS,
+                   tensor(Tensor<float, SharsorIPCpp::MemLayoutDefault>::Zero(N_ROWS,
                                             N_COLS)){
 
         server_ptr->run();
@@ -138,8 +138,8 @@ protected:
 
     void updateData() {
 
-      Tensor<bool, SharsorIPCpp::MemLayoutDefault> myData(N_ROWS, N_COLS);
-      Tensor<bool, SharsorIPCpp::MemLayoutDefault> myDataFull(N_ROWS, N_COLS);
+      Tensor<float, SharsorIPCpp::MemLayoutDefault> myData(N_ROWS, N_COLS);
+      Tensor<float, SharsorIPCpp::MemLayoutDefault> myDataFull(N_ROWS, N_COLS);
       myData.setRandom();
 
       std::string message = std::string("Randomizing data block of size (") +
@@ -168,9 +168,9 @@ protected:
 
     }
 
-    Server<bool, SharsorIPCpp::MemLayoutDefault>::UniquePtr server_ptr;
+    Server<float, SharsorIPCpp::MemLayoutDefault>::UniquePtr server_ptr;
 
-    Tensor<bool, SharsorIPCpp::MemLayoutDefault> tensor;
+    Tensor<float, SharsorIPCpp::MemLayoutDefault> tensor;
 
 };
 
