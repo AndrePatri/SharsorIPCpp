@@ -20,8 +20,8 @@
 int N_ITER = 10;
 int N_ITER_STR = 10;
 
-int N_ROWS = 4;
-int N_COLS = 7;
+int N_ROWS = 100;
+int N_COLS = 60;
 int BLOCK_SIZE = 3;
 
 int TENSOR_INCREMENT = 1;
@@ -155,8 +155,8 @@ protected:
       std::cout << myData << std::endl;
 
       // writing only a block
-      server_ptr->writeTensor(myData.block(1, 1, N_ROWS - 2, N_COLS - 2),
-                              1, 1);
+      server_ptr->writeTensor(myData,
+                              0, 0);
 
       server_ptr->readTensor(myDataFull);
 
