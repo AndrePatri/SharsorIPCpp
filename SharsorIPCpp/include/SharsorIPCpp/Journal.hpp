@@ -77,8 +77,6 @@ namespace SharsorIPCpp{
                                     logTypeStr +
                                     std::string("]: ") +
                                     message +
-                                    std::string(", error code ") +
-                                    std::string(std::strerror(errno)) +
                                     Colors::kEndl;
 
                     throw std::runtime_error(exception);
@@ -157,8 +155,6 @@ namespace SharsorIPCpp{
                                             logTypeStr +
                                             std::string("]: ") +
                                             message +
-                                            std::string(", error code ") +
-                                            std::string(std::strerror(errno)) +
                                             Colors::kEndl;
 
                             throw std::runtime_error(exception);
