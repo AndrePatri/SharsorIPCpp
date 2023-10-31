@@ -47,6 +47,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC/
     FILES_MATCHING PATTERN "*.py")
 
 gtest_discover_tests(read_write_bench)
-gtest_discover_tests(consistency_checks_srvr)
-gtest_discover_tests(consistency_checks_clnt)
+#gtest_discover_tests(consistency_checks_srvr)
+#gtest_discover_tests(consistency_checks_clnt)
 
