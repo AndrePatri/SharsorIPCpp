@@ -13,122 +13,19 @@ void PySharsorIPC::bindClientT(py::module &m, const char* name) {
 
         .def(py::init<std::string, std::string, bool, SharsorIPCpp::VLevel>())
 
-//        .def("writeTensor", [](SharsorIPCpp::Client<Scalar, Layout>& self,
-//                       PySharsorIPC::NumpyArray<Scalar, Layout>& arr,
-//                       int row, int col) {
-
-//            // Check dtype
-//            if (!arr.dtype().is(py::dtype::of<Scalar>())) {
-
-//                std::string expected_dtype = py::format_descriptor<Scalar>::format();
-//                std::string given_dtype(1, arr.dtype().kind());
-//                std::string errorMsg = "Data type mismatch. Expected dtype: " +
-//                        expected_dtype +
-//                        ", but got: " +
-//                        given_dtype + ".";
-
-//                SharsorIPCpp::Journal::log("PyClient", "writeTensor",
-//                                           errorMsg,
-//                                           SharsorIPCpp::Journal::LogType::EXCEP,
-//                                           true // throw exception
-//                                           );
-
-//                throw std::runtime_error("Invalid data type.");
-
-//            }
-
-//            // Check layout compatibility
-//            if (Layout == SharsorIPCpp::ColMajor && !(arr.flags() & py::array::f_style)) {
-
-//                Journal::log("PyClient",
-//                             "writeTensor",
-//                             "Expected a column-major (Fortran-contiguous) array.",
-//                             Journal::LogType::EXCEP,
-//                             true // throw exception
-//                             );
-
-//            }
-//            else if (Layout == SharsorIPCpp::RowMajor && !(arr.flags() & py::array::c_style)) {
-
-
-//                Journal::log("PyClient",
-//                             "writeTensor",
-//                             "Expected a row-major (C-contiguous)  array.",
-//                             Journal::LogType::EXCEP,
-//                             true // throw exception
-//                             );
-
-//            }
-
-//            // will not create a dynamic allocation
-//            Eigen::Ref<SharsorIPCpp::Tensor<Scalar, Layout>> tensor_ref = arr;
-
-//            return self.writeTensor(tensor_ref, row, col);
-
-//        })
-
         .def("readTensor", [](SharsorIPCpp::Client<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
                        int row, int col) {
 
-            // Check dtype
-            if (!arr.dtype().is(py::dtype::of<Scalar>())) {
+            // runtime argument type checks are run by pybind
 
-                std::string expected_dtype = py::format_descriptor<Scalar>::format();
-                std::string given_dtype(1, arr.dtype().kind());
-                std::string errorMsg = "Data type mismatch. Expected dtype: " +
-                        expected_dtype +
-                        ", but got: " +
-                        given_dtype + ".";
-
-                SharsorIPCpp::Journal::log("PyClient", "readTensor",
-                                           errorMsg,
-                                           SharsorIPCpp::Journal::LogType::EXCEP,
-                                           true // throw exception
-                                           );
-
-                throw std::runtime_error("Invalid data type.");
-
-            }
-
+            // we get the strides directly from the array
+            // (since we use the strides, we don't care if it's rowmajor
+            // or colmajor)
             auto np_strides = arr.strides();
 
-            int stride_row = np_strides[0] / sizeof(Scalar);
-            int stride_col = np_strides[1] / sizeof(Scalar);
-
-            std::cout << "strides: " << stride_row << stride_col << std::endl;
-//            std::cout << "Is view "<< !arr.attr("base").is_none() << std::endl;
-//            std::cout << "Stride first  "<< np_strides.first << "Stride second" << np_strides.second << std::endl;
-
-//            if (!(arr.flags() & py::array::f_style) && // nor f or c style (it's probably a view)
-//                !(arr.flags() & py::array::c_style)) {
-
-//                auto strides = arr.attr("strides").cast<std::pair<int, int>>();
-
-//            }
-
-            // Check layout compatibility
-            if (Layout == SharsorIPCpp::ColMajor && !(arr.flags() & py::array::f_style)) {
-
-                Journal::log("PyClient",
-                             "readTensor",
-                             "Expected a column-major (Fortran-contiguous) array",
-                             Journal::LogType::EXCEP,
-                             true // throw exception
-                             );
-
-            }
-            else if (Layout == SharsorIPCpp::RowMajor && !(arr.flags() & py::array::c_style)) {
-
-
-                Journal::log("PyClient",
-                             "readTensor",
-                             "Expected a row-major (C-contiguous)  array",
-                             Journal::LogType::EXCEP,
-                             true // throw exception
-                             );
-
-            }
+            SharsorIPCpp::DStrides strides(np_strides[0] / sizeof(Scalar),
+                                           np_strides[1] / sizeof(Scalar));
 
             // Ensure the numpy array is mutable and get a pointer to its data
             py::buffer_info buf_info = arr.request();
@@ -136,30 +33,20 @@ void PySharsorIPC::bindClientT(py::module &m, const char* name) {
             bool success = false;
 
             Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
-
-            SharsorIPCpp::DStrides strides;
-
-//            SharsorIPCpp::DStrides strides(np_strides.first,
-//                                           np_strides.second);
-
-            if (Layout == SharsorIPCpp::ColMajor){
-
-                strides = SharsorIPCpp::DStrides(arr.shape(0),
-                                                 1);
-            }
-            if (Layout == SharsorIPCpp::RowMajor){
-
-                strides = SharsorIPCpp::DStrides(arr.shape(1),
-                                                 1);
-            }
-
             SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
                                           arr.shape(0),
                                           arr.shape(1),
                                           strides);
 
             success = self.readTensor(output_t,
-                                        row, col);
+                                      row, col);
+
+            std::cout << "succss: " << success << std::endl;
+            std::cout << "output_t: " << output_t << std::endl;
+            std::cout << "rows: " << arr.shape(0) << std::endl;
+            std::cout << "cols: " << arr.shape(1) << std::endl;
+            std::cout << "mem rows: " << self.getNRows() << std::endl;
+            std::cout << "mem cols: " << self.getNCols() << std::endl;
 
             return success;
 
