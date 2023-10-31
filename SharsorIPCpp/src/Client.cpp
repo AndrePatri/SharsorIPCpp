@@ -190,8 +190,7 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if (_acquireData()) { // non-blocking
-
+            if (_acquireData() && // non-blocking
                 MemUtils::write<Scalar, Layout>(
                             data,
                             _tensor_view,
@@ -199,7 +198,8 @@ namespace SharsorIPCpp {
                             _journal,
                             _return_code,
                             false,
-                            _vlevel);
+                            _vlevel)
+                ) {
 
                 _releaseData();
 
@@ -230,16 +230,16 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if (_acquireData()) { // non-blocking
-
-                MemUtils::read<Scalar, Layout>
-                               (row, col,
-                               output,
-                               _tensor_view,
-                               _journal,
-                               _return_code,
-                               false,
-                               _vlevel);
+            if (_acquireData() && // non-blocking
+                MemUtils::read<Scalar, Layout>(
+                           row, col,
+                           output,
+                           _tensor_view,
+                           _journal,
+                           _return_code,
+                           false,
+                           _vlevel)
+                 ) {
 
                 _releaseData();
 
@@ -270,16 +270,16 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if (_acquireData()) { // non-blocking
-
+            if (_acquireData() && // non-blocking
                 MemUtils::read<Scalar, Layout>(
-                               row, col,
-                               output,
-                               _tensor_view,
-                               _journal,
-                               _return_code,
-                               false,
-                               _vlevel);
+                           row, col,
+                           output,
+                           _tensor_view,
+                           _journal,
+                           _return_code,
+                           false,
+                           _vlevel)
+                ) {
 
                 _releaseData();
 

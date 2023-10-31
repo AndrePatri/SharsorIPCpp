@@ -243,8 +243,7 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData()) { // non-blocking
-
+            if (_acquireData() && // non-blocking
                 MemUtils::write<Scalar, Layout>(
                             data,
                             _tensor_view,
@@ -252,7 +251,8 @@ namespace SharsorIPCpp {
                             _journal,
                             _return_code,
                             false,
-                            _vlevel);
+                            _vlevel)
+                ) {
 
                 _releaseData();
 
@@ -282,8 +282,7 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData()) { // non-blocking
-
+            if (_acquireData() &&
                 MemUtils::read<Scalar, Layout>(
                                row, col,
                                output,
@@ -291,7 +290,8 @@ namespace SharsorIPCpp {
                                _journal,
                                _return_code,
                                false,
-                               _vlevel);
+                               _vlevel)
+                ) { // non-blocking
 
                 _releaseData();
 
@@ -308,7 +308,7 @@ namespace SharsorIPCpp {
 
             _journal.log(__FUNCTION__,
                  error,
-                 LogType::EXCEP); // nonblocking
+                 LogType::EXCEP);
 
         }
 
@@ -322,8 +322,7 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData()) { // non-blocking
-
+            if (_acquireData() && // non-blocking
                 MemUtils::read<Scalar, Layout>(
                                row, col,
                                output,
@@ -331,7 +330,7 @@ namespace SharsorIPCpp {
                                _journal,
                                _return_code,
                                false,
-                               _vlevel);
+                               _vlevel)) {
 
                 _releaseData();
 
