@@ -29,7 +29,9 @@ class TestAddFunction(unittest.TestCase):
         output_torch = torch.zeros((client.getNRows(), client.getNCols()),
                                     dtype=torch.bool)
 
-        output_numpy = output_torch.numpy()
+        output_numpy = np.zeros((client.getNRows(), client.getNCols()),
+                        dtype=np.bool,
+                        order="C")
 
         output_view = output_numpy[1:-1, 1:-1]  # (to ensure consistency)
 
