@@ -42,6 +42,10 @@ namespace SharsorIPCpp{
                              int row = 0,
                              int col = 0);
 
+            bool writeTensor(const TensorView<Scalar, Layout>& data,
+                             int row,
+                             int col);
+
             bool readTensor(TRef<Scalar, Layout> output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output

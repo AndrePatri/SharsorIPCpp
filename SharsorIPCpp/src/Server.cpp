@@ -277,6 +277,46 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
+    bool Server<Scalar, Layout>::writeTensor(const TensorView<Scalar, Layout>& data,
+                                     int row,
+                                     int col) {
+
+        if (_running) {
+
+            if (_acquireData() && // non-blocking
+                MemUtils::write<Scalar, Layout>(
+                            data,
+                            _tensor_view,
+                            row, col,
+                            _journal,
+                            _return_code,
+                            false,
+                            _vlevel)
+                ) {
+
+                _releaseData();
+
+                return true;
+            }
+
+        }
+
+        if (!_running && _verbose) {
+
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
+
+         return false;
+
+    }
+
+    template <typename Scalar, int Layout>
     bool Server<Scalar, Layout>::readTensor(TRef<Scalar, Layout> output,
                                     int row, int col) {
 
