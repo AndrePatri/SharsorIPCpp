@@ -3,11 +3,7 @@ name: "Focal CI Build"
 on:
   schedule:
     - cron: '0 2 * * *' # trigger build at 2 a.m.
-    - branches:
-      - devel
   workflow_dispatch: # or upon user request
-    - branches:
-      - devel
 
 jobs:
   build:
@@ -26,6 +22,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      with:
+        ref: devel
 
     - name: Set up environment
       run: |
