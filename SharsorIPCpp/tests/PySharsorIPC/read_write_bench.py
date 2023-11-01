@@ -1,85 +1,108 @@
 import unittest
 import numpy as np
-import torch
 
 import time
 
-from SharsorIPCpp.PySharsorIPC import ClientFactory, PyClientFloatRowMaj
-from SharsorIPCpp.PySharsorIPC import VLevel
-from SharsorIPCpp.PySharsorIPC import RowMajor, ColMajor
-from SharsorIPCpp.PySharsorIPC import dtype, toNumpyDType
+#from SharsorIPCpp.PySharsorIPC import ServerFactory
+from SharsorIPCpp.PySharsorIPC import *
+#from SharsorIPCpp.PySharsorIPC import VLevel
+#from SharsorIPCpp.PySharsorIPC import RowMajor, ColMajor
+#from SharsorIPCpp.PySharsorIPC import dtype, toNumpyDType
 
-namespace = "ConnectionTests"
+namespace = "PerfTests"
+
+N_ITERATIONS = 1000000;
+N_ITERATIONS_STR = 100000;
+
+N_ROWS = 100
+N_COLS = 60
+
+STR_TENSOR_LENGTH = 100;
 
 class TestAddFunction(unittest.TestCase):
 
-    def test_client_wrapper(self):
+    def test_read_write_bool_row_maj(self):
 
-        # Create a client
-        client = ClientFactory(basename="SharsorBool",
+        # Create a server
+        server = ServerFactory(N_ROWS,
+                               N_COLS,
+                               basename="PySharsorBoolRowMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Bool,
+                               layout=RowMajor)
+
+    def read_write_bool_col_maj(self):
+
+        # Create a server
+        server = ServerFactory(basename="PySharsorBoolColMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Bool,
+                               layout=ColMajor)
+
+    def read_write_int_row_maj(self):
+
+        # Create a server
+        server = ServerFactory(basename="PySharsorIntlRowMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Int,
+                               layout=RowMajor)
+
+    def read_write_int_col_maj(self):
+
+        # Create a server
+        server = ServerFactory(basename="PySharsorIntColMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Int,
+                               layout=ColMajor)
+
+    def read_write_float_row_maj(self):
+
+        # Create a server
+        server = ServerFactory(basename="PySharsorFloatRowMaj",
                                namespace=namespace,
                                verbose=True,
                                vlevel=VLevel.V3,
                                dtype=dtype.Float,
                                layout=RowMajor)
 
-        client.attach()  # attach to server or wait for it
+    def read_write_float_col_maj(self):
 
-        # dtype must be consistent
-        output_torch = torch.zeros((client.getNRows(), client.getNCols()),
-                                    dtype=torch.float)
+        # Create a server
+        server = ServerFactory(basename="PySharsorFloatColMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Float,
+                               layout=ColMajor)
 
-        output_numpy = np.zeros((client.getNRows(), client.getNCols()),
-                        dtype=np.float32,
-                        order="C")
+    def read_write_double_row_maj(self):
 
-        output_view = output_numpy[1:-1, 1:-1]  # (to ensure consistency)
+        # Create a server
+        server = ServerFactory(basename="PySharsorDoubleRowMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Double,
+                               layout=RowMajor)
 
-        print("Output C-contiguous:", output_torch.is_contiguous())
-        print("output_numpy C-contiguous:", output_numpy.flags.c_contiguous)
-        print("output_view C-contiguous:", output_view.flags.c_contiguous)
-        print("output_view is F-contiguous:", output_view.flags.f_contiguous)
+    def read_write_double_col_maj(self):
 
-        total_time = 0
-        max_time = 0
-        iterations = 1000000
-
-        for i in range(iterations):  # we are connected
-
-            success = False
-
-            # Start the timer
-            start_time = time.perf_counter()
-
-            # read the shared tensor (copy)
-            success = client.readTensor(output_numpy, 0, 0)
-
-            # Stop the timer
-            elapsed_time = time.perf_counter() - start_time
-
-            # Update total time and max time
-            total_time += elapsed_time
-            max_time = max(max_time, elapsed_time)
-
-            # Check the success flag
-            if success:
-#                print("Tensor successfully read.")
-#                print("Torch:")
-#                print(output_torch)
-#                print("Numpy:")
-#                print(output_numpy)
-#                print("Numpy view")
-#                print(output_view)
-                a = 1
-            else:
-                print("Failed to read the tensor.")
-
-#            time.sleep(0.1)
-
-        average_time = total_time / iterations
-
-        print(f"Average read time: {average_time:.10f} seconds.")
-        print(f"Maximum read time: {max_time:.10f} seconds.")
+        # Create a server
+        server = ServerFactory(basename="PySharsorDoubleColMaj",
+                               namespace=namespace,
+                               verbose=True,
+                               vlevel=VLevel.V3,
+                               dtype=dtype.Double,
+                               layout=ColMajor)
 
 if __name__ == "__main__":
+
     unittest.main()
