@@ -35,19 +35,22 @@ void bind_Journal(py::module &m) {
 
     py::class_<SharsorIPCpp::Journal>(m, "Journal")
 
-        .def(py::init<const std::string &>())
+//        .def(py::init<const std::string &>())
 
-        .def("log", py::overload_cast<const std::string &,
-                                     const std::string &,
-                                     const std::string &,
-                                     SharsorIPCpp::Journal::LogType,
-                                     bool>(&SharsorIPCpp::Journal::log))
+//        .def("log", py::overload_cast<const std::string &,
+//                                     const std::string &,
+//                                     const std::string &,
+//                                     SharsorIPCpp::Journal::LogType,
+//                                     bool>(&SharsorIPCpp::Journal::log))
 
         .def_static("log", py::overload_cast<const std::string &,
                                             const std::string &,
                                             const std::string &,
                                             SharsorIPCpp::Journal::LogType,
-                                            bool>(&SharsorIPCpp::Journal::log));
+                                            bool>(&SharsorIPCpp::Journal::log),
+                    py::arg("classname"), py::arg("methodname"),
+                    py::arg("message"), py::arg("log_type"),
+                    py::arg("throw_when_excep") = false);
 }
 
 PYBIND11_MODULE(PySharsorIPC, m) {
