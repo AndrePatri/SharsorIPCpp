@@ -9,18 +9,17 @@
 #include <SharsorIPCpp/Server.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
+#include <SharsorIPCpp/Journal.hpp>
 
-#include <WrapUtils.hpp>
 #include <PySharsorIPC/PyDTypes.hpp>
-
-namespace py = pybind11;
+#include <WrapUtils.hpp>
 
 using VLevel = SharsorIPCpp::Journal::VLevel;
 using DType = SharsorIPCpp::DType;
 
 namespace PySharsorIPC{
 
-    py::object ServerFactory(int n_rows,
+    pybind11::object ServerFactory(int n_rows,
                              int n_cols,
                             std::string basename = "MySharedMemory",
                             std::string name_space = "",
@@ -29,15 +28,15 @@ namespace PySharsorIPC{
                             SharsorIPCpp::DType dtype = SharsorIPCpp::DType::Float,
                             int layout = SharsorIPCpp::ColMajor);
 
-    void bind_ServerWrapper(py::module& m);
+    void bind_ServerWrapper(pybind11::module& m);
 
     template <typename Scalar,
               int Layout = SharsorIPCpp::MemLayoutDefault>
-    void bindServerT(py::module &m, const char* name);
+    void bindServerT(pybind11::module &m, const char* name);
 
-    void bindServers(py::module &m);
+    void bindServers(pybind11::module &m);
 
-    void bindServerFactory(py::module &m,
+    void bindServerFactory(pybind11::module &m,
                         const char* name = "ServerFactory");
 
 }

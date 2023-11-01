@@ -1,15 +1,14 @@
 #include <PySharsorIPC/PyServer.hpp>
-#include <SharsorIPCpp/Journal.hpp>
 
 template <typename Scalar, int Layout>
-void PySharsorIPC::bindServerT(py::module &m, const char* name) {
+void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
 
     // bindings of Server for Python
 
-    py::class_<SharsorIPCpp::Server<Scalar, Layout>,
+    pybind11::class_<SharsorIPCpp::Server<Scalar, Layout>,
             std::shared_ptr<SharsorIPCpp::Server<Scalar, Layout>>>(m, name)
 
-        .def(py::init<int, int, std::string, std::string, bool, SharsorIPCpp::VLevel>())
+        .def(pybind11::init<int, int, std::string, std::string, bool, SharsorIPCpp::VLevel>())
 
         .def("writeTensor", [](SharsorIPCpp::Server<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
@@ -27,7 +26,7 @@ void PySharsorIPC::bindServerT(py::module &m, const char* name) {
                                            np_strides[1] / sizeof(Scalar));
 
             // Ensure the numpy array is mutable and get a pointer to its data
-            py::buffer_info buf_info = arr.request();
+            pybind11::buffer_info buf_info = arr.request();
 
             bool success = false;
 
@@ -60,7 +59,7 @@ void PySharsorIPC::bindServerT(py::module &m, const char* name) {
                                            np_strides[1] / sizeof(Scalar));
 
             // Ensure the numpy array is mutable and get a pointer to its data
-            py::buffer_info buf_info = arr.request();
+            pybind11::buffer_info buf_info = arr.request();
 
             bool success = false;
 
@@ -92,7 +91,7 @@ void PySharsorIPC::bindServerT(py::module &m, const char* name) {
         .def("getNCols", &SharsorIPCpp::Server<Scalar, Layout>::getNCols);
 }
 
-py::object PySharsorIPC::ServerFactory(int n_rows,
+pybind11::object PySharsorIPC::ServerFactory(int n_rows,
                                        int n_cols,
                                     std::string basename,
                                     std::string name_space,
@@ -109,8 +108,8 @@ py::object PySharsorIPC::ServerFactory(int n_rows,
 
                 case DType::Bool:
 
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                          py::cast(std::make_shared<SharsorIPCpp::Server<bool, SharsorIPCpp::ColMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                          pybind11::cast(std::make_shared<SharsorIPCpp::Server<bool, SharsorIPCpp::ColMajor>>(n_rows,
                                                                                                                         n_cols,
                                                                                                                         basename,
                                                                                                                         name_space,
@@ -118,8 +117,8 @@ py::object PySharsorIPC::ServerFactory(int n_rows,
                                                                                                                         vlevel)))));
                 case DType::Int:
 
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<int, SharsorIPCpp::ColMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<int, SharsorIPCpp::ColMajor>>(n_rows,
                                                                                                                                    n_cols,
                                                                                                                                    basename,
                                                                                                                                    name_space,
@@ -127,8 +126,8 @@ py::object PySharsorIPC::ServerFactory(int n_rows,
                                                                                                                                    vlevel)))));
                 case DType::Float:
 
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<float, SharsorIPCpp::ColMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<float, SharsorIPCpp::ColMajor>>(n_rows,
                                                                                                                                      n_cols,
                                                                                                                                      basename,
                                                                                                                                      name_space,
@@ -136,8 +135,8 @@ py::object PySharsorIPC::ServerFactory(int n_rows,
                                                                                                                                      vlevel)))));
                 case DType::Double:
 
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<double, SharsorIPCpp::ColMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<double, SharsorIPCpp::ColMajor>>(n_rows,
                                                                                                                                       n_cols,
                                                                                                                                       basename,
                                                                                                                                       name_space,
@@ -154,32 +153,32 @@ py::object PySharsorIPC::ServerFactory(int n_rows,
 
                 case DType::Bool:
 
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<bool, SharsorIPCpp::RowMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<bool, SharsorIPCpp::RowMajor>>(n_rows,
                                                                                                                                     n_cols,
                                                                                                                                     basename,
                                                                                                                                     name_space,
                                                                                                                                     verbose,
                                                                                                                                     vlevel)))));
                 case DType::Int:
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<int, SharsorIPCpp::RowMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<int, SharsorIPCpp::RowMajor>>(n_rows,
                                                                                                                                    n_cols,
                                                                                                                                    basename,
                                                                                                                                    name_space,
                                                                                                                                    verbose,
                                                                                                                                    vlevel)))));
                 case DType::Float:
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<float, SharsorIPCpp::RowMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<float, SharsorIPCpp::RowMajor>>(n_rows,
                                                                                                                                      n_cols,
                                                                                                                                      basename,
                                                                                                                                      name_space,
                                                                                                                                      verbose,
                                                                                                                                      vlevel)))));
                 case DType::Double:
-                    return py::cast(PySharsorIPC::ServerWrapper(new py::object(
-                                                      py::cast(std::make_shared<SharsorIPCpp::Server<double, SharsorIPCpp::RowMajor>>(n_rows,
+                    return pybind11::cast(PySharsorIPC::Wrapper(new pybind11::object(
+                                                      pybind11::cast(std::make_shared<SharsorIPCpp::Server<double, SharsorIPCpp::RowMajor>>(n_rows,
                                                                                                                                       n_cols,
                                                                                                                                       basename,
                                                                                                                                       name_space,
@@ -197,7 +196,7 @@ py::object PySharsorIPC::ServerFactory(int n_rows,
     }
 }
 
-void PySharsorIPC::bind_ServerWrapper(py::module& m) {
+void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
 
     // By handling everything in Python-space,
     // we eliminate the need to handle the type
@@ -210,11 +209,11 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     // (here we are calling python code from C++)
 
-    py::class_<PySharsorIPC::ServerWrapper> cls(m, "Server");
+    pybind11::class_<PySharsorIPC::Wrapper> cls(m, "Server");
 
-    cls.def("run", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("run", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("run")();
 
@@ -222,9 +221,9 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("stop", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("stop", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("stop")();
 
@@ -232,9 +231,9 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("close", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("close", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("close")();
 
@@ -242,9 +241,9 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("isRunning", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("isRunning", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("isAttached")().cast<bool>();
 
@@ -252,9 +251,9 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("getNRows", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("getNRows", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("getNRows")().cast<int>();
 
@@ -262,9 +261,9 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("getNCols", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("getNCols", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("getNCols")().cast<int>();
 
@@ -272,9 +271,9 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("getScalarType", [](PySharsorIPC::ServerWrapper& wrapper) {
+    cls.def("getScalarType", [](PySharsorIPC::Wrapper& wrapper) {
 
-        return wrapper.execute([&](py::object& server) {
+        return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("getScalarType")().cast<DType>();
 
@@ -282,11 +281,11 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
     });
 
-    cls.def("writeTensor", [](PySharsorIPC::ServerWrapper& wrapper,
-                             py::array& np_array,
+    cls.def("writeTensor", [](PySharsorIPC::Wrapper& wrapper,
+                             pybind11::array& np_array,
                              int row, int col) {
 
-        return wrapper.execute([&](py::object& server) -> bool {
+        return wrapper.execute([&](pybind11::object& server) -> bool {
 
             // we need to check data compatibility at runtime
             // (this was not necessary in C++, since it's something
@@ -295,16 +294,16 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
             // behavior when the user passes non-compatible types
 
             // and of the input np array
-            py::dtype np_dtype = np_array.dtype();
+            pybind11::dtype np_dtype = np_array.dtype();
 
             switch (server.attr("getScalarType")().cast<DType>()) {
 
             case DType::Bool:
 
-                if (!np_dtype.is(py::dtype::of<bool>())) {
+                if (!np_dtype.is(pybind11::dtype::of<bool>())) {
 
                     std::string error = std::string("Mismatched dtype: expected bool numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "writeTensor",
@@ -318,10 +317,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
             case DType::Int:
 
-                if (!np_dtype.is(py::dtype::of<int>())) {
+                if (!np_dtype.is(pybind11::dtype::of<int>())) {
 
                     std::string error = std::string("Mismatched dtype: expected int numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "writeTensor",
@@ -334,10 +333,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
             case DType::Float:
 
-                if (!np_dtype.is(py::dtype::of<float>())) {
+                if (!np_dtype.is(pybind11::dtype::of<float>())) {
 
                     std::string error = std::string("Mismatched dtype: expected float numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "writeTensor",
@@ -350,10 +349,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
             case DType::Double:
 
-                if (!np_dtype.is(py::dtype::of<double>())) {
+                if (!np_dtype.is(pybind11::dtype::of<double>())) {
 
                     std::string error = std::string("Mismatched dtype: expected double numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "writeTensor",
@@ -380,13 +379,13 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
         });
 
-    }, py::arg("data"), py::arg("row") = 0, py::arg("col") = 0);
+    }, pybind11::arg("data"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
 
-    cls.def("readTensor", [](PySharsorIPC::ServerWrapper& wrapper,
-                             py::array& np_array,
+    cls.def("readTensor", [](PySharsorIPC::Wrapper& wrapper,
+                             pybind11::array& np_array,
                              int row, int col) {
 
-        return wrapper.execute([&](py::object& server) -> bool {
+        return wrapper.execute([&](pybind11::object& server) -> bool {
 
             // we need to check data compatibility at runtime
             // (this was not necessary in C++, since it's something
@@ -395,16 +394,16 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
             // behavior when the user passes non-compatible types
 
             // and of the input np array
-            py::dtype np_dtype = np_array.dtype();
+            pybind11::dtype np_dtype = np_array.dtype();
 
             switch (server.attr("getScalarType")().cast<DType>()) {
 
             case DType::Bool:
 
-                if (!np_dtype.is(py::dtype::of<bool>())) {
+                if (!np_dtype.is(pybind11::dtype::of<bool>())) {
 
                     std::string error = std::string("Mismatched dtype: expected bool numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "readTensor",
@@ -418,10 +417,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
             case DType::Int:
 
-                if (!np_dtype.is(py::dtype::of<int>())) {
+                if (!np_dtype.is(pybind11::dtype::of<int>())) {
 
                     std::string error = std::string("Mismatched dtype: expected int numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "readTensor",
@@ -434,10 +433,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
             case DType::Float:
 
-                if (!np_dtype.is(py::dtype::of<float>())) {
+                if (!np_dtype.is(pybind11::dtype::of<float>())) {
 
                     std::string error = std::string("Mismatched dtype: expected float numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "readTensor",
@@ -450,10 +449,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
             case DType::Double:
 
-                if (!np_dtype.is(py::dtype::of<double>())) {
+                if (!np_dtype.is(pybind11::dtype::of<double>())) {
 
                     std::string error = std::string("Mismatched dtype: expected double numpy array but got ") +
-                                    py::str(np_dtype).cast<std::string>();
+                                    pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
                                  "readTensor",
@@ -480,10 +479,10 @@ void PySharsorIPC::bind_ServerWrapper(py::module& m) {
 
         });
 
-    }, py::arg("tensor"), py::arg("row") = 0, py::arg("col") = 0);
+    }, pybind11::arg("tensor"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
 }
 
-void PySharsorIPC::bindServers(py::module& m) {
+void PySharsorIPC::bindServers(pybind11::module& m) {
 
     bindServerT<bool, SharsorIPCpp::ColMajor>(m, "PyServerBoolColMaj");
     bindServerT<bool, SharsorIPCpp::RowMajor>(m, "PyServerBoolRowMaj");
@@ -499,18 +498,18 @@ void PySharsorIPC::bindServers(py::module& m) {
 
 }
 
-void PySharsorIPC::bindServerFactory(py::module& m,
+void PySharsorIPC::bindServerFactory(pybind11::module& m,
                            const char* name) {
 
     m.def(name, &ServerFactory,
-          py::arg("n_rows"),
-          py::arg("n_cols"),
-          py::arg("basename"),
-          py::arg("namespace") = "",
-          py::arg("verbose") = false,
-          py::arg("vlevel") = VLevel::V0,
-          py::arg("dtype") = DType::Float,
-          py::arg("layout") = SharsorIPCpp::RowMajor, // default of numpy and pytorch
+          pybind11::arg("n_rows"),
+          pybind11::arg("n_cols"),
+          pybind11::arg("basename"),
+          pybind11::arg("namespace") = "",
+          pybind11::arg("verbose") = false,
+          pybind11::arg("vlevel") = VLevel::V0,
+          pybind11::arg("dtype") = DType::Float,
+          pybind11::arg("layout") = SharsorIPCpp::RowMajor, // default of numpy and pytorch
           "Create a new server with the specified arguments and dtype.");
 
 }
