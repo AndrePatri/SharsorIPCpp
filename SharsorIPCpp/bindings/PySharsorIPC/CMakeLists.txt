@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.5)
 
 add_compile_options(-std=c++17)
 
+# Setting default visibility to hidden
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+# Helps in reducing the possibility of symbol clashes and also minimizes
+# the chance of accidentally exporting symbols that aren't intended to be
+# part of your library's public API
+
 set(PyBindName "PySharsorIPC")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} include/ src/)

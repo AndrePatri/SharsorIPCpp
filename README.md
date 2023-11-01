@@ -57,10 +57,9 @@ Usage notes:
 - For usage examples, please have a look at the test folder or at the [documentation](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html) (WIP).
 
 ToDo:
-- [ ] benchmark dynamic allocations in PyClient and PyServer. Is it really necessary to implement numpy-tailored child classes of PyClient and PyServer?
+- [x] benchmark dynamic allocations in PyClient and PyServer. Is it really necessary to implement numpy-tailored child classes of PyClient and PyServer?
 - [x] Benchmark Client/ServerWrapper approach wrt bare bindings. How much perf overhead?
-- [ ] add cpp tests just for PyClient and PyServer
-- [ ] bind PyClient and PyServer
+- [x] bind PyClient and PyServer
 - [ ] clean StringTensor bindings with and remove pythonic read and write methods
 - [ ] add python unit tests for the bindings (performance and consistency checks)
 - [ ] make read and write methods of string tensor more efficient (multithreaded encoding?)
