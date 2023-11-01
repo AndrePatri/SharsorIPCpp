@@ -15,6 +15,12 @@ if(NOT CMAKE_BUILD_TYPE)
 
 endif()
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+
+    add_compile_definitions(IS_RELEASE=1)
+
+endif()
+
 # if in conda env, install it the environment
 if (DEFINED ENV{CONDA_PREFIX})
 

@@ -1,5 +1,7 @@
 #include <pybind11/pybind11.h>
 
+#include <SharsorIPCpp/Journal.hpp>
+
 #include <PySharsorIPC/PyStringTensor.hpp>
 #include <PySharsorIPC/PyServer.hpp>
 #include <PySharsorIPC/PyClient.hpp>
@@ -7,9 +9,52 @@
 using namespace SharsorIPCpp;
 using namespace PySharsorIPC;
 
+inline bool isRelease() {
+
+    #ifdef IS_RELEASE
+
+        return true;
+
+    #else
+
+        return false;
+
+    #endif
+}
+
+void bind_Journal(py::module &m) {
+
+    py::enum_<SharsorIPCpp::Journal::LogType>(m, "LogType")
+
+        .value("WARN", SharsorIPCpp::Journal::LogType::WARN)
+        .value("EXCEP", SharsorIPCpp::Journal::LogType::EXCEP)
+        .value("INFO", SharsorIPCpp::Journal::LogType::INFO)
+        .value("STAT", SharsorIPCpp::Journal::LogType::STAT)
+
+        .export_values();
+
+    py::class_<SharsorIPCpp::Journal>(m, "Journal")
+
+        .def(py::init<const std::string &>())
+
+        .def("log", py::overload_cast<const std::string &,
+                                     const std::string &,
+                                     const std::string &,
+                                     SharsorIPCpp::Journal::LogType,
+                                     bool>(&SharsorIPCpp::Journal::log))
+
+        .def_static("log", py::overload_cast<const std::string &,
+                                            const std::string &,
+                                            const std::string &,
+                                            SharsorIPCpp::Journal::LogType,
+                                            bool>(&SharsorIPCpp::Journal::log));
+}
+
 PYBIND11_MODULE(PySharsorIPC, m) {
 
     m.doc() = "pybind11 SharsorIPCpp bindings";
+
+    m.def("isRelease", &isRelease);
 
     pybind11::enum_<DType>(m, "dtype")
         .value("Bool", DType::Bool)
@@ -38,6 +83,8 @@ PYBIND11_MODULE(PySharsorIPC, m) {
             default: throw std::runtime_error("Unsupported DType conversion!");
         }
     });
+
+    bind_Journal(m);
 
     // Client bindings
     bindClients(m); // binds all client types
