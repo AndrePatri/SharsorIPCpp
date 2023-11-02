@@ -44,6 +44,7 @@ using MyTypes = ::testing::Types<
     TypeWithLayout<double, RowMajor>
 >;
 
+// normal tensor API
 template <typename P>
 class PerfTest : public ::testing::Test {
 protected:
@@ -81,6 +82,55 @@ protected:
 
 };
 
+// view API
+template <typename P>
+class PerfViewTest : public ::testing::Test {
+protected:
+
+    using ScalarType = typename P::type;
+    static const int layout = P::layout;
+
+    PerfViewTest() : rows(100),
+                   cols(60),
+                   iterations(N_ITERATIONS),
+                   server_ptr(new Server<ScalarType, layout>(rows, cols,
+                                     "SharsorIPCpp",
+                                     name_space,
+                                     true,
+                                     VLevel::V3,
+                                     true)),
+                   tensor_to_write(rows, cols),
+                   tensor_to_write_view(helpers::createViewFrom<ScalarType, layout>(
+                                        tensor_to_write,
+                                        0, 0, // indeces
+                                        rows, cols)),
+                   tensor_read(rows, cols),
+                   tensor_read_view(helpers::createViewFrom<ScalarType, layout>(
+                                        tensor_read,
+                                        0, 0, // indeces
+                                        rows, cols)) {
+        server_ptr->run();
+    }
+
+    void SetUp() override {
+        // Initialization code (if needed)
+    }
+
+    void TearDown() override {
+        server_ptr->close();
+        // Cleanup code (if needed)
+    }
+
+    int rows;
+    int cols;
+    int iterations;
+    typename Server<ScalarType, layout>::UniquePtr server_ptr;
+    Tensor<ScalarType, layout> tensor_to_write, tensor_read;
+    TensorView<ScalarType, layout> tensor_to_write_view, tensor_read_view;
+
+};
+
+// normal tensor API
 TYPED_TEST_SUITE_P(PerfTest);
 
 TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
@@ -96,14 +146,10 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
     double WRITE_T_AVRG_THRESH = Thresholds<ScalarType, layout>::WRITE_T_AVRG_THRESH;
 
     std::vector<double> readTimes;
-    std::vector<double> readTimesView;
     std::vector<double> writeTimes;
 
     journal.log("PerfTest", "\nBenchmarking performance...\n",
                 Journal::LogType::STAT);
-
-    Tensor<ScalarType, layout> tensor_other = Tensor<ScalarType, layout>::Zero(3 * this->rows,
-                                       2 * this->cols); // tensor of which a view is created
 
     for (int i = 0; i < this->iterations; ++i) {
 
@@ -120,6 +166,95 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
         this->server_ptr->read(this->tensor_copy, 0, 0);
+        auto endRead = std::chrono::high_resolution_clock::now();
+        double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
+        readTimes.push_back(readTime);
+
+    }
+
+    journal.log("PerfTest", "\nrunning post-processing steps...\n",
+                Journal::LogType::STAT);
+
+    // some post-processing
+    double averageReadTime = 0;
+    double averageWriteTime = 0;
+    double maxReadTime = std::numeric_limits<double>::min();
+    double maxWriteTime = std::numeric_limits<double>::min();
+
+    for (int i = 0; i < this->iterations; ++i) {
+        averageReadTime += readTimes[i];
+        averageWriteTime += writeTimes[i];
+
+        if (readTimes[i] > maxReadTime) {
+            maxReadTime = readTimes[i];
+        }
+
+        if (writeTimes[i] > maxWriteTime) {
+            maxWriteTime = writeTimes[i];
+        }
+    }
+
+    averageReadTime /= this->iterations;
+    averageWriteTime /= this->iterations;
+
+    std::cout << "Number of performed iterations: " << this->iterations << std::endl;
+    std::cout << "Average read Time: " << averageReadTime << " ns" << std::endl;
+    std::cout << "Average write Time: " << averageWriteTime << " ns" << std::endl;
+    std::cout << "Maximum read Time: " << maxReadTime << " ns" << std::endl;
+    std::cout << "Maximum write Time: " << maxWriteTime << " ns\n" << std::endl;
+
+    // Checking if perf. req. were met
+
+    // reading (avrg)
+    ASSERT_LT(averageReadTime, READ_T_AVRG_THRESH);
+    ASSERT_LT(averageWriteTime, WRITE_T_AVRG_THRESH);
+
+    // reading (max)
+//    ASSERT_LT(maxReadTime, READ_T_MAX_THRESH);
+//    ASSERT_LT(maxReadTimeView, READ_TV_MAX_THRESH);
+//    ASSERT_LT(maxWriteTime, WRITE_T_MAX_THRESH);
+
+}
+
+// Register the tests
+REGISTER_TYPED_TEST_SUITE_P(PerfTest, WriteReadBenchmark);
+INSTANTIATE_TYPED_TEST_SUITE_P(PerfTests, PerfTest, MyTypes);
+
+// view API
+TYPED_TEST_SUITE_P(PerfViewTest);
+
+TYPED_TEST_P(PerfViewTest, WriteReadViewBenchmark) {
+
+    using ScalarType = typename TestFixture::ScalarType;
+    const int layout = TestFixture::layout;
+
+    check_comp_type(journal);
+
+    double READ_T_MAX_THRESH = Thresholds<ScalarType, layout>::READ_TV_MAX_THRESH;
+    double WRITE_T_MAX_THRESH = Thresholds<ScalarType, layout>::WRITE_TV_MAX_THRESH;
+    double READ_T_AVRG_THRESH = Thresholds<ScalarType, layout>::READ_TV_AVRG_THRESH;
+    double WRITE_T_AVRG_THRESH = Thresholds<ScalarType, layout>::WRITE_TV_AVRG_THRESH;
+
+    std::vector<double> readTimes;
+    std::vector<double> writeTimes;
+
+    journal.log("PerfTest", "\nBenchmarking performance...\n",
+                Journal::LogType::STAT);
+
+    for (int i = 0; i < this->iterations; ++i) {
+
+        this->tensor_to_write.setRandom(); // we randomize the tensor
+
+        // we measure the time to write its view on memory
+        auto startWrite = std::chrono::high_resolution_clock::now();
+        this->server_ptr->write(this->tensor_to_write_view, 0, 0);
+        auto endWrite = std::chrono::high_resolution_clock::now();
+        double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
+        writeTimes.push_back(writeTime);
+
+        // we measure the time to read a copy of the tensor
+        auto startRead = std::chrono::high_resolution_clock::now();
+        this->server_ptr->read(this->tensor_read_view, 0, 0);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);
@@ -170,10 +305,10 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
 }
 
-// Register the tests
-REGISTER_TYPED_TEST_SUITE_P(PerfTest, WriteReadBenchmark);
-INSTANTIATE_TYPED_TEST_SUITE_P(My, PerfTest, MyTypes);
+REGISTER_TYPED_TEST_SUITE_P(PerfViewTest, WriteReadViewBenchmark);
+INSTANTIATE_TYPED_TEST_SUITE_P(PerfViewTests, PerfViewTest, MyTypes);
 
+// string tensor
 class StringTensorWrite : public ::testing::Test {
 protected:
 

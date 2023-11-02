@@ -61,7 +61,7 @@ ToDo:
 - [x] Benchmark Client/ServerWrapper approach wrt bare bindings. How much perf overhead?
 - [x] bind PyClient and PyServer
 - [ ] clean StringTensor bindings with and remove pythonic read and write methods
-- [ ] Move from write and read to more concise write and read methods 
+- [x] Move from write and read to more concise write and read methods 
 - [ ] add python unit tests for the bindings (performance and consistency checks)
 - [ ] make read and write methods of string tensor more efficient (multithreaded encoding?)
 - [x] make all gtests types (dtype and layout)

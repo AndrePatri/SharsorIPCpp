@@ -105,8 +105,12 @@ namespace SharsorIPCpp {
     struct Thresholds<bool, SharsorIPCpp::RowMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 1500;
         static constexpr double WRITE_T_AVRG_THRESH = 1500;
+        static constexpr double READ_TV_AVRG_THRESH = 1500;
+        static constexpr double WRITE_TV_AVRG_THRESH = 1500;
 
     };
 
@@ -114,8 +118,12 @@ namespace SharsorIPCpp {
     struct Thresholds<bool, SharsorIPCpp::ColMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 1500;
         static constexpr double WRITE_T_AVRG_THRESH = 1500;
+        static constexpr double READ_TV_AVRG_THRESH = 1500;
+        static constexpr double WRITE_TV_AVRG_THRESH = 1500;
 
     };
 
@@ -123,8 +131,12 @@ namespace SharsorIPCpp {
     struct Thresholds<int, SharsorIPCpp::RowMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 2300;
         static constexpr double WRITE_T_AVRG_THRESH = 2300;
+        static constexpr double READ_TV_AVRG_THRESH = 2300;
+        static constexpr double WRITE_TV_AVRG_THRESH = 2300;
 
     };
 
@@ -132,8 +144,12 @@ namespace SharsorIPCpp {
     struct Thresholds<int, SharsorIPCpp::ColMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 2300;
         static constexpr double WRITE_T_AVRG_THRESH = 2300;
+        static constexpr double READ_TV_AVRG_THRESH = 2300;
+        static constexpr double WRITE_TV_AVRG_THRESH = 2300;
 
     };
 
@@ -141,8 +157,12 @@ namespace SharsorIPCpp {
     struct Thresholds<float, SharsorIPCpp::RowMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 2500;
         static constexpr double WRITE_T_AVRG_THRESH = 2500;
+        static constexpr double READ_TV_AVRG_THRESH = 2500;
+        static constexpr double WRITE_TV_AVRG_THRESH = 2500;
 
     };
 
@@ -150,8 +170,12 @@ namespace SharsorIPCpp {
     struct Thresholds<float, SharsorIPCpp::ColMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 2500;
         static constexpr double WRITE_T_AVRG_THRESH = 2500;
+        static constexpr double READ_TV_AVRG_THRESH = 2500;
+        static constexpr double WRITE_TV_AVRG_THRESH = 2500;
 
     };
 
@@ -159,8 +183,12 @@ namespace SharsorIPCpp {
     struct Thresholds<double, SharsorIPCpp::RowMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 5000;
         static constexpr double WRITE_T_AVRG_THRESH = 5000;
+        static constexpr double READ_TV_AVRG_THRESH = 5000;
+        static constexpr double WRITE_TV_AVRG_THRESH = 5000;
 
     };
 
@@ -168,8 +196,12 @@ namespace SharsorIPCpp {
     struct Thresholds<double, SharsorIPCpp::ColMajor> {
         static constexpr double READ_T_MAX_THRESH = 10000000;
         static constexpr double WRITE_T_MAX_THRESH = 10000000;
+        static constexpr double READ_TV_MAX_THRESH = 10000000;
+        static constexpr double WRITE_TV_MAX_THRESH = 10000000;
         static constexpr double READ_T_AVRG_THRESH = 5000;
         static constexpr double WRITE_T_AVRG_THRESH = 5000;
+        static constexpr double READ_TV_AVRG_THRESH = 5000;
+        static constexpr double WRITE_TV_AVRG_THRESH = 5000;
 
     };
 
