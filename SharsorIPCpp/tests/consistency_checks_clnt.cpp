@@ -83,14 +83,14 @@ protected:
 
         while (!terminate(0, 0)) { // exit if received a signal from server
 
-            while (!client_terminate_ptr->readTensor(terminate)) {
+            while (!client_terminate_ptr->read(terminate)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
 
             }
 
-            while (!client_flag_ptr->readTensor(flag)) {
+            while (!client_flag_ptr->read(flag)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -99,7 +99,7 @@ protected:
 
             while (!flag(0,0)){
 
-                while (!client_terminate_ptr->readTensor(terminate)) {
+                while (!client_terminate_ptr->read(terminate)) {
 
                     // try again
                     std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -110,7 +110,7 @@ protected:
                     return;
                 }
 
-                client_flag_ptr->readTensor(flag); // reads flag from client
+                client_flag_ptr->read(flag); // reads flag from client
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1)); // wait
 
@@ -118,20 +118,20 @@ protected:
 
             // server has written new ping memory, let's read it
 
-            while (!client_ping_ptr->readTensor(data_read, 0, 0)) {
+            while (!client_ping_ptr->read(data_read, 0, 0)) {
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
 
             // and write it on the pong memory
 
-            while (!client_pong_ptr->writeTensor(data_read, 0, 0)) {
+            while (!client_pong_ptr->write(data_read, 0, 0)) {
 
             }
 
             // signaling the server that the read/write operation was completed
             flag(0, 0) = false;
-            while (!client_flag_ptr->writeTensor(flag)) {
+            while (!client_flag_ptr->write(flag)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -154,8 +154,8 @@ protected:
         flag = Tensor<bool>::Zero(client_flag_ptr->getNRows(),
                                   client_flag_ptr->getNCols());
 
-        client_terminate_ptr->readTensor(terminate);
-        client_flag_ptr->readTensor(flag);
+        client_terminate_ptr->read(terminate);
+        client_flag_ptr->read(flag);
 
 
     }
@@ -236,14 +236,14 @@ protected:
 
         while (!terminate(0, 0)) { // exit if received a signal from server
 
-            while (!client_terminate_ptr->readTensor(terminate)) {
+            while (!client_terminate_ptr->read(terminate)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
 
             }
 
-            while (!client_flag_ptr->readTensor(flag)) {
+            while (!client_flag_ptr->read(flag)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -252,7 +252,7 @@ protected:
 
             while (!flag(0,0)){
 
-                while (!client_terminate_ptr->readTensor(terminate)) {
+                while (!client_terminate_ptr->read(terminate)) {
 
                     // try again
                     std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -263,7 +263,7 @@ protected:
                     return;
                 }
 
-                client_flag_ptr->readTensor(flag); // reads flag from client
+                client_flag_ptr->read(flag); // reads flag from client
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1)); // wait
 
@@ -271,20 +271,20 @@ protected:
 
             // server has written new ping memory, let's read it
 
-            while (!client_ping_ptr->readTensor(data_read, 0, 0)) {
+            while (!client_ping_ptr->read(data_read, 0, 0)) {
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
 
             // and write it on the pong memory
 
-            while (!client_pong_ptr->writeTensor(data_read, 0, 0)) {
+            while (!client_pong_ptr->write(data_read, 0, 0)) {
 
             }
 
             // signaling the server that the read/write operation was completed
             flag(0, 0) = false;
-            while (!client_flag_ptr->writeTensor(flag)) {
+            while (!client_flag_ptr->write(flag)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -307,8 +307,8 @@ protected:
         flag = Tensor<bool>::Zero(client_flag_ptr->getNRows(),
                                   client_flag_ptr->getNCols());
 
-        client_terminate_ptr->readTensor(terminate);
-        client_flag_ptr->readTensor(flag);
+        client_terminate_ptr->read(terminate);
+        client_flag_ptr->read(flag);
 
 
     }
@@ -394,8 +394,8 @@ protected:
         flag = Tensor<bool>::Zero(client_flag_ptr->getNRows(),
                                   client_flag_ptr->getNCols());
 
-        client_terminate_ptr->readTensor(terminate);
-        client_flag_ptr->readTensor(flag);
+        client_terminate_ptr->read(terminate);
+        client_flag_ptr->read(flag);
 
 
     }
@@ -417,14 +417,14 @@ protected:
 
         while (!terminate(0, 0)) { // exit if received a signal from server
 
-            while (!client_terminate_ptr->readTensor(terminate)) {
+            while (!client_terminate_ptr->read(terminate)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
 
             }
 
-            while (!client_flag_ptr->readTensor(flag)) {
+            while (!client_flag_ptr->read(flag)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -433,7 +433,7 @@ protected:
 
             while (!flag(0,0)){
 
-                while (!client_terminate_ptr->readTensor(terminate)) {
+                while (!client_terminate_ptr->read(terminate)) {
 
                     // try again
                     std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -444,7 +444,7 @@ protected:
                     return;
                 }
 
-                client_flag_ptr->readTensor(flag); // reads flag from client
+                client_flag_ptr->read(flag); // reads flag from client
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1)); // wait
 
@@ -465,7 +465,7 @@ protected:
 
             // signaling the server that the read/write operation was completed
             flag(0, 0) = false;
-            while (!client_flag_ptr->writeTensor(flag)) {
+            while (!client_flag_ptr->write(flag)) {
 
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));

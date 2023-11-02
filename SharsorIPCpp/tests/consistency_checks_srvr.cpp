@@ -91,7 +91,7 @@ protected:
         server_flag_ptr->run();
 
         terminate(0, 0) = false;
-        server_terminate_ptr->writeTensor(terminate);
+        server_terminate_ptr->write(terminate);
 
     }
 
@@ -102,13 +102,13 @@ protected:
             data_written.setRandom(); // randomize data
 
             // writes down the whole random matrix on ping memory
-            while (! server_ping_ptr->writeTensor(data_written, 0, 0)) {
+            while (! server_ping_ptr->write(data_written, 0, 0)) {
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
 
             flag(0, 0) = true;
-            while(!server_flag_ptr->writeTensor(flag)) {
+            while(!server_flag_ptr->write(flag)) {
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
@@ -116,7 +116,7 @@ protected:
 
             while (flag(0, 0)){
 
-                server_flag_ptr->readTensor(flag); // continue reading the flag
+                server_flag_ptr->read(flag); // continue reading the flag
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1)); // avoid busy wait loop
 
@@ -124,7 +124,7 @@ protected:
             // client sets flag to false -> it has read the data and copied to the pong data
 
             // reads data from pong memory
-            while(!server_pong_ptr->readTensor(data_read, 0, 0)) {
+            while(!server_pong_ptr->read(data_read, 0, 0)) {
 
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -135,7 +135,7 @@ protected:
         }
 
         terminate(0, 0) = true;
-        while(!server_terminate_ptr->writeTensor(terminate)) {
+        while(!server_terminate_ptr->write(terminate)) {
 
             // try again
             std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -232,7 +232,7 @@ protected:
         server_flag_ptr->run();
 
         terminate(0, 0) = false;
-        server_terminate_ptr->writeTensor(terminate);
+        server_terminate_ptr->write(terminate);
 
     }
 
@@ -247,13 +247,13 @@ protected:
             data_written.setRandom(); // randomize data
 
             // writes down the whole random matrix on ping memory (view)
-            while (! server_ping_ptr->writeTensor(data_written_view, 0, 0)) {
+            while (! server_ping_ptr->write(data_written_view, 0, 0)) {
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
 
             flag(0, 0) = true;
-            while(!server_flag_ptr->writeTensor(flag)) {
+            while(!server_flag_ptr->write(flag)) {
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
@@ -261,7 +261,7 @@ protected:
 
             while (flag(0, 0)){
 
-                server_flag_ptr->readTensor(flag); // continue reading the flag
+                server_flag_ptr->read(flag); // continue reading the flag
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1)); // avoid busy wait loop
 
@@ -269,7 +269,7 @@ protected:
             // client sets flag to false -> it has read the data and copied to the pong data
 
             // reads data from pong memory (view)
-            while(!server_pong_ptr->readTensor(data_read_view, 0, 0)) {
+            while(!server_pong_ptr->read(data_read_view, 0, 0)) {
 
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -281,7 +281,7 @@ protected:
         }
 
         terminate(0, 0) = true;
-        while(!server_terminate_ptr->writeTensor(terminate)) {
+        while(!server_terminate_ptr->write(terminate)) {
 
             // try again
             std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -369,7 +369,7 @@ protected:
         server_flag_ptr->run();
 
         terminate(0, 0) = false;
-        server_terminate_ptr->writeTensor(terminate);
+        server_terminate_ptr->write(terminate);
 
     }
 
@@ -423,7 +423,7 @@ protected:
 //            std::cout << "Written: " << written << std::endl;
 
             flag(0, 0) = true;
-            while(!server_flag_ptr->writeTensor(flag)) {
+            while(!server_flag_ptr->write(flag)) {
                 // try again
                 std::this_thread::sleep_for(std::chrono::microseconds(1));
             }
@@ -431,7 +431,7 @@ protected:
 
             while (flag(0, 0)){
 
-                server_flag_ptr->readTensor(flag); // continue reading the flag
+                server_flag_ptr->read(flag); // continue reading the flag
 
                 std::this_thread::sleep_for(std::chrono::microseconds(1)); // avoid busy wait loop
 
@@ -452,7 +452,7 @@ protected:
         }
 
         terminate(0, 0) = true;
-        while(!server_terminate_ptr->writeTensor(terminate)) {
+        while(!server_terminate_ptr->write(terminate)) {
 
             std::string read = collapseStrVec(data_written);
 

@@ -10,7 +10,7 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
 
         .def(pybind11::init<int, int, std::string, std::string, bool, SharsorIPCpp::VLevel>())
 
-        .def("writeTensor", [](SharsorIPCpp::Server<Scalar, Layout>& self,
+        .def("write", [](SharsorIPCpp::Server<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
                        int row, int col) {
 
@@ -18,7 +18,7 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
 
             // we get the strides directly from the array
             // (since we use the strides, we don't care if it's rowmajor
-            // or colmajor, the readTensor will handle it smoothly)
+            // or colmajor, the read will handle it smoothly)
 
             auto np_strides = arr.strides();
 
@@ -36,14 +36,14 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
                                           arr.shape(1),
                                           strides);
 
-            success = self.writeTensor(output_t,
+            success = self.write(output_t,
                                       row, col);
 
             return success;
 
         })
 
-        .def("readTensor", [](SharsorIPCpp::Server<Scalar, Layout>& self,
+        .def("read", [](SharsorIPCpp::Server<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
                        int row, int col) {
 
@@ -51,7 +51,7 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
 
             // we get the strides directly from the array
             // (since we use the strides, we don't care if it's rowmajor
-            // or colmajor, the readTensor will handle it smoothly)
+            // or colmajor, the read will handle it smoothly)
 
             auto np_strides = arr.strides();
 
@@ -69,7 +69,7 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
                                           arr.shape(1),
                                           strides);
 
-            success = self.readTensor(output_t,
+            success = self.read(output_t,
                                       row, col);
 
             return success;
@@ -281,7 +281,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
 
     });
 
-    cls.def("writeTensor", [](PySharsorIPC::ServerWrapper& wrapper,
+    cls.def("write", [](PySharsorIPC::ServerWrapper& wrapper,
                              pybind11::array& np_array,
                              int row, int col) {
 
@@ -306,7 +306,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "writeTensor",
+                                 "write",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -323,7 +323,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "writeTensor",
+                                 "write",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -339,7 +339,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "writeTensor",
+                                 "write",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -355,7 +355,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "writeTensor",
+                                 "write",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -366,7 +366,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
             default:
 
                 SharsorIPCpp::Journal::log("Server",
-                             "writeTensor",
+                             "write",
                              "Mismatched dtype: provided dtype not supported.",
                              SharsorIPCpp::LogType::EXCEP,
                              true);
@@ -374,14 +374,14 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
             }
 
             // now we can safely read the tensor
-            return server.attr("writeTensor")(np_array,
+            return server.attr("write")(np_array,
                                              row, col).cast<bool>();
 
         });
 
     }, pybind11::arg("data"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
 
-    cls.def("readTensor", [](PySharsorIPC::ServerWrapper& wrapper,
+    cls.def("read", [](PySharsorIPC::ServerWrapper& wrapper,
                              pybind11::array& np_array,
                              int row, int col) {
 
@@ -406,7 +406,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "readTensor",
+                                 "read",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -423,7 +423,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "readTensor",
+                                 "read",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -439,7 +439,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "readTensor",
+                                 "read",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -455,7 +455,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Server",
-                                 "readTensor",
+                                 "read",
                                  error,
                                  SharsorIPCpp::LogType::EXCEP,
                                  true);
@@ -466,7 +466,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
             default:
 
                 SharsorIPCpp::Journal::log("Server",
-                             "readTensor",
+                             "read",
                              "Mismatched dtype: provided dtype not supported.",
                              SharsorIPCpp::LogType::EXCEP,
                              true);
@@ -474,7 +474,7 @@ void PySharsorIPC::bind_ServerWrapper(pybind11::module& m) {
             }
 
             // now we can safely read the tensor
-            return server.attr("readTensor")(np_array,
+            return server.attr("read")(np_array,
                                              row, col).cast<bool>();
 
         });

@@ -51,8 +51,8 @@ class PerfThresholds():
 
 class TestPerfBenchBase(unittest.TestCase):
 
-    # we only benchmark the Server writeTensor and
-    # readTensor method since the Client's versions
+    # we only benchmark the Server write and
+    # read method since the Client's versions
     # perform the same operations
 
     def setUp(self):
@@ -122,14 +122,14 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.randomize(self.tensor_copy) # randomize tensor_copy
 
-            writeTime = timeit.timeit(lambda: self.server.writeTensor(self.tensor_copy, 0, 0),
+            writeTime = timeit.timeit(lambda: self.server.write(self.tensor_copy, 0, 0),
                                         number=1)
 #            writeTime = 0
             self.write_times.append(writeTime * 1e6)  # Convert to microseconds
 
-#            readTime = timeit.timeit(lambda: self.server.readTensor(self.tensor_copy, 0, 0),
-#                                        number=1)
-            readTime = 0
+            readTime = timeit.timeit(lambda: self.server.read(self.tensor_copy, 0, 0),
+                                        number=1)
+#            readTime = 0
             self.read_times.append(readTime * 1e6)
 
         Journal.log(self.__class__.__name__,

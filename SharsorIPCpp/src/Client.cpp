@@ -184,7 +184,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::writeTensor(const TRef<Scalar, Layout> data,
+    bool Client<Scalar, Layout>::write(const TRef<Scalar, Layout> data,
                                      int row,
                                      int col) {
 
@@ -225,7 +225,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::writeTensor(const TensorView<Scalar, Layout>& data,
+    bool Client<Scalar, Layout>::write(const TensorView<Scalar, Layout>& data,
                                      int row,
                                      int col) {
 
@@ -266,7 +266,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::readTensor(TRef<Scalar, Layout> output,
+    bool Client<Scalar, Layout>::read(TRef<Scalar, Layout> output,
                                     int row, int col) {
 
         if (_attached) {
@@ -306,7 +306,7 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::readTensor(TensorView<Scalar, Layout>& output,
+    bool Client<Scalar, Layout>::read(TensorView<Scalar, Layout>& output,
                                     int row, int col) {
 
         if (_attached) {

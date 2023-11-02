@@ -40,19 +40,19 @@ namespace SharsorIPCpp{
 
             ~Server();
 
-            bool writeTensor(const TRef<Scalar, Layout> data,
+            bool write(const TRef<Scalar, Layout> data,
                              int row = 0,
                              int col = 0);
 
-            bool writeTensor(const TensorView<Scalar, Layout>& data,
+            bool write(const TensorView<Scalar, Layout>& data,
                              int row,
                              int col);
 
-            bool readTensor(TRef<Scalar, Layout> output,
+            bool read(TRef<Scalar, Layout> output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output
 
-            bool readTensor(TensorView<Scalar, Layout> &output,
+            bool read(TensorView<Scalar, Layout> &output,
                             int row = 0, int col = 0); // copies
             // underlying shared tensor data to the output Map
 

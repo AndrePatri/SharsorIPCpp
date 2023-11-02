@@ -46,7 +46,7 @@ To compile python bindings you'll need:
 
 If employed properly, the library is also designed to be rt-safe (in C++):
 - Dynamic allocations are reduced to the bare minimum.
-- Run-time semaphore acquisitions (used by `writeTensor` and `readTensor`) are designed to be non-blocking and rt-safe. It is then user's responsibility to handle, if necessary, possible write/read failures due to semaphore acquisition.
+- Run-time semaphore acquisitions (used by `write` and `read`) are designed to be non-blocking and rt-safe. It is then user's responsibility to handle, if necessary, possible write/read failures due to semaphore acquisition.
 - Calls to `run()/attach()` and `stop()` are not guaranteed to be rt-friendly. For rt applications, these calls should only be done during initialization/closing steps or, at run-time, sporadically.
 - As of now, the logging utility `Journal` is not guaranteed to be rt-friendly. It is very useful for debugging purposes but, if working with rt-code, it is strongly recommended to set the verbosity level to `VLevel::V0` (which prints only exceptions) or to disable logging altogether with `verbose = false`.
 
@@ -61,7 +61,7 @@ ToDo:
 - [x] Benchmark Client/ServerWrapper approach wrt bare bindings. How much perf overhead?
 - [x] bind PyClient and PyServer
 - [ ] clean StringTensor bindings with and remove pythonic read and write methods
-- [ ] Move from writeTensor and readTensor to more concise write and read methods 
+- [ ] Move from write and read to more concise write and read methods 
 - [ ] add python unit tests for the bindings (performance and consistency checks)
 - [ ] make read and write methods of string tensor more efficient (multithreaded encoding?)
 - [x] make all gtests types (dtype and layout)

@@ -113,7 +113,7 @@ namespace SharsorIPCpp {
         // ordered evaluation)
 
         return isRunning() &&
-               _sh_mem.readTensor(_buffer.block(0, col_index,
+               _sh_mem.read(_buffer.block(0, col_index,
                                                 _n_rows, vec.size()), 0, col_index) && // just update the block
                _decode_vec(vec, col_index);
 
@@ -127,7 +127,7 @@ namespace SharsorIPCpp {
         if (!isRunning() ||
             col_index < 0 ||
             col_index >= _length ||
-            !_sh_mem.readTensor(_buffer.block(0, col_index,
+            !_sh_mem.read(_buffer.block(0, col_index,
                                               _n_rows, 1), 0, col_index) // just update the right column
                                 ) {
 
@@ -147,7 +147,7 @@ namespace SharsorIPCpp {
 
         return isRunning() &&
                _encode_vec(vec, col_index) &&
-               _sh_mem.writeTensor(_buffer.block(0, col_index,
+               _sh_mem.write(_buffer.block(0, col_index,
                                                   _n_rows, vec.size()),
                                     0, col_index);
 
@@ -166,7 +166,7 @@ namespace SharsorIPCpp {
 
         _encode_str(str, col_index);
 
-        return  _sh_mem.writeTensor(_buffer.block(0, col_index,
+        return  _sh_mem.write(_buffer.block(0, col_index,
                                                   _n_rows, 1),
                                     0, col_index);
 

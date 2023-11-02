@@ -112,14 +112,14 @@ TYPED_TEST_P(PerfTest, WriteReadBenchmark) {
 
         // we measure the time to write it on the memory
         auto startWrite = std::chrono::high_resolution_clock::now();
-        this->server_ptr->writeTensor(myData);
+        this->server_ptr->write(myData);
         auto endWrite = std::chrono::high_resolution_clock::now();
         double writeTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endWrite - startWrite).count();
         writeTimes.push_back(writeTime);
 
         // we measure the time to read a copy of the tensor
         auto startRead = std::chrono::high_resolution_clock::now();
-        this->server_ptr->readTensor(this->tensor_copy, 0, 0);
+        this->server_ptr->read(this->tensor_copy, 0, 0);
         auto endRead = std::chrono::high_resolution_clock::now();
         double readTime = std::chrono::duration_cast<std::chrono::nanoseconds>(endRead - startRead).count();
         readTimes.push_back(readTime);

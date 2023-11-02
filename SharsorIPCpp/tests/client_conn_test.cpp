@@ -76,10 +76,10 @@ protected:
 
     void readData() {
 
-        client_ptr->readTensor(tensor_block_copy,
+        client_ptr->read(tensor_block_copy,
                                1, 1);
 
-        client_ptr->readTensor(tensor_copy.block(1, 1,
+        client_ptr->read(tensor_copy.block(1, 1,
                                                  rows - 2, cols - 2),
                                1, 1); // only update block
 

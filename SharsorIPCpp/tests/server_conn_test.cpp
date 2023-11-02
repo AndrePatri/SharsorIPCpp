@@ -86,10 +86,10 @@ protected:
       std::cout << myData << std::endl;
 
       // writing only a block
-      server_ptr->writeTensor(myData,
+      server_ptr->write(myData,
                               1, 1);
 
-      server_ptr->readTensor(myDataFull);
+      server_ptr->read(myDataFull);
 
       std::cout << "Full tensor:" << std::endl;
       std::cout << myDataFull << std::endl;
@@ -155,10 +155,10 @@ protected:
       std::cout << myData << std::endl;
 
       // writing only a block
-      server_ptr->writeTensor(myData,
+      server_ptr->write(myData,
                               0, 0);
 
-      server_ptr->readTensor(myDataFull);
+      server_ptr->read(myDataFull);
 
       std::cout << "Full tensor:" << std::endl;
       std::cout << myDataFull << std::endl;
