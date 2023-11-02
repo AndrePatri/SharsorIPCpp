@@ -7,13 +7,13 @@ from SharsorIPCpp.PySharsorIPC import *
 
 namespace = "PerfTests"
 
-N_ITERATIONS = 100000;
-N_ITERATIONS_STR = 100000;
+N_ITERATIONS = 100000
+N_ITERATIONS_STR = 100000
 
 N_ROWS = 100
 N_COLS = 60
 
-STR_TENSOR_LENGTH = 100;
+STR_TENSOR_LENGTH = 100
 
 class PerfThresholds():
 
@@ -23,30 +23,30 @@ class PerfThresholds():
         # [us] - microseconds
         if dtype == dtype.Bool:
 
-            self.READ_T_MAX_THRESH = 50
+            self.READ_T_MAX_THRESH = 20
             self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 50
+            self.READ_T_AVRG_THRESH = 20
             self.WRITE_T_AVRG_THRESH = 1000
 
         if dtype == dtype.Int:
 
-            self.READ_T_MAX_THRESH = 50
+            self.READ_T_MAX_THRESH = 20
             self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 50
+            self.READ_T_AVRG_THRESH = 20
             self.WRITE_T_AVRG_THRESH = 1000
 
         if dtype == dtype.Float:
 
-            self.READ_T_MAX_THRESH = 50
+            self.READ_T_MAX_THRESH = 20
             self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 50
+            self.READ_T_AVRG_THRESH = 20
             self.WRITE_T_AVRG_THRESH = 1000
 
         if dtype == dtype.Double:
 
-            self.READ_T_MAX_THRESH = 50
+            self.READ_T_MAX_THRESH = 20
             self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 50
+            self.READ_T_AVRG_THRESH = 20
             self.WRITE_T_AVRG_THRESH = 1000
 
 class TestPerfBenchBase(unittest.TestCase):
@@ -192,32 +192,68 @@ class TestPerfBenchBoolColMaj(TestPerfBenchBase):
 
         self.readAndWrite()
 
-#class TestPerfBenchIntColMaj(TestPerfBenchBase):
+class TestPerfBenchIntColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Int
-#    layout = ColMajor
+    data_type = dtype.Int
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.readAndWrite()
+        self.readAndWrite()
 
-#class TestPerfBenchFloatColMaj(TestPerfBenchBase):
+class TestPerfBenchFloatColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Float
-#    layout = ColMajor
+    data_type = dtype.Float
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.readAndWrite()
+        self.readAndWrite()
 
-#class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
+class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Double
-#    layout = ColMajor
+    data_type = dtype.Double
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.readAndWrite()
+        self.readAndWrite()
+
+class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
+
+    data_type = dtype.Bool
+    layout = RowMajor
+
+    def test_write_read(self):
+
+        self.readAndWrite()
+
+class TestPerfBenchIntRowMaj(TestPerfBenchBase):
+
+    data_type = dtype.Int
+    layout = RowMajor
+
+    def test_write_read(self):
+
+        self.readAndWrite()
+
+class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
+
+    data_type = dtype.Float
+    layout = RowMajor
+
+    def test_write_read(self):
+
+        self.readAndWrite()
+
+class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
+
+    data_type = dtype.Double
+    layout = RowMajor
+
+    def test_write_read(self):
+
+        self.readAndWrite()
 
 if __name__ == "__main__":
 
