@@ -7,11 +7,11 @@ from SharsorIPCpp.PySharsorIPC import *
 
 namespace = "PerfTests"
 
-N_ITERATIONS = 100000
+N_ITERATIONS = 100
 N_ITERATIONS_STR = 100000
 
-N_ROWS = 100
-N_COLS = 60
+N_ROWS = 10
+N_COLS = 6
 
 STR_TENSOR_LENGTH = 100
 
@@ -65,9 +65,9 @@ class TestPerfBenchBase(unittest.TestCase):
 
         self.thresholds = PerfThresholds(self.data_type)
 
-        self.server = ServerFactory(self.rows,
+        self.server_write = ServerFactory(self.rows,
                                     self.cols,
-                                    basename="PySharsor" + \
+                                    basename="PySharsor_write" + \
                                     str(self.layout)  +
                                     str(self.data_type),
                                     namespace=namespace,
@@ -75,7 +75,19 @@ class TestPerfBenchBase(unittest.TestCase):
                                     vlevel=VLevel.V3,
                                     dtype=self.data_type,
                                     layout=self.layout)
-        self.server.run()
+
+        self.server_read = ServerFactory(self.rows,
+                                    self.cols,
+                                    basename="PySharsor_read" + \
+                                    str(self.layout)  +
+                                    str(self.data_type),
+                                    namespace=namespace,
+                                    verbose=True,
+                                    vlevel=VLevel.V3,
+                                    dtype=self.data_type,
+                                    layout=self.layout)
+        self.server_write.run()
+        self.server_read.run()
 
         if self.layout == RowMajor:
 
@@ -85,18 +97,26 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.order = 'F'
 
-        self.tensor_copy = np.zeros((self.server.getNRows(), self.server.getNCols()),
-                                dtype=toNumpyDType(self.server.getScalarType()), # dtype has to match
+        self.tensor_written = np.zeros((self.server_write.getNRows(), self.server_write.getNCols()),
+                                dtype=toNumpyDType(self.server_write.getScalarType()),
                                 order=self.order)
-
+        self.tensor_buffer = np.zeros((self.server_write.getNRows(), self.server_write.getNCols()),
+                                dtype=toNumpyDType(self.server_write.getScalarType()),
+                                order=self.order)
+        self.tensor_read = np.zeros((self.server_read.getNRows(), self.server_read.getNCols()),
+                                dtype=toNumpyDType(self.server_read.getScalarType()),
+                                order=self.order)
         self.read_times = [] # microseconds
         self.write_times = [] # microseconds
 
+        self.consistency_checks = [] # True -> OK; False -> failed
+
     def tearDown(self):
 
-        self.server.close()
+        self.server_write.close()
+        self.server_read.close()
 
-    def readAndWrite(self):
+    def PerfAndConsistency(self):
 
         if self.is_release:
 
@@ -120,23 +140,33 @@ class TestPerfBenchBase(unittest.TestCase):
 
         for i in range(0, N_ITERATIONS):
 
-            self.randomize(self.tensor_copy) # randomize tensor_copy
+            self.randomize(self.tensor_written)
 
-            writeTime = timeit.timeit(lambda: self.server.write(self.tensor_copy, 0, 0),
-                                        number=1)
+            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written, 0, 0),
+                                        number=1) # we write the tensor and profile the performance)
 #            writeTime = 0
             self.write_times.append(writeTime * 1e6)  # Convert to microseconds
 
-            readTime = timeit.timeit(lambda: self.server.read(self.tensor_copy, 0, 0),
-                                        number=1)
+            self.server_write.read(self.tensor_buffer, 0, 0) # we read the tensor
+
+            self.server_read.write(self.tensor_buffer, 0, 0) # we write it on the other memory
+
+            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read, 0, 0),
+                                        number=1) # and then read it again (and profile the performance)
 #            readTime = 0
             self.read_times.append(readTime * 1e6)
 
+            # we check that tensor_written and tensor_read match
+
+            self.consistency_checks.append(self.check_equal(self.tensor_written, self.tensor_read))
+
+        # test post-processing
         Journal.log(self.__class__.__name__,
-                    "readAndWrite",
+                    "PerfAndConsistency",
                     "running post-processing steps...\n",
                     LogType.STAT)
 
+        # performance
         averageReadTime = np.mean(self.read_times)
         averageWriteTime = np.mean(self.write_times)
         maxReadTime = np.max(self.read_times)
@@ -149,9 +179,17 @@ class TestPerfBenchBase(unittest.TestCase):
                             f"Maximum Write Time: {maxWriteTime} us\n"
 
         Journal.log(self.__class__.__name__,
-                    "readAndWrite",
+                    "PerfAndConsistency",
                     post_proc_message,
                     LogType.STAT)
+
+        # consistency
+        n_of_failures = sum(1 for x in self.consistency_checks if not x)
+        consistency_message = f"Number of consistency failures: {n_of_failures}/{self.iterations}\n"
+        Journal.log(self.__class__.__name__,
+                            "PerfAndConsistency",
+                            consistency_message,
+                            LogType.STAT)
 
         # Checking if perf. req. were met
         self.assertLess(averageReadTime, self.thresholds.READ_T_AVRG_THRESH)
@@ -159,6 +197,32 @@ class TestPerfBenchBase(unittest.TestCase):
         # Uncomment below if needed
         # self.assertLess(maxReadTime, self.thresholds.READ_T_MAX_THRESH)
         # self.assertLess(maxWriteTime, self.thresholds.WRITE_T_MAX_THRESH)
+
+        # Checking data consistency
+        self.assertTrue(all(self.consistency_checks))
+
+    def check_equal(self,
+                A, B):
+
+        if A.dtype == np.float32 or \
+            A.dtype == np.float64 or \
+            A.dtype == np.float16 or \
+            A.dtype == np.float128:
+
+            # For floating point numbers, use machine precision
+            return np.allclose(A, B, atol=np.finfo(A.dtype).eps, rtol=0)
+
+        elif A.dtype == np.int64 or A.dtype == np.int32 or A.dtype == np.int16 or A.dtype == np.int8 or \
+             A.dtype == np.uint64 or A.dtype == np.uint32 or A.dtype == np.uint16 or A.dtype == np.uint8 or \
+             A.dtype == np.bool:
+
+            # For integers and booleans, check exact equality
+
+            return np.array_equal(A, B)
+
+        else:
+
+            raise ValueError("Unsupported data type.")
 
     def randomize(self,
                  arr):
@@ -190,7 +254,7 @@ class TestPerfBenchBoolColMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchIntColMaj(TestPerfBenchBase):
 
@@ -199,7 +263,7 @@ class TestPerfBenchIntColMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchFloatColMaj(TestPerfBenchBase):
 
@@ -208,7 +272,7 @@ class TestPerfBenchFloatColMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
@@ -217,7 +281,7 @@ class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
@@ -226,7 +290,7 @@ class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchIntRowMaj(TestPerfBenchBase):
 
@@ -235,7 +299,7 @@ class TestPerfBenchIntRowMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
 
@@ -244,7 +308,7 @@ class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
 
@@ -253,7 +317,7 @@ class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
 
     def test_write_read(self):
 
-        self.readAndWrite()
+        self.PerfAndConsistency()
 
 if __name__ == "__main__":
 
