@@ -25,6 +25,7 @@ namespace PySharsorIPC{
                             std::string name_space = "",
                             bool verbose = false,
                             VLevel vlevel = VLevel::V0,
+                            bool force_reconnection = false,
                             SharsorIPCpp::DType dtype = SharsorIPCpp::DType::Float,
                             int layout = SharsorIPCpp::ColMajor);
 

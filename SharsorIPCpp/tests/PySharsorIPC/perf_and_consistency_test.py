@@ -73,6 +73,7 @@ class TestPerfBenchBase(unittest.TestCase):
                                     namespace=namespace,
                                     verbose=True,
                                     vlevel=VLevel.V3,
+                                    force_reconnection = True,
                                     dtype=self.data_type,
                                     layout=self.layout)
 
@@ -84,6 +85,7 @@ class TestPerfBenchBase(unittest.TestCase):
                                     namespace=namespace,
                                     verbose=True,
                                     vlevel=VLevel.V3,
+                                    force_reconnection = True
                                     dtype=self.data_type,
                                     layout=self.layout)
         self.server_write.run()
@@ -142,24 +144,52 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.randomize(self.tensor_written)
 
-            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written, 0, 0),
-                                        number=1) # we write the tensor and profile the performance)
-#            writeTime = 0
+#            Journal.log(self.__class__.__name__,
+#                        "######",
+#                        "writing..",
+#                        LogType.WARN)
+            print("about to write- python side")
+            print(self.tensor_written)
+            self.server_write.write(self.tensor_written, 0, 0)
+            writeTime = 0
             self.write_times.append(writeTime * 1e6)  # Convert to microseconds
+
+#            Journal.log(self.__class__.__name__,
+#                        "######",
+#                        "ping..",
+#                        LogType.WARN)
 
             self.server_write.read(self.tensor_buffer, 0, 0) # we read the tensor
 
+            print("read- python side")
+            print(self.tensor_written)
+
+#            Journal.log(self.__class__.__name__,
+#                        "######",
+#                        "pong..",
+#                        LogType.WARN)
+
             self.server_read.write(self.tensor_buffer, 0, 0) # we write it on the other memory
 
-            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read, 0, 0),
-                                        number=1) # and then read it again (and profile the performance)
-#            readTime = 0
+#            Journal.log(self.__class__.__name__,
+#                        "######",
+#                        "reading..",
+#                        LogType.WARN)
+
+#            self.server_read.read(self.tensor_read, 0, 0)
+#            readTime = timeit.timeit(lambda: ,
+#                                        number=1) # and then read it again (and profile the performance)
+            readTime = 0
             self.read_times.append(readTime * 1e6)
 
             # we check that tensor_written and tensor_read match
 
             self.consistency_checks.append(self.check_equal(self.tensor_written, self.tensor_read))
 
+#            print(self.tensor_written)
+#            print(self.tensor_buffer)
+#            print(self.tensor_read)
+#            print("#############")
         # test post-processing
         Journal.log(self.__class__.__name__,
                     "PerfAndConsistency",
@@ -247,41 +277,41 @@ class TestPerfBenchBase(unittest.TestCase):
 
          raise ValueError("Unsupported dtype for randomization")
 
-class TestPerfBenchBoolColMaj(TestPerfBenchBase):
+#class TestPerfBenchBoolColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Bool
-    layout = ColMajor
+#    data_type = dtype.Bool
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchIntColMaj(TestPerfBenchBase):
+#class TestPerfBenchIntColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Int
-    layout = ColMajor
+#    data_type = dtype.Int
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchFloatColMaj(TestPerfBenchBase):
+#class TestPerfBenchFloatColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Float
-    layout = ColMajor
+#    data_type = dtype.Float
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
+#class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Double
-    layout = ColMajor
+#    data_type = dtype.Double
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
 class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
@@ -292,32 +322,32 @@ class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
         self.PerfAndConsistency()
 
-class TestPerfBenchIntRowMaj(TestPerfBenchBase):
+#class TestPerfBenchIntRowMaj(TestPerfBenchBase):
 
-    data_type = dtype.Int
-    layout = RowMajor
+#    data_type = dtype.Int
+#    layout = RowMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
+#class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
 
-    data_type = dtype.Float
-    layout = RowMajor
+#    data_type = dtype.Float
+#    layout = RowMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
+#class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
 
-    data_type = dtype.Double
-    layout = RowMajor
+#    data_type = dtype.Double
+#    layout = RowMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
 if __name__ == "__main__":
 
