@@ -36,7 +36,6 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
                                           arr.shape(1),
                                           strides);
 
-            std::cout << "About to write: " << output_t << std::endl;
             success = self.write(output_t,
                                       row, col);
 
@@ -72,8 +71,6 @@ void PySharsorIPC::bindServerT(pybind11::module &m, const char* name) {
 
             success = self.read(output_t,
                                       row, col);
-
-            std::cout << "Just read: " << output_t << std::endl;
 
             return success;
 
