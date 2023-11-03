@@ -23,8 +23,22 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
 
             auto np_strides = arr.strides();
 
-            SharsorIPCpp::DStrides strides(np_strides[0] / sizeof(Scalar),
-                                           np_strides[1] / sizeof(Scalar));
+            // Check strides to determine storage order
+            bool isRowMajor = np_strides[0] > np_strides[1];
+
+            SharsorIPCpp::DStrides strides;
+
+            if (isRowMajor) {
+
+                strides = SharsorIPCpp::DStrides(np_strides[0] / sizeof(Scalar),
+                                                np_strides[1] / sizeof(Scalar));
+            }
+
+            if (!isRowMajor) {
+
+                strides = SharsorIPCpp::DStrides(np_strides[1] / sizeof(Scalar),
+                                                np_strides[0] / sizeof(Scalar));
+            }
 
             // Ensure the numpy array is mutable and get a pointer to its data
             pybind11::buffer_info buf_info = arr.request();
@@ -56,8 +70,22 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
 
             auto np_strides = arr.strides();
 
-            SharsorIPCpp::DStrides strides(np_strides[0] / sizeof(Scalar),
-                                           np_strides[1] / sizeof(Scalar));
+            // Check strides to determine storage order
+            bool isRowMajor = np_strides[0] > np_strides[1];
+
+            SharsorIPCpp::DStrides strides;
+
+            if (isRowMajor) {
+
+                strides = SharsorIPCpp::DStrides(np_strides[0] / sizeof(Scalar),
+                                                np_strides[1] / sizeof(Scalar));
+            }
+
+            if (!isRowMajor) {
+
+                strides = SharsorIPCpp::DStrides(np_strides[1] / sizeof(Scalar),
+                                                np_strides[0] / sizeof(Scalar));
+            }
 
             // Ensure the numpy array is mutable and get a pointer to its data
             pybind11::buffer_info buf_info = arr.request();

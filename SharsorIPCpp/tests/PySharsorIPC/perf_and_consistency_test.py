@@ -10,8 +10,8 @@ namespace = "PerfTests"
 N_ITERATIONS = 100000
 N_ITERATIONS_STR = 100000
 
-N_ROWS = 10
-N_COLS = 6
+N_ROWS = 100
+N_COLS = 60
 
 STR_TENSOR_LENGTH = 100
 
@@ -276,46 +276,19 @@ class TestPerfBenchBase(unittest.TestCase):
 
          raise ValueError("Unsupported dtype for randomization")
 
-#class TestPerfBenchBoolColMaj(TestPerfBenchBase):
-
-#    data_type = dtype.Bool
-#    layout = ColMajor
-
-#    def test_write_read(self):
-
-#        self.PerfAndConsistency()
-
-#class TestPerfBenchIntColMaj(TestPerfBenchBase):
-
-#    data_type = dtype.Int
-#    layout = ColMajor
-
-#    def test_write_read(self):
-
-#        self.PerfAndConsistency()
-
-#class TestPerfBenchFloatColMaj(TestPerfBenchBase):
-
-#    data_type = dtype.Float
-#    layout = ColMajor
-
-#    def test_write_read(self):
-
-#        self.PerfAndConsistency()
-
-#class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
-
-#    data_type = dtype.Double
-#    layout = ColMajor
-
-#    def test_write_read(self):
-
-#        self.PerfAndConsistency()
-
 class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
     data_type = dtype.Bool
     layout = RowMajor
+
+    def test_write_read(self):
+
+        self.PerfAndConsistency()
+
+class TestPerfBenchBoolColMaj(TestPerfBenchBase):
+
+    data_type = dtype.Bool
+    layout = ColMajor
 
     def test_write_read(self):
 
@@ -347,6 +320,34 @@ class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
     def test_write_read(self):
 
         self.PerfAndConsistency()
+
+class TestPerfBenchIntColMaj(TestPerfBenchBase):
+
+    data_type = dtype.Int
+    layout = ColMajor
+
+    def test_write_read(self):
+
+        self.PerfAndConsistency()
+
+class TestPerfBenchFloatColMaj(TestPerfBenchBase):
+
+    data_type = dtype.Float
+    layout = ColMajor
+
+    def test_write_read(self):
+
+        self.PerfAndConsistency()
+
+class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
+
+    data_type = dtype.Double
+    layout = ColMajor
+
+    def test_write_read(self):
+
+        self.PerfAndConsistency()
+
 
 if __name__ == "__main__":
 
