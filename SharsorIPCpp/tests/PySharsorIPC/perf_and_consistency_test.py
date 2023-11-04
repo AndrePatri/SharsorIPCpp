@@ -93,11 +93,11 @@ class TestPerfBenchBase(unittest.TestCase):
 
         if self.layout == RowMajor:
 
-            self.order = 'C'
+            self.order = 'C' # 'C'
 
         if self.layout == ColMajor:
 
-            self.order = 'F'
+            self.order = 'F' # 'F'
 
         self.tensor_written = np.zeros((self.server_write.getNRows(), self.server_write.getNCols()),
                                 dtype=toNumpyDType(self.server_write.getScalarType()),
@@ -144,51 +144,21 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.randomize(self.tensor_written)
 
-#            Journal.log(self.__class__.__name__,
-#                        "######",
-#                        "writing..",
-#                        LogType.WARN)
-#            print("about to write- python side")
-#            print(self.tensor_written)
             writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written, 0, 0),
                                                     number=1) # we write the tensor and profile the performance)
             self.write_times.append(writeTime * 1e6)  # Convert to microseconds
 
-#            Journal.log(self.__class__.__name__,
-#                        "######",
-#                        "ping..",
-#                        LogType.WARN)
-
             self.server_write.read(self.tensor_buffer, 0, 0) # we read the tensor
 
-#            print("read- python side")
-#            print(self.tensor_written)
-
-#            Journal.log(self.__class__.__name__,
-#                        "######",
-#                        "pong..",
-#                        LogType.WARN)
-
             self.server_read.write(self.tensor_buffer, 0, 0) # we write it on the other memory
-
-#            Journal.log(self.__class__.__name__,
-#                        "######",
-#                        "reading..",
-#                        LogType.WARN)
 
             readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read, 0, 0),
                                                     number=1) # and then read it again (and profile the performance)
             self.read_times.append(readTime * 1e6)
 
             # we check that tensor_written and tensor_read match
-
-#            print("Checkkkk:" + str(self.check_equal(self.tensor_written, self.tensor_read)))
             self.consistency_checks.append(self.check_equal(self.tensor_written, self.tensor_read))
 
-#            print(self.tensor_written)
-#            print(self.tensor_buffer)
-#            print(self.tensor_read)
-#            print("#############")
         # test post-processing
         Journal.log(self.__class__.__name__,
                     "PerfAndConsistency",

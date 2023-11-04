@@ -11,99 +11,196 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
 
         .def(pybind11::init<std::string, std::string, bool, SharsorIPCpp::VLevel>())
 
-        .def("write", [](SharsorIPCpp::Client<Scalar, Layout>& self,
-                       PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col) {
+            .def("write", [](SharsorIPCpp::Client<Scalar, Layout>& self,
+                           PySharsorIPC::NumpyArray<Scalar>& arr,
+                           int row, int col) {
 
-            // runtime argument type checks are run the Wrapper
+                // runtime argument type checks are run the Wrapper
 
-            // we get the strides directly from the array
-            // (since we use the strides, we don't care if it's rowmajor
-            // or colmajor, the read will handle it smoothly)
+                // we get the strides directly from the array
+                // (since we use the strides, we don't care if it's rowmajor
+                // or colmajor, the read will handle it smoothly)
 
-            auto np_strides = arr.strides();
+                auto np_strides = arr.strides();
 
-            // Check strides to determine storage order
-            bool isRowMajor = np_strides[0] > np_strides[1];
+                bool success = false;
 
-            SharsorIPCpp::DStrides strides;
+                // (not the cleanest if cascade possible,
+                // but efficient)
 
-            if (isRowMajor) {
+                if ((Layout == SharsorIPCpp::RowMajor) &&
+                        (np_strides[0] > np_strides[1]) ) { // coherent -> compute strides
 
-                strides = SharsorIPCpp::DStrides(np_strides[0] / sizeof(Scalar),
-                                                np_strides[1] / sizeof(Scalar));
-            }
+                    SharsorIPCpp::DStrides strides;
 
-            if (!isRowMajor) {
+                    strides = SharsorIPCpp::DStrides(np_strides[0] / sizeof(Scalar),
+                                                    np_strides[1] / sizeof(Scalar));
 
-                strides = SharsorIPCpp::DStrides(np_strides[1] / sizeof(Scalar),
-                                                np_strides[0] / sizeof(Scalar));
-            }
+                    // Ensure the numpy array is mutable and get a pointer to its data
+                    pybind11::buffer_info buf_info = arr.request();
 
-            // Ensure the numpy array is mutable and get a pointer to its data
-            pybind11::buffer_info buf_info = arr.request();
+                    Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
+                    SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
+                                                  arr.shape(0),
+                                                  arr.shape(1),
+                                                  strides);
 
-            bool success = false;
+                    success = self.write(output_t,
+                                              row, col);
 
-            Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
-            SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
-                                          arr.shape(0),
-                                          arr.shape(1),
-                                          strides);
+                    return success;
 
-            success = self.write(output_t,
-                                      row, col);
+                }
+                if ((Layout == SharsorIPCpp::RowMajor) &&
+                        !(np_strides[0] > np_strides[1]) ) { // not coherent -> stop
 
-            return success;
+                    // print non-blocking exception for the user
+                    std::string message = std::string("Expected np array of layout RowMajor, but got ") +
+                            std::string("ColMajor. Client and array layout must match!");
 
-        })
+                    SharsorIPCpp::Journal::log("PyClient",
+                                "write",
+                                message,
+                                SharsorIPCpp::LogType::EXCEP);
 
-        .def("read", [](SharsorIPCpp::Client<Scalar, Layout>& self,
-                       PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col) {
+                    return false;
+                }
+                if (!(Layout == SharsorIPCpp::RowMajor) &&
+                        !(np_strides[0] > np_strides[1]) ) { // coherent -> compute strides
 
-            // runtime argument type checks are run the Wrapper
+                    SharsorIPCpp::DStrides strides;
 
-            // we get the strides directly from the array
-            // (since we use the strides, we don't care if it's rowmajor
-            // or colmajor, the read will handle it smoothly)
+                    strides = SharsorIPCpp::DStrides(np_strides[1] / sizeof(Scalar),
+                                                    np_strides[0] / sizeof(Scalar));
 
-            auto np_strides = arr.strides();
+                    // Ensure the numpy array is mutable and get a pointer to its data
+                    pybind11::buffer_info buf_info = arr.request();
 
-            // Check strides to determine storage order
-            bool isRowMajor = np_strides[0] > np_strides[1];
+                    Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
+                    SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
+                                                  arr.shape(0),
+                                                  arr.shape(1),
+                                                  strides);
 
-            SharsorIPCpp::DStrides strides;
+                    success = self.write(output_t,
+                                              row, col);
 
-            if (isRowMajor) {
+                    return success;
 
-                strides = SharsorIPCpp::DStrides(np_strides[0] / sizeof(Scalar),
-                                                np_strides[1] / sizeof(Scalar));
-            }
+                }
+                if (!(Layout == SharsorIPCpp::RowMajor) &&
+                        (np_strides[0] > np_strides[1]) ) { // not coherent -> stop
 
-            if (!isRowMajor) {
+                    // print non-blocking exception for the user
+                    std::string message = std::string("Expected np array of layout ColMajor, but got ") +
+                            std::string("RowMajor. Client and array layout must match!");
 
-                strides = SharsorIPCpp::DStrides(np_strides[1] / sizeof(Scalar),
-                                                np_strides[0] / sizeof(Scalar));
-            }
+                    SharsorIPCpp::Journal::log("PyClient",
+                                "write",
+                                message,
+                                SharsorIPCpp::LogType::EXCEP);
 
-            // Ensure the numpy array is mutable and get a pointer to its data
-            pybind11::buffer_info buf_info = arr.request();
+                    return false;
+                }
 
-            bool success = false;
+                return false; // code never reaches this
+            })
 
-            Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
-            SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
-                                          arr.shape(0),
-                                          arr.shape(1),
-                                          strides);
+            .def("read", [](SharsorIPCpp::Client<Scalar, Layout>& self,
+                           PySharsorIPC::NumpyArray<Scalar>& arr,
+                           int row, int col) {
 
-            success = self.read(output_t,
-                                      row, col);
+                // runtime argument type checks are run the Wrapper
 
-            return success;
+                // we get the strides directly from the array
+                // (since we use the strides, we don't care if it's rowmajor
+                // or colmajor, the read will handle it smoothly)
 
-        })
+                auto np_strides = arr.strides();
+
+                bool success = false;
+
+                // (not the cleanest if cascade possible,
+                // but efficient)
+
+                if ((Layout == SharsorIPCpp::RowMajor) &&
+                        (np_strides[0] > np_strides[1]) ) { // coherent -> compute strides
+
+                    SharsorIPCpp::DStrides strides;
+
+                    strides = SharsorIPCpp::DStrides(np_strides[0] / sizeof(Scalar),
+                                                    np_strides[1] / sizeof(Scalar));
+
+                    // Ensure the numpy array is mutable and get a pointer to its data
+                    pybind11::buffer_info buf_info = arr.request();
+
+                    Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
+                    SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
+                                                  arr.shape(0),
+                                                  arr.shape(1),
+                                                  strides);
+
+                    success = self.read(output_t,
+                                              row, col);
+
+                    return success;
+
+                }
+                if ((Layout == SharsorIPCpp::RowMajor) &&
+                        !(np_strides[0] > np_strides[1]) ) { // not coherent -> stop
+
+                    // print non-blocking exception for the user
+                    std::string message = std::string("Expected np array of layout RowMajor, but got ") +
+                            std::string("ColMajor. Client and array layout must match!");
+
+                    SharsorIPCpp::Journal::log("PyClient",
+                                "read",
+                                message,
+                                SharsorIPCpp::LogType::EXCEP);
+
+                    return false;
+                }
+                if (!(Layout == SharsorIPCpp::RowMajor) &&
+                        !(np_strides[0] > np_strides[1]) ) { // coherent -> compute strides
+
+                    SharsorIPCpp::DStrides strides;
+
+                    strides = SharsorIPCpp::DStrides(np_strides[1] / sizeof(Scalar),
+                                                    np_strides[0] / sizeof(Scalar));
+
+                    // Ensure the numpy array is mutable and get a pointer to its data
+                    pybind11::buffer_info buf_info = arr.request();
+
+                    Scalar* start_ptr = static_cast<Scalar*>(buf_info.ptr);
+                    SharsorIPCpp::TensorView<Scalar, Layout> output_t(start_ptr,
+                                                  arr.shape(0),
+                                                  arr.shape(1),
+                                                  strides);
+
+                    success = self.read(output_t,
+                                              row, col);
+
+                    return success;
+
+                }
+                if (!(Layout == SharsorIPCpp::RowMajor) &&
+                        (np_strides[0] > np_strides[1]) ) { // not coherent -> stop
+
+                    // print non-blocking exception for the user
+                    std::string message = std::string("Expected np array of layout ColMajor, but got ") +
+                            std::string("RowMajor. Client and array layout must match!");
+
+                    SharsorIPCpp::Journal::log("PyClient",
+                                "read",
+                                message,
+                                SharsorIPCpp::LogType::EXCEP);
+
+                    return false;
+                }
+
+                return false; // code never reaches this
+
+            })
 
         .def("attach", &SharsorIPCpp::Client<Scalar, Layout>::attach)
 
