@@ -1,12 +1,8 @@
-<center>
-
-### SharsorIPCpp 
-
-<img src="https://img.shields.io/badge/License-GPLv2-purple.svg" alt="License">
-<img src="https://img.shields.io/badge/Docs-WIP-yellow" alt="Docs">
-</center>
+<h2 align="center"> <img src="https://img.shields.io/badge/License-GPLv2-purple.svg" alt="License"> SharsorIPCpp <img src="https://img.shields.io/badge/Docs-WIP-yellow" alt="Docs">
 
 ![icon.svg](docs/sphinx/source/_static/icon.svg)
+
+</center></h2>
 
 <!-- ![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only) -->
 Rt-friendly **shared tensors** built on top of **POSIX IPC** standards and [**Eigen**](https://eigen.tuxfamily.org/index.php?title=Main_Page) library, also shipped with Python bindings and [**NumPy**](https://numpy.org/) support.
