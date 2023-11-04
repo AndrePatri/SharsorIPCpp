@@ -1,13 +1,9 @@
-name: "Focal CI Build (dev)"
+name: "Focal CI Build"
 
 on:
   schedule:
     - cron: '0 2 * * *' # trigger build at 2 a.m.
-      branches:
-          - devel
   workflow_dispatch: # or upon user request
-    branches:
-        - devel
 
 jobs:
   build:
@@ -20,12 +16,14 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    # Only run on devel
-    if: (github.ref == 'refs/heads/devel' && github.event_name == 'schedule') || (github.ref == 'refs/heads/devel' && github.event_name == 'workflow_dispatch')
+    # Only run on main
+    # if: (github.ref == 'refs/heads/main' && github.event_name == 'schedule') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch')
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      with:
+        ref: main
 
     - name: Set up environment
       run: |

@@ -1,13 +1,9 @@
-name: "Focal CI Build"
+name: "Jammy CI Build"
 
 on:
   schedule:
     - cron: '0 2 * * *' # trigger build at 2 a.m.
-    branches:
-      - main
   workflow_dispatch: # or upon user request
-    branches:
-      - main
 
 jobs:
   build:
@@ -15,17 +11,19 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
-        dist: [focal]
+        dist: [jammy]
         compiler: [g++]
 
     runs-on: ${{ matrix.os }}
 
     # Only run on main
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'schedule') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch')
+    # if: (github.ref == 'refs/heads/main' && github.event_name == 'schedule') || (github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch')
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      with:
+        ref: main
 
     - name: Set up environment
       run: |
