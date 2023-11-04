@@ -42,9 +42,21 @@ execute_process(
 )
 
 # copying pybinds tests to build folder
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC/
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC
-    FILES_MATCHING PATTERN "*.py")
+add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC"
+            "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
+    COMMENT "Copying PySharsorIPC python unittests directory to build folder"
+)
+# Create a custom target that depends on the copied directory
+add_custom_target(copy_pysharsoripc ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
+)
+
+# install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC/
+#     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC
+#     FILES_MATCHING PATTERN "*.py")
 
 gtest_discover_tests(read_write_bench)
 #gtest_discover_tests(consistency_checks_srvr)
