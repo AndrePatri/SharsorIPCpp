@@ -2,7 +2,7 @@
 
 ![icon.svg](docs/sphinx/source/_static/icon.svg)
 
-</center></h2>
+</h2>
 
 <!-- ![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only) -->
 Rt-friendly **shared tensors** built on top of **POSIX IPC** standards and [**Eigen**](https://eigen.tuxfamily.org/index.php?title=Main_Page) library, also shipped with Python bindings and [**NumPy**](https://numpy.org/) support.
@@ -18,10 +18,14 @@ The library is also **fully binded** in Python, codename `PySharsorIPC`, and all
 For more details on what SharsorIPCpp offers, usage examples, performance benchmarks and so on and so forth, please have a look at the [documentation](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html) (WIP).
 
 Continous integration status:
+<center>
+
 | *main* | *devel* |
 |----------|----------|
 | <img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/focal_CI_build_main.yml/badge.svg" alt="Focal CI">  | <img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/focal_CI_build_devel.yml/badge.svg" alt="CI Focal">  | 
 | <img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_main.yml/badge.svg" alt="CI Jammy">  | <img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_devel.yml/badge.svg" alt="CI Jammy">  |
+
+</center>
 
 External dependencies: 
 - [Eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) - *required*: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
