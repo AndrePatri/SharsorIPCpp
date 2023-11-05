@@ -28,7 +28,7 @@ jobs:
         rm -rf /opt/pyenv
         sudo apt-get update
         sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release
-
+        sudo apt-get install python3-numpy
     - name: Build and test
       run: |
         set +e
@@ -39,7 +39,7 @@ jobs:
         WITH_PYTHON=ON
         if echo "$UBUNTU_MAJOR_FULL" | grep -q "18"; then WITH_PYTHON='OFF'; else WITH_PYTHON='ON'; fi
         cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=ON ..
-        make -j4
+        make -j4 install
         ctest --output-on-failure --verbose 
         cd tests
         ./run_consistency_check.sh
