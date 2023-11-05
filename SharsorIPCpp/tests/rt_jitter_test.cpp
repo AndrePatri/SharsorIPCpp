@@ -4,6 +4,7 @@
 #include <thread>
 #include <sched.h>
 #include <sys/mman.h>
+#include <numeric>
 
 constexpr long long NSEC_PER_SEC = 1000000000LL;
 constexpr long long INTERVAL = NSEC_PER_SEC / 1000; // 1kHz
@@ -60,14 +61,14 @@ protected:
 };
 
 TEST_F(RealTimeTest, ControlLoopExecution) {
-    
+
     std::array<double, ITERATIONS> jitter_measurements;
 
     // Control loop with sleep duration adjustment
     auto next = std::chrono::high_resolution_clock::now();
 
     for (size_t i = 0; i < ITERATIONS; ++i) {
-        
+
         auto expected_end = next + std::chrono::nanoseconds(INTERVAL);
 
         control_loop();
@@ -90,8 +91,18 @@ TEST_F(RealTimeTest, ControlLoopExecution) {
         next += std::chrono::nanoseconds(INTERVAL);
     }
 
+    // Calculate the maximum, minimum, and average jitter
+    double max_jitter = *std::max_element(jitter_measurements.begin(), jitter_measurements.end());
+    double min_jitter = *std::min_element(jitter_measurements.begin(), jitter_measurements.end());
+    double average_jitter = std::accumulate(jitter_measurements.begin(), jitter_measurements.end(), 0.0) / ITERATIONS;
+
+    // Print the results
+    std::cout << "Max Jitter: " << max_jitter << " ns" << std::endl;
+    std::cout << "Min Jitter: " << min_jitter << " ns" << std::endl;
+    std::cout << "Average Jitter: " << average_jitter << " ns" << std::endl;
+
     // Assert jitter constraints
-    bool jitter_within_limits = std::all_of(jitter_measurements.begin(), 
+    bool jitter_within_limits = std::all_of(jitter_measurements.begin(),
                                             jitter_measurements.end(),
                                             [](double jitter) {
 
@@ -99,7 +110,7 @@ TEST_F(RealTimeTest, ControlLoopExecution) {
 
                                             } );
 
-    ASSERT_TRUE(jitter_within_limits) << 
+    ASSERT_TRUE(jitter_within_limits) <<
         "Jitter exceeded threshold in one or more iterations!";
 
 }
