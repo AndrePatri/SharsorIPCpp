@@ -50,7 +50,7 @@ add_custom_command(
     COMMENT "Copying PySharsorIPC python unittests directory to build folder"
 )
 # Create a custom target that depends on the copied directory
-add_custom_target(copy_pysharsoripc ALL
+add_custom_target(copy_pysharsoripc_tests ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
 )
 
