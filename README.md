@@ -17,7 +17,7 @@ The library is also **fully binded** in Python, codename `PySharsorIPC`, and all
 
 For more details on what SharsorIPCpp offers, usage examples, performance benchmarks and so on and so forth, please have a look at the [documentation](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html) (WIP).
 
-Continous integration status:
+Continuous Integration status:
 <center>
 
 | *main* | *devel* |
