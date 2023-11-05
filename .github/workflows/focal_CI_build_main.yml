@@ -28,7 +28,8 @@ jobs:
         rm -rf /opt/pyenv
         sudo apt-get update
         sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release
-
+        sudo apt-get install python3-numpy
+        
     - name: Build and test
       run: |
         set +e
