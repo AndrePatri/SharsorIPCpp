@@ -7,9 +7,9 @@
 <!-- ![GitHub-Mark-Light](docs/icon-light.svg#gh-dark-mode-only)![GitHub-Mark-Dark](docs/icon-dark.svg#gh-light-mode-only) -->
 Rt-friendly **shared tensors** built on top of **POSIX IPC** standards and [**Eigen**](https://eigen.tuxfamily.org/index.php?title=Main_Page) library, also shipped with Python bindings and [**NumPy**](https://numpy.org/) support.
 
-At its core, SharsorIPCpp leverages *POSIX* *shared memory* and *semaphores* primitives in conjunction with Eigen's API to create shared tensors over **multiple processes**, which can then be safely accessed and manipulated in a **rt-compatible** way. 
+At its core, SharsorIPCpp leverages *POSIX* *shared memory* and *semaphores* primitives in conjunction with Eigen's matrix API to create shared tensors over **multiple processes**, which can then be safely accessed and manipulated in a **rt-compatible** way. 
 
-SharsorIPCpp exposes to the user a convenient (multiple) `Client` - `Server` API to create, read, write and manage shared tensors from separate processes with **minimum latency**, and internally takes care of avoiding race conditions on the data.
+SharsorIPCpp exposes to the user a convenient (multiple) `Client` - `Server` API to create, read, write and manage shared tensors from separate processes (on the same machine) with **minimum latency**, and internally takes care of avoiding race conditions on the data.
 
 At its current stage, SharsorIPCpp is templatized so as to support the creation of shared tensors of several datatypes (`bool`, `int`, `float` and `double`) and with different memory layouts (`column-major`, `row-major`). Additionally, SharsorIPCpp also exposes a `StringTensor` wrapper object designed for sharing arrays of UTF8 encoded-strings.
 
