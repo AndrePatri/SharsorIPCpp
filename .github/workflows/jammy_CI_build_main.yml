@@ -43,6 +43,8 @@ jobs:
         cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=ON ..
         sudo make -j4 install
         export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
+        echo "Current PYTHONPATH: "
+        echo $PYTHONPATH
         ctest --output-on-failure --verbose
         cd tests
         ./run_consistency_check.sh
