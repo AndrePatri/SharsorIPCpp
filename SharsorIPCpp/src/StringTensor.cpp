@@ -15,7 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with SharsorIPCpp.  If not, see <http://www.gnu.org/licenses/>.
 // 
-﻿#include <SharsorIPCpp/StringTensor.hpp>
+
+#include <SharsorIPCpp/StringTensor.hpp>
 
 namespace SharsorIPCpp {
 

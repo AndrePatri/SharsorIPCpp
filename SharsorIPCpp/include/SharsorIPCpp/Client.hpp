@@ -15,7 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with SharsorIPCpp.  If not, see <http://www.gnu.org/licenses/>.
 // 
-#pragma once
+
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <Eigen/Dense>
 #include <string>
@@ -172,3 +174,5 @@ namespace SharsorIPCpp{
     };
 
 }
+
+#endif // CLIENT_HPP
