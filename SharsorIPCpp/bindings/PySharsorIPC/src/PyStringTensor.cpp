@@ -10,7 +10,7 @@
 namespace py = pybind11;
 using namespace SharsorIPCpp;
 
-void declare_StringTensorServer(py::module &m) {
+void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
 
     std::string pyclass_name = std::string("StringTensorServer");
 
@@ -80,7 +80,7 @@ void declare_StringTensorServer(py::module &m) {
 
 }
 
-void declare_StringTensorClient(py::module &m) {
+void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
 
     std::string pyclass_name = std::string("StringTensorClient");
 

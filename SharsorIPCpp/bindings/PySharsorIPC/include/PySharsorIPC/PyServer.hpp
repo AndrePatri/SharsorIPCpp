@@ -14,31 +14,36 @@
 #include <PySharsorIPC/PyDTypes.hpp>
 #include <WrapUtils.hpp>
 
-using VLevel = SharsorIPCpp::Journal::VLevel;
-using DType = SharsorIPCpp::DType;
-
 namespace PySharsorIPC{
 
-    pybind11::object ServerFactory(int n_rows,
-                             int n_cols,
-                            std::string basename = "MySharedMemory",
-                            std::string name_space = "",
-                            bool verbose = false,
-                            VLevel vlevel = VLevel::V0,
-                            bool force_reconnection = false,
-                            SharsorIPCpp::DType dtype = SharsorIPCpp::DType::Float,
-                            int layout = SharsorIPCpp::ColMajor);
+    namespace PyServer {
 
-    void bind_ServerWrapper(pybind11::module& m);
+        using VLevel = SharsorIPCpp::Journal::VLevel;
+        using LogType = SharsorIPCpp::Journal::LogType;
+        using DType = SharsorIPCpp::DType;
 
-    template <typename Scalar,
-              int Layout = SharsorIPCpp::MemLayoutDefault>
-    void bindServerT(pybind11::module &m, const char* name);
+        pybind11::object ServerFactory(int n_rows,
+                                int n_cols,
+                                std::string basename = "MySharedMemory",
+                                std::string name_space = "",
+                                bool verbose = false,
+                                VLevel vlevel = VLevel::V0,
+                                bool force_reconnection = false,
+                                SharsorIPCpp::DType dtype = SharsorIPCpp::DType::Float,
+                                int layout = SharsorIPCpp::ColMajor);
 
-    void bindServers(pybind11::module &m);
+        void bind_ServerWrapper(pybind11::module& m);
 
-    void bindServerFactory(pybind11::module &m,
-                        const char* name = "ServerFactory");
+        template <typename Scalar,
+                int Layout = SharsorIPCpp::MemLayoutDefault>
+        void bindServerT(pybind11::module &m, const char* name);
+
+        void bindServers(pybind11::module &m);
+
+        void bindServerFactory(pybind11::module &m,
+                            const char* name = "ServerFactory");
+
+    }
 
 }
 

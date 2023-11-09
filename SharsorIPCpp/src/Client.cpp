@@ -4,8 +4,10 @@
 #include <typeinfo>
 #include <ctime>
 
-#include <MemUtils.hpp>
 #include <SharsorIPCpp/Client.hpp>
+
+// private headers
+#include <MemUtils.hpp>
 
 namespace SharsorIPCpp {
 

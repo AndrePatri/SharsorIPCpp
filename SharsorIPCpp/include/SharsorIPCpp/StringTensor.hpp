@@ -20,17 +20,20 @@ namespace SharsorIPCpp {
 
         template <typename ShMemType>
         class StringTensor {
-
+        
         // Wrapper on top of Server and Client to also share
-        // tensor (list) of strings. The idea is to use a
-        // shared tensor of ints with the following properties:
-        // each string in the list will be encoded along the columns of
+        // tensor (list) of strings. 
+        // The idea is to use a shared tensor of ints with the following properties:
+        // Each string in the list will be encoded along the columns of
         // the tensor. Given an input string, the string is first split
         // into chunks of size equal to size_of(int), which is typically 4 bytes or 32 bits.
         // This means, for most systems, we can represent each chunk of a string as a sequence
-        // of up to 4 characters (UTF-8 encoded). Each chunck can then distributed
-        // along the column of the tensor, at the corresponding column index.
-        // Strings are encoded using UTF8 and then decoded with the same logic.
+        // of up to 4 characters (UTF-8 encoded). 
+        // Each chunck can then distributed along the column of the tensor, at 
+        // the corresponding column index. Strings are encoded using UTF8 and 
+        // then decoded with the same logic.
+
+        using VLevel = Journal::VLevel;
 
         public:
 

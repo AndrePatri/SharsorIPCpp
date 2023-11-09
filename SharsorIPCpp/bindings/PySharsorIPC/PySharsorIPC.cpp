@@ -8,6 +8,7 @@
 
 using namespace SharsorIPCpp;
 using namespace PySharsorIPC;
+using VLevel = Journal::VLevel;
 
 inline bool isRelease() {
 
@@ -90,24 +91,24 @@ PYBIND11_MODULE(PySharsorIPC, m) {
     bind_Journal(m);
 
     // Client bindings
-    bindClients(m); // binds all client types
+    PyClient::bindClients(m); // binds all client types
 
-    bind_ClientWrapper(m); // binds the client wrapper
+    PyClient::bind_ClientWrapper(m); // binds the client wrapper
 
-    bindClientFactory(m); // binds the factory for Clients
+    PyClient::bindClientFactory(m); // binds the factory for Clients
 
     // Server bindings
 
-    bindServers(m); // binds all client types
+    PyServer::bindServers(m); // binds all client types
 
-    bind_ServerWrapper(m); // binds the client wrapper
+    PyServer::bind_ServerWrapper(m); // binds the client wrapper
 
-    bindServerFactory(m); // binds the factory for Clients
+    PyServer::bindServerFactory(m); // binds the factory for Clients
 
     // String tensor bindings
-    declare_StringTensorServer(m);
+    PyStringTensor::declare_StringTensorServer(m);
 
-    declare_StringTensorClient(m);
+    PyStringTensor::declare_StringTensorClient(m);
 
 }
 

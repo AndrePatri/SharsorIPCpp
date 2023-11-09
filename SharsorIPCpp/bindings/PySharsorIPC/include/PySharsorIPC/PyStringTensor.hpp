@@ -7,7 +7,20 @@
 
 namespace py = pybind11;
 
-void declare_StringTensorServer(py::module &m);
-void declare_StringTensorClient(py::module &m);
+namespace PySharsorIPC {
+
+    namespace PyStringTensor{
+        
+        using namespace SharsorIPCpp;
+ 
+        using VLevel = Journal::VLevel;
+        using LogType = Journal::LogType;
+        
+        void declare_StringTensorServer(py::module &m);
+        void declare_StringTensorClient(py::module &m);
+
+    }
+
+}
 
 #endif // PYSTRINGTENSOR_HPP

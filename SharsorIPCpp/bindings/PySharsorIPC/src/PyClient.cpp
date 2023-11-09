@@ -2,14 +2,14 @@
 #include <SharsorIPCpp/Journal.hpp>
 
 template <typename Scalar, int Layout>
-void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
+void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) {
 
     // bindings of Client for Python
 
     pybind11::class_<SharsorIPCpp::Client<Scalar, Layout>,
             std::shared_ptr<SharsorIPCpp::Client<Scalar, Layout>>>(m, name)
 
-        .def(pybind11::init<std::string, std::string, bool, SharsorIPCpp::VLevel>())
+        .def(pybind11::init<std::string, std::string, bool, VLevel>())
 
             .def("write", [](SharsorIPCpp::Client<Scalar, Layout>& self,
                            PySharsorIPC::NumpyArray<Scalar>& arr,
@@ -57,7 +57,7 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
                     SharsorIPCpp::Journal::log("PyClient",
                                 "write",
                                 message,
-                                SharsorIPCpp::LogType::EXCEP);
+                                LogType::EXCEP);
 
                     return false;
                 }
@@ -92,7 +92,7 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
                     SharsorIPCpp::Journal::log("PyClient",
                                 "write",
                                 message,
-                                SharsorIPCpp::LogType::EXCEP);
+                                LogType::EXCEP);
 
                     return false;
                 }
@@ -149,7 +149,7 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
                     SharsorIPCpp::Journal::log("PyClient",
                                 "read",
                                 message,
-                                SharsorIPCpp::LogType::EXCEP);
+                                LogType::EXCEP);
 
                     return false;
                 }
@@ -186,7 +186,7 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
                     SharsorIPCpp::Journal::log("PyClient",
                                 "read",
                                 message,
-                                SharsorIPCpp::LogType::EXCEP);
+                                LogType::EXCEP);
 
                     return false;
                 }
@@ -210,7 +210,7 @@ void PySharsorIPC::bindClientT(pybind11::module &m, const char* name) {
         .def("getNCols", &SharsorIPCpp::Client<Scalar, Layout>::getNCols);
 }
 
-pybind11::object PySharsorIPC::ClientFactory(std::string basename,
+pybind11::object PySharsorIPC::PyClient::ClientFactory(std::string basename,
                         std::string name_space,
                         bool verbose,
                         VLevel vlevel,
@@ -297,7 +297,7 @@ pybind11::object PySharsorIPC::ClientFactory(std::string basename,
     }
 }
 
-void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
+void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
     // By handling everything in Python-space,
     // we eliminate the need to handle the type
@@ -409,7 +409,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "write",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
 
                 }
@@ -426,7 +426,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "write",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
                 }
 
@@ -442,7 +442,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "write",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
                 }
 
@@ -458,7 +458,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "write",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
                 }
 
@@ -469,7 +469,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                 SharsorIPCpp::Journal::log("Client",
                              "write",
                              "Mismatched dtype: provided dtype not supported.",
-                             SharsorIPCpp::LogType::EXCEP,
+                             LogType::EXCEP,
                              true);
 
             }
@@ -509,7 +509,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "read",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
 
                 }
@@ -526,7 +526,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "read",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
                 }
 
@@ -542,7 +542,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "read",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
                 }
 
@@ -558,7 +558,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                     SharsorIPCpp::Journal::log("Client",
                                  "read",
                                  error,
-                                 SharsorIPCpp::LogType::EXCEP,
+                                 LogType::EXCEP,
                                  true);
                 }
 
@@ -569,7 +569,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
                 SharsorIPCpp::Journal::log("Client",
                              "read",
                              "Mismatched dtype: provided dtype not supported.",
-                             SharsorIPCpp::LogType::EXCEP,
+                             LogType::EXCEP,
                              true);
 
             }
@@ -583,7 +583,7 @@ void PySharsorIPC::bind_ClientWrapper(pybind11::module& m) {
     }, pybind11::arg("tensor"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
 }
 
-void PySharsorIPC::bindClients(pybind11::module& m) {
+void PySharsorIPC::PyClient::bindClients(pybind11::module& m) {
 
     bindClientT<bool, SharsorIPCpp::ColMajor>(m, "PyClientBoolColMaj");
     bindClientT<bool, SharsorIPCpp::RowMajor>(m, "PyClientBoolRowMaj");
@@ -599,7 +599,7 @@ void PySharsorIPC::bindClients(pybind11::module& m) {
 
 }
 
-void PySharsorIPC::bindClientFactory(pybind11::module& m,
+void PySharsorIPC::PyClient::bindClientFactory(pybind11::module& m,
                            const char* name) {
 
     m.def(name, &ClientFactory,

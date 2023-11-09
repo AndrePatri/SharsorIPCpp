@@ -18,11 +18,11 @@
 
 namespace SharsorIPCpp{
 
-    using VLevel = Journal::VLevel;
-
-    using LogType = Journal::LogType;
-
     namespace MemUtils{
+        
+        using VLevel = Journal::VLevel;
+
+        using LogType = Journal::LogType;
 
         // Define a type trait to check if a given type is a valid DType
         template <typename Scalar>

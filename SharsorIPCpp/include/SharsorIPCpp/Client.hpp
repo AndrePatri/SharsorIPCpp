@@ -12,19 +12,20 @@
 #include <thread>
 #include <chrono>
 
-#include <SharedMemConfig.hpp>
-
-#include <MemUtils.hpp>
-
+// public headers
+#include <SharsorIPCpp/SharedMemConfig.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
+#include <SharsorIPCpp/ReturnCodes.hpp>
 
 namespace SharsorIPCpp{
 
     template <typename Scalar,
               int Layout = MemLayoutDefault>
     class Client {
-
+        
+        using VLevel = Journal::VLevel;
+        
         public:
 
             typedef std::weak_ptr<Client> WeakPtr;

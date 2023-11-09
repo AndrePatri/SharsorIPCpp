@@ -70,16 +70,12 @@ add_library(${LIBRARY_NAME} STATIC
     include/${LIBRARY_NAME}/ReturnCodes.hpp
 )
 
-# private headers
-target_include_directories(${LIBRARY_NAME}
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
 # public headers
 target_include_directories(${LIBRARY_NAME}
     PUBLIC
     $<INSTALL_INTERFACE:include>  # For installed headers
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  # For local build
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src> # private headers
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  # for local build
 )
 
 target_link_libraries(${LIBRARY_NAME} PUBLIC
@@ -116,3 +112,29 @@ install(DIRECTORY include/${LIBRARY_NAME}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${LIBRARY_NAME}
     FILES_MATCHING PATTERN "*.h*"
     PATTERN ".svn" EXCLUDE)
+
+# Export library for external use
+install(EXPORT ${LIBRARY_NAME}
+    FILE ${LIBRARY_NAME}Targets.cmake
+    NAMESPACE ${LIBRARY_NAME}::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_NAME}
+)
+
+# Create and install config files
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${LIBRARY_NAME}ConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY ExactVersion
+)
+
+# configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${LIBRARY_NAME}Config.cmake.in
+#     ${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}Config.cmake
+#     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_NAME}
+# )
+
+# install(FILES
+#     ${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}Config.cmake
+#     ${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}ConfigVersion.cmake
+#     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIBRARY_NAME}
+# )

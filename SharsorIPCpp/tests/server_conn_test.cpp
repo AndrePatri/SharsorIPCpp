@@ -30,6 +30,8 @@ size_t STR_TENSOR_LENGTH = 10;
 
 using namespace SharsorIPCpp;
 
+using LogType = Journal::LogType;
+
 using VLevel = Journal::VLevel;
 
 static std::string name_space = "ConnectionTests";
