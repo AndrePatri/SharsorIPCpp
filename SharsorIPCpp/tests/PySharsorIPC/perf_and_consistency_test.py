@@ -7,8 +7,8 @@ from SharsorIPCpp.PySharsorIPC import *
 
 namespace = "PerfTests"
 
-N_ITERATIONS = 1
-N_ITERATIONS_STR = 100000
+N_ITERATIONS = 1000000
+N_ITERATIONS_STR = 1000000
 
 N_ROWS = 100
 N_COLS = 60
@@ -140,22 +140,25 @@ class TestPerfBenchBase(unittest.TestCase):
                         message,
                         LogType.WARN)
 
+        row = self.server_write.getNRows()
+        col = self.server_write.getNCols()
+
         for i in range(0, N_ITERATIONS):
 
-            self.randomize(self.tensor_written)
+            # randomize central block
+            self.randomize(self.tensor_written,
+                           row, col,
+                           row, col)
 
-            row = self.server_write.getNRows()
-            col = self.server_write.getNCols()
-
-            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written[row:2*row, col:2*col], row, col),
+            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written[row:2*row, col:2*col], 0, 0),
                                                     number=1) # we write the tensor and profile the performance)
             self.write_times.append(writeTime * 1e6)  # Convert to microseconds
 
-            self.server_write.read(self.tensor_buffer[row:2*row, col:2*col], row, col) # we read the tensor
+            self.server_write.read(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we read the tensor
 
-            self.server_read.write(self.tensor_buffer[row:2*row, col:2*col], row, col) # we write it on the other memory
+            self.server_read.write(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we write it on the other memory
 
-            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read[row:2*row, col:2*col], row, col),
+            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read[row:2*row, col:2*col], 0, 0),
                                                     number=1) # and then read it again (and profile the performance)
             self.read_times.append(readTime * 1e6)
 
@@ -212,11 +215,12 @@ class TestPerfBenchBase(unittest.TestCase):
             A.dtype == np.float128:
 
             # For floating point numbers, use machine precision
+
             return np.allclose(A, B, atol=np.finfo(A.dtype).eps, rtol=0)
 
         elif A.dtype == np.int64 or A.dtype == np.int32 or A.dtype == np.int16 or A.dtype == np.int8 or \
              A.dtype == np.uint64 or A.dtype == np.uint32 or A.dtype == np.uint16 or A.dtype == np.uint8 or \
-             A.dtype == np.bool:
+             A.dtype == np.bool_:
 
             # For integers and booleans, check exact equality
 
@@ -226,28 +230,47 @@ class TestPerfBenchBase(unittest.TestCase):
 
             raise ValueError("Unsupported data type.")
 
-    def randomize(self,
-                 arr):
+    def randomize(self, arr, i=0, j=0, n_rows=None, n_cols=None):
 
-     if np.issubdtype(arr.dtype, np.integer):
+            # Set default values for n_rows and n_cols if they are None
+            n_rows = n_rows or (arr.shape[0] - i)
+            n_cols = n_cols or (arr.shape[1] - j)
 
-         arr[:] = np.random.randint(np.iinfo(arr.dtype).min, np.iinfo(arr.dtype).max, arr.shape)
+            # Check if the indices and dimensions are valid
+            if i < 0 or j < 0 or n_rows < 1 or n_cols < 1:
 
-     elif arr.dtype == np.float32:
+                raise ValueError("Invalid indices or dimensions")
 
-         arr[:] = np.random.uniform(-1, 1, arr.shape)
+            if i + n_rows > arr.shape[0] or j + n_cols > arr.shape[1]:
 
-     elif arr.dtype == np.float64:
+                raise ValueError("Submatrix dimensions exceed array bounds")
 
-         arr[:] = np.random.rand(*arr.shape)
+            # Define the submatrix bounds
+            rows = slice(i, i + n_rows)
+            cols = slice(j, j + n_cols)
 
-     elif arr.dtype == np.bool_:
+            # Randomize the submatrix
+            if np.issubdtype(arr.dtype, np.integer):
 
-         arr[:] = np.random.choice([True, False], arr.shape)
+                arr[rows, cols] = np.random.randint(np.iinfo(arr.dtype).min,
+                                                    np.iinfo(arr.dtype).max,
+                                                    (n_rows, n_cols))
 
-     else:
+            elif arr.dtype == np.float32:
 
-         raise ValueError("Unsupported dtype for randomization")
+                arr[rows, cols] = np.random.uniform(-1, 1, (n_rows, n_cols))
+
+            elif arr.dtype == np.float64:
+
+                arr[rows, cols] = np.random.rand(n_rows, n_cols)
+
+            elif arr.dtype == np.bool_:
+
+                arr[rows, cols] = np.random.choice([True, False], (n_rows, n_cols))
+
+            else:
+
+                raise ValueError("Unsupported dtype for randomization")
 
 class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
@@ -258,69 +281,68 @@ class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
         self.PerfAndConsistency()
 
-#class TestPerfBenchBoolColMaj(TestPerfBenchBase):
+class TestPerfBenchBoolColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Bool
-#    layout = ColMajor
+    data_type = dtype.Bool
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
+        self.PerfAndConsistency()
 
-#class TestPerfBenchIntRowMaj(TestPerfBenchBase):
+class TestPerfBenchIntRowMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Int
-#    layout = RowMajor
+    data_type = dtype.Int
+    layout = RowMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
+        self.PerfAndConsistency()
 
-#class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
+class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Float
-#    layout = RowMajor
+    data_type = dtype.Float
+    layout = RowMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
+        self.PerfAndConsistency()
 
-#class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
+class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Double
-#    layout = RowMajor
+    data_type = dtype.Double
+    layout = RowMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
+        self.PerfAndConsistency()
 
-#class TestPerfBenchIntColMaj(TestPerfBenchBase):
+class TestPerfBenchIntColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Int
-#    layout = ColMajor
+    data_type = dtype.Int
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
+        self.PerfAndConsistency()
 
-#class TestPerfBenchFloatColMaj(TestPerfBenchBase):
+class TestPerfBenchFloatColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Float
-#    layout = ColMajor
+    data_type = dtype.Float
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
+        self.PerfAndConsistency()
 
-#class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
+class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
-#    data_type = dtype.Double
-#    layout = ColMajor
+    data_type = dtype.Double
+    layout = ColMajor
 
-#    def test_write_read(self):
+    def test_write_read(self):
 
-#        self.PerfAndConsistency()
-
+        self.PerfAndConsistency()
 
 if __name__ == "__main__":
 

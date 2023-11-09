@@ -44,7 +44,7 @@ add_custom_target(copy_pysharsoripc_tests ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC"
             "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
-    COMMENT "Copying PySharsorIPC python unittests directory to build folder"
+    COMMENT "Copying PySharsorIPC python unittests directory to test folder"
 )
 
 # ensure this target is always run by setting a phony output
