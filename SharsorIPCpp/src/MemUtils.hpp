@@ -14,7 +14,7 @@
 #include <SharsorIPCpp/DTypes.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/ReturnCodes.hpp>
-#include <PrivUtils.hpp>
+#include <SharsorIPCpp/Helpers.hpp>
 
 namespace SharsorIPCpp{
 
@@ -179,15 +179,15 @@ namespace SharsorIPCpp{
                    bool verbose = true,
                    VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor(
-                         tensor_view.rows(),
-                         tensor_view.cols(),
-                         row, col,
-                         data.rows(), data.cols(),
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel);
+            bool success = helpers::canFitTensor(
+                        tensor_view.rows(),
+                        tensor_view.cols(),
+                        row, col,
+                        data.rows(), data.cols(),
+                        journal,
+                        return_code,
+                        verbose,
+                        vlevel);
 
             if (success) {
 
@@ -215,7 +215,7 @@ namespace SharsorIPCpp{
                    bool verbose = true,
                    VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor(
+            bool success = helpers::canFitTensor(
                          tensor_view.rows(),
                          tensor_view.cols(),
                          row, col,
@@ -251,15 +251,15 @@ namespace SharsorIPCpp{
                   bool verbose = true,
                   VLevel vlevel = Journal::VLevel::V0) {
 
-            bool success = canFitTensor(
-                         tensor_view.rows(),
-                         tensor_view.cols(),
-                         row, col,
-                         output.rows(), output.cols(),
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel);
+            bool success = helpers::canFitTensor(
+                        tensor_view.rows(),
+                        tensor_view.cols(),
+                        row, col,
+                        output.rows(), output.cols(),
+                        journal,
+                        return_code,
+                        verbose,
+                        vlevel);
 
             if (success) {
 
@@ -289,15 +289,15 @@ namespace SharsorIPCpp{
 
             // copy data pointed from tensor_view
             // into the matrix output points
-            bool success = canFitTensor(
-                         tensor_view.rows(),
-                         tensor_view.cols(),
-                         row, col,
-                         output.rows(), output.cols(),
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel);
+            bool success = helpers::canFitTensor(
+                        tensor_view.rows(),
+                        tensor_view.cols(),
+                        row, col,
+                        output.rows(), output.cols(),
+                        journal,
+                        return_code,
+                        verbose,
+                        vlevel);
 
             if (success) {
 

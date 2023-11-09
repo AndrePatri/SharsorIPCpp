@@ -2,14 +2,72 @@
 #define HELPERS_HPP
 
 #include <Eigen/Dense>
+
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
-#include <PrivUtils.hpp>
 #include <SharsorIPCpp/ReturnCodes.hpp>
 
 namespace SharsorIPCpp {
 
     namespace helpers{
+        
+        using Index = Eigen::Index;
+        using VLevel = Journal::VLevel;
+        using LogType = Journal::LogType;
+
+        inline bool canFitTensor(Index n_rows,
+                        Index n_cols,
+                        int i, int j,
+                        Index n_rows2fit,
+                        Index n_cols2fit,
+                        Journal& journal,
+                        ReturnCode& return_code,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0) {
+
+            // Check if the indices (i, j) are within the matrix
+            if (i < 0 || i >= n_rows || j < 0 || j >= n_cols) {
+
+                if (verbose &&
+                        vlevel > VLevel::V0) {
+
+                    std::string warn =
+                            std::string("Provided indeces are out of bounds wrt memory.");
+
+                    journal.log(__FUNCTION__,
+                                warn,
+                                LogType::EXCEP);
+
+                }
+
+                return_code = return_code + ReturnCode::INDXOUT;
+
+                return false;
+            }
+
+            // Check if there's enough space for the submatrix
+            if (i + n_rows2fit > n_rows ||
+                j + n_cols2fit > n_cols) {
+
+                if (verbose &&
+                        vlevel > VLevel::V0) {
+
+                    std::string warn =
+                            std::string("Out of bounds dimensions!");
+
+                    journal.log(__FUNCTION__,
+                                warn,
+                                LogType::EXCEP);
+
+                }
+
+                return_code = return_code + ReturnCode::NOFIT;
+
+                return false;
+            }
+
+            return true;
+        }
 
         template <typename Scalar, int Layout = MemLayoutDefault>
         TensorView<Scalar, Layout> createViewFrom(
@@ -30,15 +88,15 @@ namespace SharsorIPCpp {
 
             Journal journal = Journal("");
 
-            bool success = canFitTensor( // we check that are creating a valid view of "from"
-                         from.rows(),
-                         from.cols(),
-                         row_idx, col_idx,
-                         n_rows, n_cols,
-                         journal,
-                         return_code,
-                         true,
-                         VLevel::V3);
+            bool success = helpers::canFitTensor( // we check that are creating a valid view of "from"
+                        from.rows(),
+                        from.cols(),
+                        row_idx, col_idx,
+                        n_rows, n_cols,
+                        journal,
+                        return_code,
+                        true,
+                        VLevel::V3);
 
             if (!success) {
 

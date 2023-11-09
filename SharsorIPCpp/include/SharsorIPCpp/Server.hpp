@@ -23,6 +23,7 @@ namespace SharsorIPCpp{
     class Server {
         
         using VLevel = Journal::VLevel;
+        using LogType = Journal::LogType;
 
         public:
 

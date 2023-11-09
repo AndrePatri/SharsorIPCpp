@@ -1,6 +1,8 @@
 #ifndef RETURNCODES_HPP
 #define RETURNCODES_HPP
 
+#include <unordered_map>
+
 namespace SharsorIPCpp {
 
     enum class ReturnCode: unsigned long long { // 64 bit --> max 64 unique base codes

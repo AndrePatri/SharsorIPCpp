@@ -1,6 +1,8 @@
 #ifndef DTYPES_HPP
 #define DTYPES_HPP
 
+#include <Eigen/Dense>
+
 namespace SharsorIPCpp {
 
     const int RowMajor = Eigen::RowMajor;

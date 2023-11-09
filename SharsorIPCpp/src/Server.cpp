@@ -60,8 +60,8 @@ namespace SharsorIPCpp {
                     std::string("same memory.");
 
             _journal.log(__FUNCTION__,
-                 warn,
-                 LogType::WARN);
+                warn,
+                LogType::WARN);
         }
 
         if (_verbose &&
@@ -71,8 +71,8 @@ namespace SharsorIPCpp {
                     _mem_config.mem_path;
 
             _journal.log(__FUNCTION__,
-                 info,
-                 LogType::STAT);
+                info,
+                LogType::STAT);
 
         }
 

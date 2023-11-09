@@ -2,7 +2,7 @@
 #define SHAREDMEMCONFIG_HPP
 
 #include <string>
-#include "MemDefs.hpp"
+#include <SharsorIPCpp/MemDefs.hpp>
 
 namespace SharsorIPCpp{
 

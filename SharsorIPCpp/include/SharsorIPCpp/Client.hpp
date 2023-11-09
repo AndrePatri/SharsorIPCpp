@@ -25,6 +25,7 @@ namespace SharsorIPCpp{
     class Client {
         
         using VLevel = Journal::VLevel;
+        using LogType = Journal::LogType;
         
         public:
 
