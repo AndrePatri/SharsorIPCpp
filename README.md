@@ -17,11 +17,11 @@ Features:
 
 The library is also **fully binded** in Python, codename `PySharsorIPC`, and allows for seamless integration with the popular NumPy library.
 
-##### Documentation: 
+#### Documentation: 
 
 For more details on what SharsorIPCpp offers, usage examples, performance benchmarks and so on and so forth, please have a look at the [documentation](https://andrepatri.github.io/SharsorIPCpp/v0.1.0/index.html) (WIP).
 
-##### Continous integration status: 
+#### Continous integration status: 
 
 | *main* | *devel* |
 |----------|----------|
@@ -29,7 +29,7 @@ For more details on what SharsorIPCpp offers, usage examples, performance benchm
 | <img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_main.yml/badge.svg" alt="CI Jammy">  | <img src="https://github.com/AndrePatri/SharsorIPCpp/actions/workflows/jammy_CI_build_devel.yml/badge.svg" alt="CI Jammy">  |
 
 
-##### Install from source: 
+#### Install from source: 
 
 Just clone this repo, build and install the library with CMake, ensuring that all dependencies are correctly installed in you system/environment. 
 
@@ -37,11 +37,11 @@ In case you need the python interface, turn on the cmake flag `WITH_PYTHON`, whi
 
 The tests include some consistency checks to ensure the library works properly and some performance benchmarks, for both the Cpp and python interface and for all the supported dtypes and layouts. 
 
-##### Using SharsorIPCpp from another package 
+#### Using SharsorIPCpp from another package 
 
 Importing and linking against the library is super easy: have a look at an example CMakeLists.txt [here](docs/sphinx/source/_static/CMakeLists_example.txt) and.
 
-##### External dependencies: 
+#### External dependencies: 
 - [Eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) - *required*: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
 - [GoogleTest](https://github.com/google/googletest) - *optional*: a C++ testing framework. On Linux, install it with ```sudo apt-get install libgtest-dev```.
 <!-- - **Real-time library** (rt) - *required*: ```sudo apt-get install librt-dev```
@@ -60,14 +60,14 @@ To compile the bindings you'll need:
 - **libpthread**
 - **libm** -->
 
-##### Additional notes
+#### Additional notes
 If employed properly, the library is also designed to be rt-safe (in C++):
 - Dynamic allocations are reduced to the bare minimum.
 - Run-time semaphore acquisitions (used by `write` and `read`) are designed to be non-blocking and rt-safe. It is then user's responsibility to handle, if necessary, possible write/read failures due to semaphore acquisition.
 - Calls to `run()/attach()` and `stop()` are not guaranteed to be rt-friendly. For rt applications, these calls should only be done during initialization/closing steps or, at run-time, sporadically.
 - As of now, the logging utility `Journal` is not guaranteed to be rt-friendly. It is very useful for debugging purposes but, if working with rt-code, it is strongly recommended to set the verbosity level to `VLevel::V0` (which prints only exceptions) or to disable logging altogether with `verbose = false`.
 
-##### Roadmap:
+#### Roadmap:
 - [ ] clean StringTensor bindings with and remove pythonic read and write methods
 - [ ] make read and write methods of string tensor more efficient
 - [ ] start to add documentation
