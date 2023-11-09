@@ -2,20 +2,21 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS}
                     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_executable(read_write_bench read_write_bench.cpp)
-target_link_libraries(read_write_bench PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+# Macro to create a test executable and link libraries
+macro(create_and_link target_name source_file)
 
-add_executable(consistency_checks_clnt consistency_checks_clnt.cpp)
-target_link_libraries(consistency_checks_clnt PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+  add_executable(${target_name} ${source_file})
 
-add_executable(consistency_checks_srvr consistency_checks_srvr.cpp)
-target_link_libraries(consistency_checks_srvr PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+  target_link_libraries(${target_name} PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
 
-add_executable(server_conn_test server_conn_test.cpp)
-target_link_libraries(server_conn_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+endmacro()
 
-add_executable(jitter_test rt_jitter_test.cpp)
-target_link_libraries(jitter_test PRIVATE ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread)
+# Using the macro for each target
+create_and_link(read_write_bench read_write_bench.cpp)
+create_and_link(consistency_checks_clnt consistency_checks_clnt.cpp)
+create_and_link(consistency_checks_srvr consistency_checks_srvr.cpp)
+create_and_link(server_conn_test server_conn_test.cpp)
+create_and_link(jitter_test rt_jitter_test.cpp)
 
 # Setting aux. variables
 set(CONSISTENCY_CHECKS_CLIENT "consistency_checks_clnt")
@@ -38,17 +39,19 @@ execute_process(
     COMMAND chmod +x "${CMAKE_CURRENT_BINARY_DIR}/run_consistency_check.sh"
 )
 
-# copying pybinds tests to build folder
-add_custom_command(
-    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
+# copying pybinds tests to build folder (always)
+add_custom_target(copy_pysharsoripc_tests ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC"
             "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
     COMMENT "Copying PySharsorIPC python unittests directory to build folder"
 )
-# Create a custom target that depends on the copied directory
-add_custom_target(copy_pysharsoripc_tests ALL
-    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
+
+# ensure this target is always run by setting a phony output
+# used to specify that the copied directory should be considered
+# for cleaning purposes (i.e., when running make clean)
+set_target_properties(copy_pysharsoripc_tests PROPERTIES
+    ADDITIONAL_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/PySharsorIPC"
 )
 
 # install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/PySharsorIPC/
