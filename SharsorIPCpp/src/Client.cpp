@@ -185,42 +185,45 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     bool Client<Scalar, Layout>::write(const TRef<Scalar, Layout> data,
-                                     int row,
-                                     int col) {
+                                 int row,
+                                 int col) {
 
         if (_attached) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::write<Scalar, Layout>(
-                            data,
-                            _tensor_view,
-                            row, col,
-                            _journal,
-                            _return_code,
-                            false,
-                            _vlevel)
-                ) {
+            if(_acquireData()) {
+
+                bool success_write = MemUtils::write<Scalar, Layout>(
+                                        data,
+                                        _tensor_view,
+                                        row, col,
+                                        _journal,
+                                        _return_code,
+                                        false,
+                                        _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_write;
+
+            } else {
+
+                return false; // failed to acquire sem
             }
 
         }
 
         if (!_attached && _verbose) {
 
-            std::string error = std::string("Client is not registered to the Server. ") +
-                    std::string("Did you remember to call the attach() method?");
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
-                 LogType::EXCEP,
-                 false); // nonblocking
+                 LogType::EXCEP); // nonblocking
 
         }
 
-         return false;
+        return false;
 
     }
 
@@ -231,33 +234,36 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::write<Scalar, Layout>(
-                            data,
-                            _tensor_view,
-                            row, col,
-                            _journal,
-                            _return_code,
-                            false,
-                            _vlevel)
-                ) {
+            if(_acquireData()) {
+
+                bool success_write = MemUtils::write<Scalar, Layout>(
+                                        data,
+                                        _tensor_view,
+                                        row, col,
+                                        _journal,
+                                        _return_code,
+                                        false,
+                                        _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_write;
+
+            } else {
+
+                return false; // failed to acquire sem
             }
 
         }
 
         if (!_attached && _verbose) {
 
-            std::string error = std::string("Client is not registered to the Server. ") +
-                    std::string("Did you remember to call the attach() method?");
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
-                 LogType::EXCEP,
-                 false); // nonblocking
+                 LogType::EXCEP); // nonblocking
 
         }
 
@@ -271,33 +277,36 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::read<Scalar, Layout>(
-                           row, col,
-                           output,
-                           _tensor_view,
-                           _journal,
-                           _return_code,
-                           false,
-                           _vlevel)
-                 ) {
+            if(_acquireData()) {
+
+                bool success_read = MemUtils::read<Scalar, Layout>(
+                            row, col,
+                            output,
+                            _tensor_view,
+                            _journal,
+                            _return_code,
+                            false,
+                            _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_read;
 
+            } else {
+
+                return false; // failed to acquire sem
             }
 
         }
 
         if (!_attached && _verbose) {
 
-            std::string error = std::string("Client is not registered to the Server. ") +
-                    std::string("Did you remember to call the attach() method?");
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,
-                 LogType::EXCEP); // nonblocking
+                 LogType::EXCEP);
 
         }
 
@@ -311,20 +320,24 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::read<Scalar, Layout>(
-                           row, col,
-                           output,
-                           _tensor_view,
-                           _journal,
-                           _return_code,
-                           false,
-                           _vlevel)
-                ) {
+            if(_acquireData()) {
+
+                bool success_read = MemUtils::read<Scalar, Layout>(
+                                       row, col,
+                                       output,
+                                       _tensor_view,
+                                       _journal,
+                                       _return_code,
+                                       false,
+                                       _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_read;
+
+            } else {
+
+                return false; // failed to acquire sem
 
             }
 
@@ -332,8 +345,8 @@ namespace SharsorIPCpp {
 
         if (!_attached && _verbose) {
 
-            std::string error = std::string("Client is not registered to the Server. ") +
-                    std::string("Did you remember to call the attach() method?");
+            std::string error = std::string("Server is not running. ") +
+                    std::string("Did you remember to call the run() method?");
 
             _journal.log(__FUNCTION__,
                  error,

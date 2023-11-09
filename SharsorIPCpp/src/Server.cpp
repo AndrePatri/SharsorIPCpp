@@ -243,20 +243,24 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::write<Scalar, Layout>(
-                            data,
-                            _tensor_view,
-                            row, col,
-                            _journal,
-                            _return_code,
-                            false,
-                            _vlevel)
-                ) {
+            if(_acquireData()) {
+
+                bool success_write = MemUtils::write<Scalar, Layout>(
+                                        data,
+                                        _tensor_view,
+                                        row, col,
+                                        _journal,
+                                        _return_code,
+                                        false,
+                                        _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_write;
+
+            } else {
+
+                return false; // failed to acquire sem
             }
 
         }
@@ -283,20 +287,24 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::write<Scalar, Layout>(
-                            data,
-                            _tensor_view,
-                            row, col,
-                            _journal,
-                            _return_code,
-                            false,
-                            _vlevel)
-                ) {
+            if(_acquireData()) {
+
+                bool success_write = MemUtils::write<Scalar, Layout>(
+                                        data,
+                                        _tensor_view,
+                                        row, col,
+                                        _journal,
+                                        _return_code,
+                                        false,
+                                        _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_write;
+
+            } else {
+
+                return false; // failed to acquire sem
             }
 
         }
@@ -322,21 +330,24 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData() &&
-                MemUtils::read<Scalar, Layout>(
-                               row, col,
-                               output,
-                               _tensor_view,
-                               _journal,
-                               _return_code,
-                               false,
-                               _vlevel)
-                ) { // non-blocking
+            if(_acquireData()) {
+
+                bool success_read = MemUtils::read<Scalar, Layout>(
+                            row, col,
+                            output,
+                            _tensor_view,
+                            _journal,
+                            _return_code,
+                            false,
+                            _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_read;
 
+            } else {
+
+                return false; // failed to acquire sem
             }
 
         }
@@ -362,19 +373,24 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if (_acquireData() && // non-blocking
-                MemUtils::read<Scalar, Layout>(
-                               row, col,
-                               output,
-                               _tensor_view,
-                               _journal,
-                               _return_code,
-                               false,
-                               _vlevel)) {
+            if(_acquireData()) {
+
+                bool success_read = MemUtils::read<Scalar, Layout>(
+                                       row, col,
+                                       output,
+                                       _tensor_view,
+                                       _journal,
+                                       _return_code,
+                                       false,
+                                       _vlevel);
 
                 _releaseData();
 
-                return true;
+                return success_read;
+
+            } else {
+
+                return false; // failed to acquire sem
 
             }
 

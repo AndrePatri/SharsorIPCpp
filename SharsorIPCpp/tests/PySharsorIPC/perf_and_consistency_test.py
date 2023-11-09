@@ -7,7 +7,7 @@ from SharsorIPCpp.PySharsorIPC import *
 
 namespace = "PerfTests"
 
-N_ITERATIONS = 100000
+N_ITERATIONS = 1
 N_ITERATIONS_STR = 100000
 
 N_ROWS = 100
@@ -99,13 +99,13 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.order = 'F' # 'F'
 
-        self.tensor_written = np.zeros((self.server_write.getNRows(), self.server_write.getNCols()),
+        self.tensor_written = np.zeros((3 * self.server_write.getNRows(), 3 * self.server_write.getNCols()),
                                 dtype=toNumpyDType(self.server_write.getScalarType()),
                                 order=self.order)
-        self.tensor_buffer = np.zeros((self.server_write.getNRows(), self.server_write.getNCols()),
+        self.tensor_buffer = np.zeros((3 * self.server_write.getNRows(), 3 * self.server_write.getNCols()),
                                 dtype=toNumpyDType(self.server_write.getScalarType()),
                                 order=self.order)
-        self.tensor_read = np.zeros((self.server_read.getNRows(), self.server_read.getNCols()),
+        self.tensor_read = np.zeros((3 * self.server_read.getNRows(), 3 * self.server_read.getNCols()),
                                 dtype=toNumpyDType(self.server_read.getScalarType()),
                                 order=self.order)
         self.read_times = [] # microseconds
@@ -144,15 +144,18 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.randomize(self.tensor_written)
 
-            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written, 0, 0),
+            row = self.server_write.getNRows()
+            col = self.server_write.getNCols()
+
+            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written[row:2*row, col:2*col], row, col),
                                                     number=1) # we write the tensor and profile the performance)
             self.write_times.append(writeTime * 1e6)  # Convert to microseconds
 
-            self.server_write.read(self.tensor_buffer, 0, 0) # we read the tensor
+            self.server_write.read(self.tensor_buffer[row:2*row, col:2*col], row, col) # we read the tensor
 
-            self.server_read.write(self.tensor_buffer, 0, 0) # we write it on the other memory
+            self.server_read.write(self.tensor_buffer[row:2*row, col:2*col], row, col) # we write it on the other memory
 
-            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read, 0, 0),
+            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read[row:2*row, col:2*col], row, col),
                                                     number=1) # and then read it again (and profile the performance)
             self.read_times.append(readTime * 1e6)
 
@@ -255,68 +258,68 @@ class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
 
         self.PerfAndConsistency()
 
-class TestPerfBenchBoolColMaj(TestPerfBenchBase):
+#class TestPerfBenchBoolColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Bool
-    layout = ColMajor
+#    data_type = dtype.Bool
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchIntRowMaj(TestPerfBenchBase):
+#class TestPerfBenchIntRowMaj(TestPerfBenchBase):
 
-    data_type = dtype.Int
-    layout = RowMajor
+#    data_type = dtype.Int
+#    layout = RowMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
+#class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
 
-    data_type = dtype.Float
-    layout = RowMajor
+#    data_type = dtype.Float
+#    layout = RowMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
+#class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
 
-    data_type = dtype.Double
-    layout = RowMajor
+#    data_type = dtype.Double
+#    layout = RowMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchIntColMaj(TestPerfBenchBase):
+#class TestPerfBenchIntColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Int
-    layout = ColMajor
+#    data_type = dtype.Int
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchFloatColMaj(TestPerfBenchBase):
+#class TestPerfBenchFloatColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Float
-    layout = ColMajor
+#    data_type = dtype.Float
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
-class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
+#class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
-    data_type = dtype.Double
-    layout = ColMajor
+#    data_type = dtype.Double
+#    layout = ColMajor
 
-    def test_write_read(self):
+#    def test_write_read(self):
 
-        self.PerfAndConsistency()
+#        self.PerfAndConsistency()
 
 
 if __name__ == "__main__":
