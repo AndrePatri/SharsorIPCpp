@@ -1,0 +1,14 @@
+name: py3_7_env
+channels: 
+  - defaults
+  - conda-forge
+dependencies: 
+  - python=3.7
+  - pip
+  - conda-build
+  - cmake
+  - make
+  - pybind11
+  - eigen
+  - numpy
+  - anaconda-client

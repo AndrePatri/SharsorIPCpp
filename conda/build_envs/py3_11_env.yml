@@ -1,0 +1,14 @@
+name: py3_11_env
+channels: 
+  - defaults
+  - conda-forge
+dependencies: 
+  - python=3.11
+  - pip
+  - conda-build
+  - cmake
+  - make
+  - pybind11
+  - eigen
+  - numpy
+  - anaconda-client

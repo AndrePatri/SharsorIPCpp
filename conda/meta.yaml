@@ -1,0 +1,28 @@
+package:
+  name: sharsor_ipcpp
+  version: 1.0.0
+
+source:
+
+  path: ../
+
+requirements:
+
+  build:
+
+    - cmake
+    - python
+    - eigen
+    - pybind11  
+    - numpy
+    - conda-build
+
+  run:
+
+    - python
+
+  home: https://github.com/AndrePatri/SharsorIPCpp
+
+  license: GPL-v2
+
+  summary: RT-friendly 2D shared tensors built on top of POSIX-IPC and Eigen, shipped with python bindings and NumPy support. 

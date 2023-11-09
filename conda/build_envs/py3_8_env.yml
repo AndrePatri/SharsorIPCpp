@@ -1,0 +1,14 @@
+name: py3_8_env
+channels: 
+  - defaults
+  - conda-forge
+dependencies: 
+  - python=3.8
+  - pip
+  - conda-build
+  - cmake
+  - make
+  - pybind11
+  - eigen
+  - numpy
+  - anaconda-client

@@ -37,6 +37,10 @@ In case you need the python interface, turn on the cmake flag `WITH_PYTHON`, whi
 
 The tests include some consistency checks to ensure the library works properly and some performance benchmarks, for both the Cpp and python interface and for all the supported dtypes and layouts. 
 
+### 4. Install from Anaconda: 
+
+The full library (including PySharsorIPC) is also deployed on Anaconda at [sharsor_ipcpp](https://anaconda.org/andrepatri/sharsor_ipcpp), with Python support from version 3.7 up to 3.11.
+
 ### 5. Using SharsorIPCpp from another package 
 
 Importing and linking against the library is super easy: have a look at an example CMakeLists.txt [here](docs/sphinx/source/_static/CMakeLists_example.txt) and.
@@ -76,4 +80,5 @@ If employed properly, the library is also designed to be rt-safe (in C++):
   - [ ] Python interface examples
 - [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
 - [x] setup to be used from external package
-- [ ] deploy on Anaconda 
+- [x] deploy on Anaconda 
+- [ ] automatic deployment of main branch on Anaconda from GitHub actions (only if tests passing)
