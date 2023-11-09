@@ -52,7 +52,7 @@ If employed properly, the library is also designed to be rt-safe (in C++):
 - Calls to `run()/attach()` and `stop()` are not guaranteed to be rt-friendly. For rt applications, these calls should only be done during initialization/closing steps or, at run-time, sporadically.
 - As of now, the logging utility `Journal` is not guaranteed to be rt-friendly. It is very useful for debugging purposes but, if working with rt-code, it is strongly recommended to set the verbosity level to `VLevel::V0` (which prints only exceptions) or to disable logging altogether with `verbose = false`.
 
-ToDo:
+##### Roadmap:
 - [ ] clean StringTensor bindings with and remove pythonic read and write methods
 - [ ] make read and write methods of string tensor more efficient
 - [ ] start to add documentation
