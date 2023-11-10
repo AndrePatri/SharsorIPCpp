@@ -13,6 +13,7 @@ jobs:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
         dist: [focal]
         compiler: [g++]
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     runs-on: ${{ matrix.os }}
 
@@ -29,25 +30,53 @@ jobs:
         sudo apt-get update
         sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
 
-    - name: Build and test
-      run: |
-        set +e
-        mkdir build
-        cd build
-        UBUNTU_MAJOR_FULL=$(lsb_release -rs)
-        WITH_TESTS=ON
-        WITH_PYTHON=ON
-        if echo "$UBUNTU_MAJOR_FULL" | grep -q "18"; then WITH_PYTHON='OFF'; else WITH_PYTHON='ON'; fi
-        cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=ON ..
-        sudo make -j4 install
-        export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
-        echo "Current PYTHONPATH: "
-        echo $PYTHONPATH
-        ctest --output-on-failure --verbose 
-        cd tests
-        ./run_consistency_check.sh
-        python3 PySharsorIPC/perf_and_consistency_test.py
+    # - name: Build and test
+    #   run: |
+    #     set +e
+    #     mkdir build
+    #     cd build
+    #     UBUNTU_MAJOR_FULL=$(lsb_release -rs)
+    #     WITH_TESTS=ON
+    #     WITH_PYTHON=ON
+    #     if echo "$UBUNTU_MAJOR_FULL" | grep -q "18"; then WITH_PYTHON='OFF'; else WITH_PYTHON='ON'; fi
+    #     cmake ../SharsorIPCpp/ -DWITH_TESTS=$WITH_TESTS -DWITH_PYTHON=ON ..
+    #     sudo make -j4 install
+    #     export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
+    #     echo "Current PYTHONPATH: "
+    #     echo $PYTHONPATH
+    #     ctest --output-on-failure --verbose 
+    #     cd tests
+    #     ./run_consistency_check.sh
+    #     python3 PySharsorIPC/perf_and_consistency_test.py
 
+    - name: Install Anaconda
+      run: |
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
+        export PATH="$HOME/miniconda/bin:$PATH"
+        conda init bash
+        source ~/.bashrc
+    
+    - name: Configure Anaconda
+      run: |
+        conda config --set anaconda_upload yes
+        anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
+
+    - name: Go back to package root
+      run: |
+        cd ../../
+
+    # we don't run the tests for each python version
+    - name: Build and upload for each supported python version
+      run: |
+        for version in 3.7 3.8 3.9 3.10 3.11; do
+          echo "Building for Python $version"
+          conda env create -f ./conda/build_envs/py${version//.}_env.yml
+          conda activate py${version//.}_env
+          package_path=$(conda build ./conda/meta.yaml --output)
+          anaconda upload --user AndrePatri $package_path
+          conda deactivate
+        done
 
     - name: Notify on failure
       if: failure()

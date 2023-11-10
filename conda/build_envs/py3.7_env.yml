@@ -1,4 +1,4 @@
-name: py3_7_env
+name: py3.7_env
 channels: 
   - defaults
   - conda-forge
