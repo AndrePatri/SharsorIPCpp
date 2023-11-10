@@ -84,36 +84,42 @@ jobs:
     #     ./run_consistency_check.sh
     #     python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
-    - name: Install Miniconda
+    - name: Install Mamba
       run: |
-      
-        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-        bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
-        echo "PATH=$HOME/miniconda/bin:$PATH" >> $GITHUB_ENV
-    
-    - name: Install Anaconda Client and conda-build
-      run: |
-        conda install -c conda-forge conda-build
-        conda install -c anaconda anaconda-client
+
+        
 
     - name: Configure Anaconda
       run: |
-        conda config --set anaconda_upload yes
-        anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
+        
 
     # we don't run the tests for each python version
     - name: Build and upload for each supported python version
       shell: bash -l {0}
       run: |
+
+        curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
+        bash Mambaforge-$(uname)-$(uname -m).sh
+        
         echo "Current directory content:"
         ls
+        
         for version in ${{ matrix.python-version }}; do
           echo "Building for Python $version"
+
+          mamba env create -f ./conda/build_envs/py${version}_env.yml
+          mamba activate py${version}_env
+
+          conda config --set anaconda_upload yes
+          anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
+          
           package_path=$(conda build ./conda/ --output)
           echo "Conda build package path:"
           echo ${package_path}
           anaconda upload --user AndrePatri $package_path
-          conda deactivate
+
+          mamba deactivate
+          
         done
 
     - name: Notify on failure
