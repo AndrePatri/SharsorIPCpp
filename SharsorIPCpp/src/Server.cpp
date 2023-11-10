@@ -107,7 +107,7 @@ namespace SharsorIPCpp {
                              _vlevel); // acquire shared data semaphore
         // Here to prevent access from any client (at this stage)
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET; // resets to None
 
         MemUtils::checkMem(_mem_config.mem_path,
                             _data_shm_fd,
@@ -116,7 +116,7 @@ namespace SharsorIPCpp {
                             _verbose,
                             _vlevel); // checks if memory was already allocated
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
 
         // data memory
         _initDataMem();
@@ -434,7 +434,8 @@ namespace SharsorIPCpp {
     void Server<Scalar, Layout>::_acquireSemWait(const std::string& sem_path,
                                      sem_t*& sem)
     {
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
         MemUtils::acquireSemWait(sem_path,
                              sem,
@@ -447,7 +448,8 @@ namespace SharsorIPCpp {
                              false, // no verbosity (this is called very frequently)
                              _vlevel);
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
@@ -462,7 +464,7 @@ namespace SharsorIPCpp {
     bool Server<Scalar, Layout>::_acquireSemRt(const std::string& sem_path,
                                      sem_t*& sem)
     {
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
 
         MemUtils::acquireSemTry(sem_path,
                              sem,
@@ -478,7 +480,8 @@ namespace SharsorIPCpp {
 
         }
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
         return true;
 
@@ -488,7 +491,8 @@ namespace SharsorIPCpp {
     void Server<Scalar, Layout>::_releaseSem(const std::string& sem_path,
                                      sem_t*& sem)
     {
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
         MemUtils::releaseSem(sem_path,
                              sem,
@@ -497,7 +501,8 @@ namespace SharsorIPCpp {
                              false, // no verbosity (this is called very frequently)
                              _vlevel);
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
         if (isin(ReturnCode::SEMRELFAIL, _return_code)) {
 
@@ -544,7 +549,8 @@ namespace SharsorIPCpp {
         // closing file descriptors and also unlinking
         // memory
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
         MemUtils::cleanUpMem(_mem_config.mem_path_nrows,
                              _nrows_shm_fd,
@@ -586,7 +592,8 @@ namespace SharsorIPCpp {
                              _vlevel,
                              _unlink_data);
 
-        _return_code = ReturnCode::RESET;
+        _return_code = _return_code + ReturnCode::RESET;
+
 
     }
 
@@ -596,7 +603,8 @@ namespace SharsorIPCpp {
 
         if (!_terminated) {
 
-            _return_code = ReturnCode::RESET;
+            _return_code = _return_code + ReturnCode::RESET;
+
 
             MemUtils::cleanUpMem(_mem_config.mem_path,
                                  _data_shm_fd,
@@ -605,7 +613,8 @@ namespace SharsorIPCpp {
                                  _verbose,
                                  _vlevel);
 
-            _return_code = ReturnCode::RESET;
+            _return_code = _return_code + ReturnCode::RESET;
+
 
             _cleanMetaMem();
 
@@ -632,7 +641,8 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     void Server<Scalar, Layout>::_initMetaMem()
     {
-        _return_code = ReturnCode::RESET; // resets return code
+        _return_code = _return_code + ReturnCode::RESET;
+ // resets return code
 
         MemUtils::initMem<int>(1,
                         1,
@@ -713,7 +723,8 @@ namespace SharsorIPCpp {
 
             _dtype_view(0, 0) = sizeof(Scalar);
 
-            _return_code = ReturnCode::RESET;
+            _return_code = _return_code + ReturnCode::RESET;
+
         }
         else {
 

@@ -133,7 +133,7 @@ namespace SharsorIPCpp{
 
             Journal _journal; // for rt-friendly logging
 
-            ReturnCode _return_code = ReturnCode::RESET; // overwritten by all methods
+            ReturnCode _return_code = ReturnCode::NONE; // overwritten by all methods
             // this is to avoid dyn. allocation
 
             Tensor<Scalar, Layout> _tensor_copy; // copy (not view) of the tensor
