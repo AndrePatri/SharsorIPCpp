@@ -103,9 +103,9 @@ jobs:
       run: |
         for version in 3.7 3.8 3.9 3.10 3.11; do
           echo "Building for Python $version"
-          conda env create -f ./conda/build_envs/py${version//.}_env.yml
+          conda env create -f ../conda/build_envs/py${version//.}_env.yml
           conda activate py${version//.}_env
-          package_path=$(conda build ./conda/meta.yaml --output)
+          package_path=$(conda build ../conda/meta.yaml --output)
           anaconda upload --user AndrePatri $package_path
           conda deactivate
         done
