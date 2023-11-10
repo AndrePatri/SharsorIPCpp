@@ -109,18 +109,12 @@ jobs:
         ls
         for version in ${{ matrix.python-version }}; do
           echo "Building for Python $version"
-          conda env create -f ./conda/build_envs/py${version//.}_env.yml
-          conda activate py${version//.}_env
-          package_path=$(conda build ./conda/meta.yaml --output)
+          package_path=$(conda build ./conda/ --output)
+          echo "Conda build package path:"
+          echo ${package_path}
           anaconda upload --user AndrePatri $package_path
           conda deactivate
         done
-
-        # for version in ${{ matrix.python-version }}; do
-        #   echo "Building and testing for Python $version"
-        #   package_path=$(conda build ./conda/ --python $version --output)
-        #   anaconda upload --user AndrePatri $package_path
-        # done
 
     - name: Notify on failure
       if: failure()
