@@ -43,6 +43,8 @@ jobs:
 
   pybinds-build-and-test:
 
+    # needs: cpp-build-and-test
+
     strategy:
       matrix:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
@@ -82,12 +84,15 @@ jobs:
 
     - name: Install Anaconda
       run: |
+      
         wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
         bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
         echo "PATH=$HOME/miniconda/bin:$PATH" >> $GITHUB_ENV
-        conda init bash
-        source ~/.bashrc
     
+    - name: Install Anaconda Client
+      run: |
+        conda install -c anaconda anaconda-client
+
     - name: Configure Anaconda
       run: |
         conda config --set anaconda_upload yes
