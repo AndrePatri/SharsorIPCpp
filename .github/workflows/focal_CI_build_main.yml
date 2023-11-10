@@ -103,6 +103,7 @@ jobs:
 
     # we don't run the tests for each python version
     - name: Build and upload for each supported python version
+      shell: bash -l {0}
       run: |
         echo "Current directory content:"
         ls
