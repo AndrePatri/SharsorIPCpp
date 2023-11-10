@@ -91,6 +91,7 @@ jobs:
 
         "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
         micromamba self-update
+        source ~/.bashrc
         
         echo "Current directory content:"
         ls
