@@ -84,31 +84,23 @@ jobs:
     #     ./run_consistency_check.sh
     #     python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
-    - name: Install Mamba
-      run: |
-
-        
-
-    - name: Configure Anaconda
-      run: |
-        
-
     # we don't run the tests for each python version
     - name: Build and upload for each supported python version
       shell: bash -l {0}
       run: |
 
-        curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
-        bash Mambaforge-$(uname)-$(uname -m).sh
+        "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+        micromamba self-update
         
         echo "Current directory content:"
         ls
-        
+
         for version in ${{ matrix.python-version }}; do
           echo "Building for Python $version"
 
-          mamba env create -f ./conda/build_envs/py${version}_env.yml
-          mamba activate py${version}_env
+          micromamba activate 
+          micromamba create -f ./conda/build_envs/py${version}_env.yml
+          micromamba activate py${version}_env
 
           conda config --set anaconda_upload yes
           anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
