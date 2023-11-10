@@ -74,7 +74,7 @@ jobs:
     #     cd build
     #     WITH_TESTS=ON
     #     WITH_PYTHON=ON
-    #     cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=OFF ..
+    #     cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
     #     sudo make -j4 install
     #     export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
     #     echo "Current PYTHONPATH: "
@@ -102,11 +102,21 @@ jobs:
     # we don't run the tests for each python version
     - name: Build and upload for each supported python version
       run: |
+
         for version in ${{ matrix.python-version }}; do
-          echo "Building and testing for Python $version"
-          package_path=$(conda-build ./conda/meta.yaml --python $version --output)
+          echo "Building for Python $version"
+          conda env create -f ./conda/build_envs/py${version//.}_env.yml
+          conda activate py${version//.}_env
+          package_path=$(conda build ./conda/meta.yaml --output)
           anaconda upload --user AndrePatri $package_path
+          conda deactivate
         done
+
+        # for version in ${{ matrix.python-version }}; do
+        #   echo "Building and testing for Python $version"
+        #   package_path=$(conda-build ./conda/ --python $version --output)
+        #   anaconda upload --user AndrePatri $package_path
+        # done
 
     - name: Notify on failure
       if: failure()
