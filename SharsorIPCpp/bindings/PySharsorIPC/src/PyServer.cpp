@@ -29,27 +29,7 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
         .def("write", [](SharsorIPCpp::Server<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col
-//                       bool is_row = true // only used with 1D views
-
-                       // In case on 1D views, we cannot retrieve
-                       // any dimensionality information to allow the correct use
-                       // of the Server tensor view. If the view is 1D, we force the
-                       // user to specify if we should consider it a row or column.
-                       // In case this information is not compatible with both the Server
-                       // layout and the strides of the view, we notify the user.
-                       // If we require the original numpy array and the Server to have same
-                       // layout (i.e. be coherent), then the following deduction rule for the layout
-                       // of the original matrix holds:
-                       // Server RowMajor -> strides[0] = 1 --> this has to be a row
-                       //                    strides[1] > 1 --> this has to be a column
-                       // Client RowMajor -> strides[0] = 1 --> this has to be a column
-                       //                    strides[1] > 1 --> this has to be a row
-                       // If we deduce the view to be a specific one (e.g. row) and the user
-                       // provided a different one (col) then we consider it an error
-                       // (either the original matrix was not of the right layout or the user
-                       // provided an incohrent is_row parameter.
-                       ) {
+                       int row, int col) {
 
             // runtime argument type checks are run the Wrapper
 
@@ -62,9 +42,7 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
             bool success = false;
 
-            // (not the cleanest if cascade possible,
-            // but efficient)
-
+            // actual 2D tensors
             if ((Layout == SharsorIPCpp::RowMajor) &&
                     (buf_info.strides[0] > buf_info.strides[1]) ) { // coherent -> compute strides
 
@@ -130,7 +108,14 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
                 return false;
             }
 
-            return false; // code never reaches this
+            std::string message = std::string("Unexpected behaviour occurred!");
+
+            SharsorIPCpp::Journal::log("PyServer",
+                        "write",
+                        message,
+                        LogType::EXCEP);
+
+            return false;
         })
 
         .def("read", [](SharsorIPCpp::Server<Scalar, Layout>& self,
@@ -216,7 +201,17 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
                 return false;
             }
 
-            return false; // code never reaches this
+            // if all cases are handled properly code
+            // should reach this (we throw exception just in case)
+
+            std::string message = std::string("Unexpected behaviour occurred!");
+
+            SharsorIPCpp::Journal::log("PyServer",
+                        "read",
+                        message,
+                        LogType::EXCEP);
+
+            return false;
 
         })
 

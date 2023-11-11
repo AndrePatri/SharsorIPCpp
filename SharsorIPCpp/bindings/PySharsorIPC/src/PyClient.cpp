@@ -114,6 +114,13 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
                     return false;
                 }
 
+                std::string message = std::string("Unexpected behaviour occurred!");
+
+                SharsorIPCpp::Journal::log("PyClient",
+                            "write",
+                            message,
+                            LogType::EXCEP);
+
                 return false; // code never reaches this
             })
 
@@ -207,6 +214,13 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
 
                     return false;
                 }
+
+                std::string message = std::string("Unexpected behaviour occurred!");
+
+                SharsorIPCpp::Journal::log("PyClient",
+                            "read",
+                            message,
+                            LogType::EXCEP);
 
                 return false; // code never reaches this
 
