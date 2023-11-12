@@ -95,7 +95,6 @@ jobs:
         source "$HOME/miniconda/etc/profile.d/conda.sh"
         hash -r
         conda config --set always_yes yes --set changeps1 no
-        conda config --set anaconda_upload yes
         conda update -q conda
 
         # Useful for debugging any issues with conda
