@@ -42,7 +42,14 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
             bool success = false;
 
-            // actual 2D tensors
+            // From Eigen doc:
+            // The inner stride is the pointer increment between
+            // two consecutive entries within a given row of a row-major matrix
+            // or within a given column of a column-major matrix
+            // The outer stride is the pointer increment between two consecutive
+            // rows of a row-major matrix or between two consecutive columns of
+            // a column-major matrix
+
             if ((Layout == SharsorIPCpp::RowMajor) &&
                     (buf_info.strides[0] > buf_info.strides[1]) ) { // coherent -> compute strides
 
@@ -443,6 +450,8 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
 
             // and of the input np array
             pybind11::dtype np_dtype = np_array.dtype();
+
+            pybind11::buffer_info buf_info = np_array.request();
 
             switch (server.attr("getScalarType")().cast<DType>()) {
 

@@ -88,9 +88,9 @@ namespace SharsorIPCpp {
 
         template <typename Scalar, int Layout = MemLayoutDefault>
         TensorView<Scalar, Layout> createViewFrom(
-                                    Tensor<Scalar, Layout>& from,
-                                    int row_idx, int col_idx,
-                                    int n_rows, int n_cols);
+                                    Tensor<Scalar, Layout>& from, // original tensor
+                                    int row_idx, int col_idx, // at indexes
+                                    int n_rows, int n_cols); // of size
 
         template <typename Scalar, int Layout>
         TensorView<Scalar, Layout> createViewFrom(
@@ -129,14 +129,23 @@ namespace SharsorIPCpp {
 
             Scalar* startPtr; // start pointer from which to create the view
 
+            // From Eigen doc:
+            // The inner stride is the pointer increment between
+            // two consecutive entries within a given row of a row-major matrix
+            // or within a given column of a column-major matrix
+            // The outer stride is the pointer increment between two consecutive
+            // rows of a row-major matrix or between two consecutive columns of
+            // a column-major matrix
+
             if (Layout == SharsorIPCpp::ColMajor) {
 
                 startPtr = from.data() +
                         col_idx * from.rows() + row_idx;
 
                 // Define the stride based on the layout of the matrix
-                DStrides stride(from.rows(),
-                                1);
+
+                DStrides stride(from.rows(), // outerstride
+                                1); // innerstride
 
                 // Use the mapped view with the provided stride to interpret the block correctly
                 return TensorView<Scalar, Layout>(startPtr,
