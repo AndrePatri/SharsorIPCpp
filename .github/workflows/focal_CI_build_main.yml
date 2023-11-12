@@ -50,7 +50,7 @@ jobs:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
         dist: [focal]
         compiler: [g++]
-        python-version: ['3.10']
+        python-version: ['3.7', '3.10']
 
     runs-on: ${{ matrix.os }}
 
@@ -69,20 +69,20 @@ jobs:
         echo "Current python version: "
         python3 --version
 
-    # - name: Build all and test only python bindings
-    #   run: |
-    #     set +e
-    #     mkdir build
-    #     cd build
-    #     WITH_TESTS=ON
-    #     WITH_PYTHON=ON
-    #     cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
-    #     sudo make -j4 install
-    #     export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
-    #     echo "Current PYTHONPATH: "
-    #     echo $PYTHONPATH
-    #     ./run_consistency_check.sh
-    #     python3 tests/PySharsorIPC/perf_and_consistency_test.py
+    - name: Build all and test python bindings
+      run: |
+        set +e
+        mkdir build
+        cd build
+        WITH_TESTS=ON
+        WITH_PYTHON=ON
+        cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
+        sudo make -j4 install
+        export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
+        echo "Current PYTHONPATH: "
+        echo $PYTHONPATH
+        ./run_consistency_check.sh
+        python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
     # we don't run the tests for each python version
     - name: Build and upload for each supported python version
@@ -100,28 +100,22 @@ jobs:
         # Useful for debugging any issues with conda
         conda info -a
 
-        for version in ${{ matrix.python-version }}; do
-          echo "Building for Python $version"
-          # Create and activate the conda environment
-          conda env create -f conda/build_envs/py${version}_env.yml
-          conda activate py${version}_env
-          
-          anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
-          
-          echo "conda-bld contents:"
-          ls $HOME/miniconda/conda-bld/linux-64/
-          ls $HOME/miniconda/envs/py3.10_env/conda-bld/linux-64/
-          conda build conda/
-          package_path=$(conda build conda/ --output)
-          echo "Conda build package path:"
-          echo ${package_path}
+        echo "Building for Python ${{ matrix.python-version }}"
 
-          anaconda upload --user AndrePatri $package_path
+        conda env create -f conda/build_envs/py${{ matrix.python-version }}_env.yml
+        conda activate py${{ matrix.python-version }}_env
+        
+        anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
+        
+        conda build conda/
+        package_path=$(conda build conda/ --output)
+        echo "Conda build package path:"
+        echo ${package_path}
 
-          conda deactivate
+        anaconda upload --user AndrePatri $package_path
+
+        conda deactivate
           
-        done
-
     - name: Notify on failure
       if: failure()
       uses: dawidd6/action-send-mail@v3
