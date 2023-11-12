@@ -89,31 +89,34 @@ jobs:
       shell: bash -l {0}
       run: |
 
-        "${SHELL}" <(curl -L micro.mamba.pm/install.sh)
-        micromamba self-update
-        micromamba install python=3.10 jupyter -c conda-forge
-        
-        source ~/.bashrc
+        # Install Miniconda
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        bash miniconda.sh -b -p $HOME/miniconda
+        source "$HOME/miniconda/etc/profile.d/conda.sh"
+        hash -r
+        conda config --set always_yes yes --set changeps1 no
+        conda config --set anaconda_upload yes
+        conda update -q conda
 
-        echo "Current directory content:"
-        ls
+        # Useful for debugging any issues with conda
+        conda info -a
 
         for version in ${{ matrix.python-version }}; do
           echo "Building for Python $version"
 
-          micromamba activate 
-          micromamba create -f ./conda/build_envs/py${version}_env.yml
-          micromamba activate py${version}_env
-
-          conda config --set anaconda_upload yes
+          # Create and activate the conda environment
+          conda create -f ./conda/build_envs/py${version}_env.yml
+          conda activate py${version}_env
+          
           anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
           
           package_path=$(conda build ./conda/ --output)
           echo "Conda build package path:"
           echo ${package_path}
+
           anaconda upload --user AndrePatri $package_path
 
-          mamba deactivate
+          conda deactivate
           
         done
 
