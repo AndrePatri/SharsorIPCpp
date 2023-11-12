@@ -102,15 +102,15 @@ jobs:
 
         for version in ${{ matrix.python-version }}; do
           echo "Building for Python $version"
-
-          echo "Path to conda env"
-          ls 
           # Create and activate the conda environment
           conda env create -f conda/build_envs/py${version}_env.yml
           conda activate py${version}_env
           
           anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
           
+          echo "conda-bld contents:"
+          ls $HOME/miniconda/envs/py3.10_env/conda-bld/linux-64/
+
           package_path=$(conda build conda/ --output)
           echo "Conda build package path:"
           echo ${package_path}
