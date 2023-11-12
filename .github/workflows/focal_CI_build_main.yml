@@ -104,12 +104,12 @@ jobs:
           echo "Building for Python $version"
 
           # Create and activate the conda environment
-          conda env create -f ./conda/build_envs/py${version}_env.yml
+          conda env create -f ../conda/build_envs/py${version}_env.yml
           conda activate py${version}_env
           
           anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
           
-          package_path=$(conda build ./conda/ --output)
+          package_path=$(conda build ../conda/ --output)
           echo "Conda build package path:"
           echo ${package_path}
 
