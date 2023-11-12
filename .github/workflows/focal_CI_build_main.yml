@@ -104,7 +104,7 @@ jobs:
           echo "Building for Python $version"
 
           echo "Path to conda env"
-          ls ./../conda/build_envs/
+          ls 
           # Create and activate the conda environment
           conda env create -f ./../conda/build_envs/py${version}_env.yml
           conda activate py${version}_env
