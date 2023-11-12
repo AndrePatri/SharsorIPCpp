@@ -7,50 +7,81 @@ on:
 
 jobs:
 
-  # cpp-build-and-test:
-
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
-  #       dist: [focal]
-  #       compiler: [g++]
-
-  #   runs-on: ${{ matrix.os }}
-
-  #   steps:
-
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #     with:
-  #       ref: main
-    
-  #   - name: Set up environment
-  #     run: |
-  #       rm -rf /opt/pyenv
-  #       sudo apt-get update
-  #       sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
-
-  #   - name: Build and test cpp library only
-  #     run: |
-  #       set +e
-  #       mkdir build
-  #       cd build
-  #       cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=OFF ..
-  #       sudo make -j4 install
-  #       ctest --output-on-failure --verbose 
-  #       cd tests
-  #       ./run_consistency_check.sh
-
-  pybinds-build-and-test:
-
-    # needs: cpp-build-and-test
+  cpp-build-and-test-performance:
 
     strategy:
       matrix:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
         dist: [focal]
         compiler: [g++]
-        python-version: ['3.7', '3.10']
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: main
+    
+    - name: Set up environment
+      run: |
+        rm -rf /opt/pyenv
+        sudo apt-get update
+        sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
+
+    - name: Build and test cpp library only
+      run: |
+        set +e
+        mkdir build
+        cd build
+        cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=OFF ..
+        sudo make -j4 install
+        ctest --output-on-failure --verbose 
+
+  cpp-build-and-test-consistency:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
+        dist: [focal]
+        compiler: [g++]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        ref: main
+    
+    - name: Set up environment
+      run: |
+        rm -rf /opt/pyenv
+        sudo apt-get update
+        sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
+
+    - name: Build and test cpp library only
+      run: |
+        set +e
+        mkdir build
+        cd build
+        cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=OFF ..
+        sudo make -j4 install
+        cd tests
+        ./run_consistency_check.sh
+
+  pybinds-build-test-upload:
+
+    needs: cpp-build-and-test-consistency 
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
+        dist: [focal]
+        compiler: [g++]
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     runs-on: ${{ matrix.os }}
 
@@ -69,7 +100,7 @@ jobs:
         echo "Current python version: "
         python3 --version
 
-    - name: Build all and test python bindings
+    - name: Build and test python bindings
       run: |
         set +e
         mkdir build
@@ -85,7 +116,7 @@ jobs:
         python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
     # we don't run the tests for each python version
-    - name: Build and upload for each supported python version
+    - name: Build and upload to Anaconda
       shell: bash -l {0}
       run: |
 
