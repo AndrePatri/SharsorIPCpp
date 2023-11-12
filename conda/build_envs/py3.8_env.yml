@@ -1,4 +1,4 @@
-name: py3_8_env
+name: py3.8_env
 channels: 
   - defaults
   - conda-forge

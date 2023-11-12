@@ -1,4 +1,4 @@
-name: py3_9_env
+name: py3.9_env
 channels: 
   - defaults
   - conda-forge

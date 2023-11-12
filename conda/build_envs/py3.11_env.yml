@@ -1,4 +1,4 @@
-name: py3_11_env
+name: py3.11_env
 channels: 
   - defaults
   - conda-forge
