@@ -109,8 +109,9 @@ jobs:
           anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}}
           
           echo "conda-bld contents:"
+          ls $HOME/miniconda/conda-bld/linux-64/
           ls $HOME/miniconda/envs/py3.10_env/conda-bld/linux-64/
-
+          conda build conda/
           package_path=$(conda build conda/ --output)
           echo "Conda build package path:"
           echo ${package_path}
