@@ -153,7 +153,7 @@ jobs:
         conda env create -f conda/build_envs/py${{ matrix.python-version }}_env.yml
         conda activate py${{ matrix.python-version }}_env
         
-        anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}} --hostname ${{ runner.id }}
+        anaconda login --username ${{secrets.ANACONDA_USERNAME}} --password ${{secrets.ANACONDA_PASSWORD}} --hostname "${{ github.run_id }}-${{ github.job }}"
         
         conda build conda/
         package_path=$(conda build conda/ --output)
