@@ -160,7 +160,7 @@ jobs:
         echo "Conda build package path:"
         echo ${package_path}
 
-        anaconda upload --user AndrePatri $package_path
+        anaconda upload --user AndrePatri --force $package_path
 
         conda deactivate
           
