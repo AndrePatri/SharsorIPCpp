@@ -134,29 +134,25 @@ jobs:
 
     - name: Set Token Environment Variable
 
-        env:
-          PY_VERSION_: ${{ replace(matrix.python-version, '.', '_') }} # (cannot create
-          # secrets with . in the name)
-
         run: |
 
-          if [ "$PY_VERSION_" == "3_7" ]; then
+          if [ "${{ replace(matrix.python-version, '.', '_') }}" == "3_7" ]; then
 
             echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_7 }}" >> $GITHUB_ENV
             
-          elif [ "$PY_VERSION_UNDERSCORE" == "3_8" ]; then
+          elif [ "${{ replace(matrix.python-version, '.', '_') }}" == "3_8" ]; then
 
             echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_8 }}" >> $GITHUB_ENV
           
-          elif [ "$PY_VERSION_UNDERSCORE" == "3_9" ]; then
+          elif [ "${{ replace(matrix.python-version, '.', '_') }}" == "3_9" ]; then
 
             echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_9 }}" >> $GITHUB_ENV
 
-          elif [ "$PY_VERSION_UNDERSCORE" == "3_10" ]; then
+          elif [ "${{ replace(matrix.python-version, '.', '_') }}" == "3_10" ]; then
 
             echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_10 }}" >> $GITHUB_ENV
 
-          elif [ "$PY_VERSION_UNDERSCORE" == "3_11" ]; then
+          elif [ "${{ replace(matrix.python-version, '.', '_') }}" == "3_11" ]; then
 
             echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_11 }}" >> $GITHUB_ENV
 
