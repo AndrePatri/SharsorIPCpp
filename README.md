@@ -35,11 +35,12 @@ Just clone this repo, build and install the library with CMake, ensuring that al
 
 In case you need the python interface, turn on the cmake flag `WITH_PYTHON`, which is off by default. Additionally, you can compile and run the tests by turning on the `WITH_TESTS` flags. 
 
-The tests include some consistency checks to ensure the library works properly and some performance benchmarks, for both the Cpp and python interface and for all the supported dtypes and layouts. 
+The tests include some consistency checks to ensure the library works properly and some performance benchmarks, for both the Cpp and Python interface and for all the supported dtypes and layouts. 
 
 ### 4. Install from Anaconda: 
 
-The full library (including PySharsorIPC) is also deployed on Anaconda at [sharsor_ipcpp](https://anaconda.org/AndrePatri/sharsor_ipcpp/files), with Python support from versions 3.7 up to 3.11.
+The full library (including PySharsorIPC) is also deployed on Anaconda at [sharsor_ipcpp](https://anaconda.org/AndrePatri/sharsor_ipcpp/files), with Python support from versions 3.7 up to 3.11. 
+Please note that these Anaconda versions are periodically updated starting from the *main* branch, so cutting-edge features might not be available there.
 
 ### 5. Using SharsorIPCpp from another package 
 
@@ -65,7 +66,7 @@ To compile the bindings you'll need:
 - **libm** -->
 
 ### 7. Additional notes
-If employed properly, the library is also designed to be rt-safe (in C++):
+If employed properly, the C++ version of the library can be employed in a rt-safe way:
 - Dynamic allocations are reduced to the bare minimum.
 - Run-time semaphore acquisitions (used by `write` and `read`) are designed to be non-blocking and rt-safe. It is then user's responsibility to handle, if necessary, possible write/read failures due to semaphore acquisition.
 - Calls to `run()/attach()` and `stop()` are not guaranteed to be rt-friendly. For rt applications, these calls should only be done during initialization/closing steps or, at run-time, sporadically.
