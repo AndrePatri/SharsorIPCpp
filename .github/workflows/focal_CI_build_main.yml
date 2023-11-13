@@ -134,7 +134,7 @@ jobs:
 
     - name: Convert Python version
 
-        run: echo "PY_VERSION_UNDERSCORE=$(echo ${{ matrix.python-version }} | tr '.' '_')" >> $GITHUB_ENV
+      run: echo "PY_VERSION_UNDERSCORE=$(echo ${{ matrix.python-version }} | tr '.' '_')" >> $GITHUB_ENV
 
     - name: Set Token Environment Variable
 
