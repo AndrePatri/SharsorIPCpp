@@ -164,31 +164,29 @@ jobs:
         echo "Conda build package path:"
         echo ${package_path}
 
+        echo "Uploading to anaconda ..."
+
         if [ "${PY_VERSION_UNDERSCORE}" == "3_7" ]; then
 
-          ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_7 }}
+          anaconda -t ${{ secrets.ANACONDACI_TOKEN_PY3_7 }} upload --user AndrePatri --force $package_path
           
         elif [ "${PY_VERSION_UNDERSCORE}" == "3_8" ]; then
 
-          ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_8 }}
+          anaconda -t ${{ secrets.ANACONDACI_TOKEN_PY3_8 }} upload --user AndrePatri --force $package_path
         
         elif [ "${PY_VERSION_UNDERSCORE}" == "3_9" ]; then
 
-          ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_9 }}
+          anaconda -t ${{ secrets.ANACONDACI_TOKEN_PY3_9 }} upload --user AndrePatri --force $package_path
 
         elif [ "${PY_VERSION_UNDERSCORE}" == "3_10" ]; then
 
-          ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_10 }}
+          anaconda -t ${{ secrets.ANACONDACI_TOKEN_PY3_10 }} upload --user AndrePatri --force $package_path
 
         elif [ "${PY_VERSION_UNDERSCORE}" == "3_11" ]; then
 
-          ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_11 }}
+          anaconda -t ${{ secrets.ANACONDACI_TOKEN_PY3_11 }} upload --user AndrePatri --force $package_path
 
         fi
-
-        echo "Uploading to anaconda ..."
-        
-        anaconda -t ${ANACONDA_TOKEN} upload --user AndrePatri --force $package_path
 
         anaconda logout
 
