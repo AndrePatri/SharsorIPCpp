@@ -39,11 +39,11 @@ The tests include some consistency checks to ensure the library works properly a
 
 ### 4. Install from Anaconda: 
 
-The full library (including PySharsorIPC) is also deployed on Anaconda at [sharsor_ipcpp](https://anaconda.org/andrepatri/sharsor_ipcpp), with Python support from version 3.7 up to 3.11.
+The full library (including PySharsorIPC) is also deployed on Anaconda at [sharsor_ipcpp](https://anaconda.org/AndrePatri/sharsor_ipcpp/files), with Python support from versions 3.7 up to 3.11.
 
 ### 5. Using SharsorIPCpp from another package 
 
-Importing and linking against the library is super easy: have a look at an example CMakeLists.txt [here](docs/sphinx/source/_static/CMakeLists_example.txt) and.
+Importing and linking against the library is super easy: have a look at an example CMakeLists.txt [here](docs/sphinx/source/_static/CMakeLists_example.txt).
 
 ### 6. External dependencies: 
 - [Eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) - *required*: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
@@ -81,4 +81,4 @@ If employed properly, the library is also designed to be rt-safe (in C++):
 - [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
 - [x] setup to be used from external package
 - [x] deploy on Anaconda 
-- [ ] automatic deployment of main branch on Anaconda from GitHub actions (only if tests passing)
+- [x] automatic deployment of main branch on Anaconda from GitHub actions (only if tests passing)
