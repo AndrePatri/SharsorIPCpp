@@ -26,13 +26,18 @@ jobs:
     
   #   - name: Set up environment
   #     run: |
+
+  #       set -e
+
   #       rm -rf /opt/pyenv
   #       sudo apt-get update
   #       sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
 
   #   - name: Build and test cpp library only
   #     run: |
-  #       set +e
+        
+  #       set -e
+
   #       mkdir build
   #       cd build
   #       cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=OFF ..
@@ -58,13 +63,18 @@ jobs:
     
   #   - name: Set up environment
   #     run: |
+
+  #       set -e
+
   #       rm -rf /opt/pyenv
   #       sudo apt-get update
   #       sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
 
   #   - name: Build and test cpp library only
   #     run: |
-  #       set +e
+
+  #       set -e
+
   #       mkdir build
   #       cd build
   #       cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=OFF ..
@@ -74,7 +84,7 @@ jobs:
 
   pybinds-build-test-upload:
 
-    # needs: cpp-build-and-test-consistency 
+    needs: cpp-build-and-test-consistency 
 
     strategy:
       matrix:
@@ -94,31 +104,38 @@ jobs:
 
     - name: Set up environment
       run: |
+        
+        set -e
+
         rm -rf /opt/pyenv
         sudo apt-get update
         sudo apt-get install git libgtest-dev cmake libeigen3-dev pybind11-dev lsb-release python3-numpy
         echo "Current python version: "
         python3 --version
 
-    - name: Build and test python bindings
-      run: |
-        set +e
-        mkdir build
-        cd build
-        WITH_TESTS=ON
-        WITH_PYTHON=ON
-        cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
-        sudo make -j4 install
-        export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
-        echo "Current PYTHONPATH: "
-        echo $PYTHONPATH
-        ./run_consistency_check.sh
-        python3 tests/PySharsorIPC/perf_and_consistency_test.py
+    # - name: Build and test python bindings
+    #   run: |
+
+    #     set -e
+
+    #     mkdir build
+    #     cd build
+    #     WITH_TESTS=ON
+    #     WITH_PYTHON=ON
+    #     cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
+    #     sudo make -j4 install
+    #     export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
+    #     echo "Current PYTHONPATH: "
+    #     echo $PYTHONPATH
+    #     ./run_consistency_check.sh
+    #     python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
     # we don't run the tests for each python version
     - name: Build and upload to Anaconda
       shell: bash -l {0}
       run: |
+
+        set -e
 
         # Install Miniconda
         wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
