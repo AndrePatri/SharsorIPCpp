@@ -160,6 +160,8 @@ jobs:
 
           echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_11 }}" >> $GITHUB_ENV
 
+        fi
+        
     - name: Build and upload to Anaconda
 
       shell: bash -l {0}
