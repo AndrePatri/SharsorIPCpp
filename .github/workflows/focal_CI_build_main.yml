@@ -86,9 +86,6 @@ jobs:
 
     # needs: cpp-build-and-test-consistency 
 
-    env:
-      ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-
     strategy:
       matrix:
         os: [ubuntu-latest]  # This will use the latest stable version of Ubuntu.
@@ -99,7 +96,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-
+    
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -134,7 +131,37 @@ jobs:
     #     python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
     # we don't run the tests for each python version
+
+    - name: Set Token Environment Variable
+
+        env:
+          PY_VERSION_: ${{ replace(matrix.python-version, '.', '_') }} # (cannot create
+          # secrets with . in the name)
+
+        run: |
+
+          if [ "$PY_VERSION_" == "3_7" ]; then
+
+            echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_7 }}" >> $GITHUB_ENV
+            
+          elif [ "$PY_VERSION_UNDERSCORE" == "3_8" ]; then
+
+            echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_8 }}" >> $GITHUB_ENV
+          
+          elif [ "$PY_VERSION_UNDERSCORE" == "3_9" ]; then
+
+            echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_9 }}" >> $GITHUB_ENV
+
+          elif [ "$PY_VERSION_UNDERSCORE" == "3_10" ]; then
+
+            echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_10 }}" >> $GITHUB_ENV
+
+          elif [ "$PY_VERSION_UNDERSCORE" == "3_11" ]; then
+
+            echo "ANACONDA_TOKEN=${{ secrets.ANACONDACI_TOKEN_PY3_11 }}" >> $GITHUB_ENV
+
     - name: Build and upload to Anaconda
+
       shell: bash -l {0}
       run: |
 
@@ -161,7 +188,7 @@ jobs:
         echo "Conda build package path:"
         echo ${package_path}
 
-        anaconda -t $ANACONDA_API_TOKEN upload --user AndrePatri --force $package_path
+        anaconda -t ${ANACONDA_TOKEN} upload --user AndrePatri --force $package_path
 
         anaconda logout
 
