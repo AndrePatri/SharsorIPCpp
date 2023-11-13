@@ -186,6 +186,8 @@ jobs:
 
         fi
 
+        echo "Uploading to anaconda ..."
+        
         anaconda -t ${ANACONDA_TOKEN} upload --user AndrePatri --force $package_path
 
         anaconda logout
