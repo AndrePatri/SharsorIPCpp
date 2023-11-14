@@ -113,22 +113,22 @@ jobs:
         echo "Current python version: "
         python3 --version
 
-    # - name: Build and test python bindings
-    #   run: |
+    - name: Build and test python bindings
+      run: |
 
-    #     set -e
+        set -e
 
-    #     mkdir build
-    #     cd build
-    #     WITH_TESTS=ON
-    #     WITH_PYTHON=ON
-    #     cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
-    #     sudo make -j4 install
-    #     export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
-    #     echo "Current PYTHONPATH: "
-    #     echo $PYTHONPATH
-    #     ./run_consistency_check.sh
-    #     python3 tests/PySharsorIPC/perf_and_consistency_test.py
+        mkdir build
+        cd build
+        WITH_TESTS=ON
+        WITH_PYTHON=ON
+        cmake ../SharsorIPCpp/ -DWITH_TESTS=ON -DWITH_PYTHON=ON ..
+        sudo make -j4 install
+        export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
+        echo "Current PYTHONPATH: "
+        echo $PYTHONPATH
+        ./run_consistency_check.sh
+        python3 tests/PySharsorIPC/perf_and_consistency_test.py
 
     # we don't run the tests for each python version
 
