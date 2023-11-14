@@ -7,7 +7,7 @@ from SharsorIPCpp.PySharsorIPC import *
 
 namespace = "PerfTests"
 
-N_ITERATIONS = 10
+N_ITERATIONS = 1000000
 N_ITERATIONS_STR = 1000000
 
 N_ROWS = 100
