@@ -128,8 +128,7 @@ jobs:
         echo "Current PYTHONPATH: "
         echo $PYTHONPATH
         python3 tests/PySharsorIPC/perf_and_consistency_test.py
-
-    # we don't run the tests for each python version
+        cd ..
 
     - name: Convert Python version
 
