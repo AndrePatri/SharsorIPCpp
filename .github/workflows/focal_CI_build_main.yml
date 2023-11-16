@@ -128,8 +128,8 @@ jobs:
         echo "Current PYTHONPATH: "
         echo $PYTHONPATH
         python3 tests/PySharsorIPC/perf_and_consistency_test.py
-        cd ..
-
+        rm -r * 
+        
     - name: Convert Python version
 
       run: echo "PY_VERSION_UNDERSCORE=$(echo ${{ matrix.python-version }} | tr '.' '_')" >> $GITHUB_ENV
