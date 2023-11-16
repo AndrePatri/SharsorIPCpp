@@ -128,7 +128,7 @@ jobs:
         echo "Current PYTHONPATH: "
         echo $PYTHONPATH
         python3 tests/PySharsorIPC/perf_and_consistency_test.py
-        rm -r * 
+        sudo rm -r * 
         
     - name: Convert Python version
 
