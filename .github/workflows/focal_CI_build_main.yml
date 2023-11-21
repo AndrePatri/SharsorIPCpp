@@ -127,11 +127,9 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python3/dist-packages/
         echo "Current PYTHONPATH: "
         echo $PYTHONPATH
-        ./run_consistency_check.sh
         python3 tests/PySharsorIPC/perf_and_consistency_test.py
-
-    # we don't run the tests for each python version
-
+        sudo rm -r * 
+        
     - name: Convert Python version
 
       run: echo "PY_VERSION_UNDERSCORE=$(echo ${{ matrix.python-version }} | tr '.' '_')" >> $GITHUB_ENV
