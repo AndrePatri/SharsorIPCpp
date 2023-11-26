@@ -2,7 +2,7 @@ name: "Focal CI"
 
 on:
   schedule:
-    - cron: '0 2 * * *' # trigger build at 2 a.m.
+    - cron: '0 2 * * 0' # trigger build at 2 a.m., each Sunday (0)
   workflow_dispatch: # or upon user request
 
 jobs:
