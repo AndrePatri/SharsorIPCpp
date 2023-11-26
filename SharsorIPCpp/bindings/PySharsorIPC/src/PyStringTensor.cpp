@@ -53,45 +53,43 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
         .def("write",
             (bool (StringTensor<StrServer>::*)(const std::vector<std::string>&, int))
             &StringTensor<StrServer>::write,
-            py::arg("vec"), py::arg("index") = 0)
+            py::arg("str_list"), py::arg("index") = 0)
 
-        .def("write",
-            (bool (StringTensor<StrServer>::*)(const std::string&, int))
-            &StringTensor<StrServer>::write,
-            py::arg("str"), py::arg("index") = 0)
-
-        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self, int index) {
-
-                    std::string result_str;
-
-                    bool success = false;
-
-                    if (self.isRunning()) {
-
-                        success = self.read(result_str, index);
-                    }
-
-                    return std::make_tuple(success, result_str);
-
-                }, py::arg("index") = 0)
-
-        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self, int index) {
-
-            std::vector<std::string> result_vec;
+        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self,
+                            std::string& result_str,
+                            int index) {
 
             bool success = false;
 
             if (self.isRunning()) {
 
-                result_vec.resize(self.getLength());
-
                 success = self.read(result_vec, index);
 
             }
 
-            return std::make_tuple(success, result_vec);
+            return success;
 
         }, py::arg("index") = 0)
+
+        .def("write_str",
+            (bool (StringTensor<StrServer>::*)(const std::string&, int))
+            &StringTensor<StrServer>::write,
+            py::arg("str"), py::arg("index") = 0)
+
+        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self,
+                            std::string& result_str,
+                            int index) {
+
+            bool success = false;
+
+            if (self.isRunning()) {
+
+                success = self.read(result_str, index);
+            }
+
+            return success;
+
+        }, py::arg("str_list"), py::arg("index") = 0)
 
         ;
 
@@ -121,44 +119,43 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
         .def("write",
             (bool (StringTensor<StrClient>::*)(const std::vector<std::string>&, int))
             &StringTensor<StrClient>::write,
-            py::arg("vec"), py::arg("index") = 0)
-        .def("write",
-            (bool (StringTensor<StrClient>::*)(const std::string&, int))
-            &StringTensor<StrClient>::write,
-            py::arg("str"), py::arg("index") = 0)
+            py::arg("str_list"), py::arg("index") = 0)
 
-        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self, int index) {
-
-                    std::string result_str;
-
-                    bool success = false;
-
-                    if (self.isRunning()) {
-
-                        success = self.read(result_str, index);
-                    }
-
-                    return std::make_tuple(success, result_str);
-
-                }, py::arg("index") = 0)
-
-        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self, int index) {
-
-            std::vector<std::string> result_vec;
+        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self,
+                            std::string& result_str,
+                            int index) {
 
             bool success = false;
 
             if (self.isRunning()) {
 
-                result_vec.resize(self.getLength());
-
                 success = self.read(result_vec, index);
 
             }
 
-            return std::make_tuple(success, result_vec);
+            return success;
 
         }, py::arg("index") = 0)
+
+        .def("write_str",
+            (bool (StringTensor<StrClient>::*)(const std::string&, int))
+            &StringTensor<StrClient>::write,
+            py::arg("str"), py::arg("index") = 0)
+
+        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self,
+                            std::string& result_str,
+                            int index) {
+
+            bool success = false;
+
+            if (self.isRunning()) {
+
+                success = self.read(result_str, index);
+            }
+
+            return success;
+
+        }, py::arg("str_list"), py::arg("index") = 0)
 
         ;
 

@@ -344,6 +344,13 @@ class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
 
         self.PerfAndConsistency()
 
+class TestPerfBenchStringTensor(unittest.TestCase):
+
+
+    def test_string_tensor(self):
+
+        a = 1
+
 if __name__ == "__main__":
 
     unittest.main()
