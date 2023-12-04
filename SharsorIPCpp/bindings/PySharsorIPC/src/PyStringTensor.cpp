@@ -59,13 +59,17 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
                     py::list py_list, 
                     int index) {
             
+            // Check if the Python list is empty
+            if (py_list.empty()) {
+                return false;  // Return false if the list is empty
+            }
+
             // Convert py::list to std::vector<std::string>
             std::vector<std::string> result_vec;
             for (auto item : py_list) {
                 result_vec.push_back(item.cast<std::string>());
             }
 
-            std::cout << "#######" << result_vec[0] << std::endl;
             // Call the C++ method
             bool success = self.read(result_vec, index);
 
@@ -124,16 +128,20 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
             py::arg("str_list"), py::arg("index") = 0)
 
         .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self, 
-                    py::list py_list, 
-                    int index) {
+            py::list py_list, 
+            int index) {
             
+            // Check if the Python list is empty
+            if (py_list.empty()) {
+                return false;  // Return false if the list is empty
+            }
+
             // Convert py::list to std::vector<std::string>
             std::vector<std::string> result_vec;
             for (auto item : py_list) {
                 result_vec.push_back(item.cast<std::string>());
             }
 
-            std::cout << "#######" << result_vec[0] << std::endl;
             // Call the C++ method
             bool success = self.read(result_vec, index);
 
