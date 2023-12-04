@@ -92,6 +92,10 @@ namespace SharsorIPCpp {
 
             bool isRunning();
 
+            bool isServer();
+
+            int getNClients();
+
             int getLength();
 
         private:
@@ -103,6 +107,8 @@ namespace SharsorIPCpp {
 
             bool _running = false;
 
+            bool _is_server = false;
+            
             // assuming maximum characters in a string are max_chars
             static constexpr int _max_chars = 1024;
 
