@@ -664,15 +664,15 @@ namespace SharsorIPCpp{
         }
 
         inline void acquireSemWait(const std::string& sem_path,
-                         sem_t*& sem,
-                         int n_trials,
-                         int& fail_counter,
-                         Journal& journal,
-                         ReturnCode& return_code,
-                         float wait_for = 1.0, // [s]
-                         bool force_reconnection = false,
-                         bool verbose = true,
-                         VLevel vlevel = Journal::VLevel::V0) {
+                        sem_t*& sem,
+                        int n_trials,
+                        int& fail_counter,
+                        Journal& journal,
+                        ReturnCode& return_code,
+                        float wait_for = 0.2, // [s]
+                        bool force_reconnection = false,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0) {
 
             if (verbose &&
                     vlevel > VLevel::V2 &&
@@ -802,7 +802,8 @@ namespace SharsorIPCpp{
 
                 if (verbose) {
 
-                    std::string error = std::string("Failed to open semaphore");
+                    std::string error = std::string("Failed to open semaphore at ") +
+                            sem_path;
 
                     journal.log(__FUNCTION__,
                         error,
