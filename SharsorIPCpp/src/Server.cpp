@@ -96,15 +96,15 @@ namespace SharsorIPCpp {
         _initSems(); // creates necessary semaphores
 
         MemUtils::acquireSemWait(_mem_config.mem_path_data_sem,
-                             _data_sem,
-                             _n_acq_trials,
-                             _n_sem_acq_fail,
-                             _journal,
-                             _return_code,
-                             1.0, // [s]
-                             _force_reconnection,
-                             _verbose,
-                             _vlevel); // acquire shared data semaphore
+                            _data_sem,
+                            _n_acq_trials,
+                            _n_sem_acq_fail,
+                            _journal,
+                            _return_code,
+                            0.05, // [s]
+                            _force_reconnection,
+                            _verbose,
+                            _vlevel); // acquire shared data semaphore
         // Here to prevent access from any client (at this stage)
 
         _return_code = _return_code + ReturnCode::RESET; // resets to None
