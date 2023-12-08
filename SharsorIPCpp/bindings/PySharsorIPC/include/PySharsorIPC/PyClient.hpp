@@ -29,6 +29,8 @@
 #include <SharsorIPCpp/Journal.hpp>
 
 #include <PySharsorIPC/PyDTypes.hpp>
+
+#include <PySharsorIPCUtils.hpp>
 #include <WrapUtils.hpp>
 
 namespace PySharsorIPC{
