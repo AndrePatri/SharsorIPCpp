@@ -702,8 +702,11 @@ namespace SharsorIPCpp{
 
                     if (verbose) {
 
+                        std::string except = std::string("Failed to acquire semaphore at ") +
+                                sem_path;
+
                         journal.log(__FUNCTION__,
-                                     "Failed to acquire semaphore at",
+                                     except,
                                      LogType::EXCEP);
 
                     }
