@@ -77,19 +77,16 @@ class TestPerfBenchBase(unittest.TestCase):
                                     dtype=self.data_type,
                                     layout=self.layout)
 
-        self.server_read = ServerFactory(self.rows,
-                                    self.cols,
-                                    basename="PySharsor_read" + \
+        self.client_read = ClientFactory(basename="PySharsor_write" + \
                                     str(self.layout)  +
                                     str(self.data_type),
                                     namespace=namespace,
                                     verbose=True,
                                     vlevel=VLevel.V3,
-                                    force_reconnection = True,
                                     dtype=self.data_type,
                                     layout=self.layout)
         self.server_write.run()
-        self.server_read.run()
+        self.client_read.attach()
 
         if self.layout == RowMajor:
 
@@ -105,8 +102,8 @@ class TestPerfBenchBase(unittest.TestCase):
         self.tensor_buffer = np.zeros((3 * self.server_write.getNRows(), 3 * self.server_write.getNCols()),
                                 dtype=toNumpyDType(self.server_write.getScalarType()),
                                 order=self.order)
-        self.tensor_read = np.zeros((3 * self.server_read.getNRows(), 3 * self.server_read.getNCols()),
-                                dtype=toNumpyDType(self.server_read.getScalarType()),
+        self.tensor_read = np.zeros((3 * self.client_read.getNRows(), 3 * self.client_read.getNCols()),
+                                dtype=toNumpyDType(self.client_read.getScalarType()),
                                 order=self.order)
         self.read_times = [] # microseconds
         self.write_times = [] # microseconds
@@ -116,7 +113,7 @@ class TestPerfBenchBase(unittest.TestCase):
     def tearDown(self):
 
         self.server_write.close()
-        self.server_read.close()
+        self.client_read.close()
 
     def PerfAndConsistency(self):
 
@@ -156,9 +153,9 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.server_write.read(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we read the tensor
 
-            self.server_read.write(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we write it on the other memory
+            self.client_read.write(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we write it on the other memory
 
-            readTime = timeit.timeit(lambda: self.server_read.read(self.tensor_read[row:2*row, col:2*col], 0, 0),
+            readTime = timeit.timeit(lambda: self.client_read.read(self.tensor_read[row:2*row, col:2*col], 0, 0),
                                                     number=1) # and then read it again (and profile the performance)
             self.read_times.append(readTime * 1e6)
 
