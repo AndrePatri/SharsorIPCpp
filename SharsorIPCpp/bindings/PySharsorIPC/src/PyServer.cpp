@@ -101,6 +101,8 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
         .def("getScalarType", &SharsorIPCpp::Server<Scalar, Layout>::getScalarType)
 
+        .def("getNClients", &SharsorIPCpp::Server<Scalar, Layout>::getNClients)
+
         .def("getNRows", &SharsorIPCpp::Server<Scalar, Layout>::getNRows)
 
         .def("getNCols", &SharsorIPCpp::Server<Scalar, Layout>::getNCols);
@@ -270,6 +272,16 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
         return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("isAttached")().cast<bool>();
+
+        });
+
+    });
+
+    cls.def("getNClients", [](PySharsorIPC::ServerWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& server) {
+
+            return server.attr("getNClients")().cast<int>();
 
         });
 
