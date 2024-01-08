@@ -635,7 +635,6 @@ namespace SharsorIPCpp {
 
             _return_code = _return_code + ReturnCode::RESET;
 
-
             _cleanMetaMem(); // closes, but doesn't unlink, aux. data
 
             _closeSems(); // closing semaphores

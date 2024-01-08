@@ -578,8 +578,8 @@ namespace SharsorIPCpp{
                 if (verbose) {
 
                     journal.log(__FUNCTION__,
-                                 "Failed to release semaphore at",
-                                 LogType::EXCEP);
+                                "Failed to release semaphore at",
+                                LogType::WARN);
                 }
 
                 return_code = return_code + ReturnCode::SEMRELFAIL;
@@ -620,8 +620,8 @@ namespace SharsorIPCpp{
                         sem_path;
 
                 journal.log(__FUNCTION__,
-                             info,
-                             LogType::INFO);
+                            info,
+                            LogType::INFO);
 
             }
 
@@ -635,8 +635,8 @@ namespace SharsorIPCpp{
                     std::string error = std::string("Failed to acquire semaphore at ") +
                                     sem_path;
                     journal.log(__FUNCTION__,
-                                 error,
-                                 LogType::EXCEP);
+                                error,
+                                LogType::WARN);
 
                 }
 
@@ -655,8 +655,8 @@ namespace SharsorIPCpp{
                         sem_path;
 
                 journal.log(__FUNCTION__,
-                             info,
-                             LogType::INFO);
+                            info,
+                            LogType::INFO);
 
 
             }
@@ -706,8 +706,8 @@ namespace SharsorIPCpp{
                                 sem_path;
 
                         journal.log(__FUNCTION__,
-                                     except,
-                                     LogType::EXCEP);
+                                    except,
+                                    LogType::WARN);
 
                     }
 
@@ -810,7 +810,7 @@ namespace SharsorIPCpp{
 
                     journal.log(__FUNCTION__,
                         error,
-                        LogType::EXCEP);
+                        LogType::WARN);
 
                 }
 
