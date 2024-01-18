@@ -98,7 +98,7 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
 
         .def("close", &SharsorIPCpp::Client<Scalar, Layout>::close)
 
-        .def("isAttached", &SharsorIPCpp::Client<Scalar, Layout>::isAttached)
+        .def("isRunning", &SharsorIPCpp::Client<Scalar, Layout>::isAttached)
 
         .def("getScalarType", &SharsorIPCpp::Client<Scalar, Layout>::getScalarType)
 
@@ -239,11 +239,11 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
     });
 
-    cls.def("isAttached", [](PySharsorIPC::ClientWrapper& wrapper) {
+    cls.def("isRunning", [](PySharsorIPC::ClientWrapper& wrapper) {
 
         return wrapper.execute([&](pybind11::object& client) {
 
-            return client.attr("isAttached")().cast<bool>();
+            return client.attr("isRunning")().cast<bool>();
 
         });
 
