@@ -155,7 +155,8 @@ namespace SharsorIPCpp{
 
             void _waitForServer();
 
-            std::string _getThisName();
+            std::string _getThisName(); // used to get this class
+            // name
 
             void _checkDType();
             void _checkMemLayout(); // checks if mem. layout is
@@ -170,6 +171,8 @@ namespace SharsorIPCpp{
 
             void _cleanMetaMem();
             void _cleanMems();
+
+            void _checkIsAttached();
 
     };
 

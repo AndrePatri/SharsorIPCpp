@@ -143,6 +143,22 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_checkIsRunning()
+    {
+        if (!_running && _verbose) {
+
+            std::string error = std::string("Server ") + 
+                    _mem_config.mem_path +
+                    std::string(" is not running. ") +
+                    std::string("Did you remember to call the run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
+    }
+    template <typename Scalar, int Layout>
     void Server<Scalar, Layout>::run()
     {
 
@@ -284,16 +300,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsRunning();
 
         return false;
 
@@ -328,18 +335,9 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
+        _checkIsRunning();
 
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
-
-         return false;
+        return false;
 
     }
 
@@ -371,16 +369,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
+        _checkIsRunning();
 
         return false;
 
@@ -415,16 +404,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsRunning();
 
         return false;
 

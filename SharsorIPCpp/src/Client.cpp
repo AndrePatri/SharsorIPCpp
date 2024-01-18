@@ -80,6 +80,23 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_checkIsAttached()
+    {
+        if (!_attached && _verbose) {
+
+            std::string error = std::string("Client ") + 
+                    _mem_config.mem_path +
+                    std::string(" is not attached. ") +
+                    std::string("Did you remember to call the attach() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
+    }
+
+    template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::attach()
     {
         if (_verbose &&
@@ -231,16 +248,8 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsAttached(); // cannot write if client is not
+        //attached
 
         return false;
 
@@ -275,18 +284,9 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
+        _checkIsAttached();
 
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
-
-         return false;
+        return false;
 
     }
 
@@ -318,16 +318,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
+        _checkIsAttached();
 
         return false;
 
@@ -362,16 +353,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsAttached();
 
         return false;
 
@@ -474,7 +456,6 @@ namespace SharsorIPCpp {
                                      sem_t*& sem)
     {
         _return_code = _return_code + ReturnCode::RESET;
-
 
         MemUtils::acquireSemTry(sem_path,
                              sem,

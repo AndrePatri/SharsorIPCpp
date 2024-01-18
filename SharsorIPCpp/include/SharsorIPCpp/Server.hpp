@@ -169,6 +169,8 @@ namespace SharsorIPCpp{
             void _cleanMetaMem();
             void _cleanMems();
 
+            void _checkIsRunning();
+
     };
 
 }
