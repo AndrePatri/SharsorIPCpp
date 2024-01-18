@@ -623,12 +623,12 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Closed client at ") +
+                std::string info = std::string("Cleaning after client at ") +
                         _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,
-                     info,
-                     LogType::STAT);
+                    info,
+                    LogType::STAT);
 
             }
 

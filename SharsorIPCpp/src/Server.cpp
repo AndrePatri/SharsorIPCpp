@@ -603,7 +603,7 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Stopped server at ") +
+                std::string info = std::string("Cleaning after server at ") +
                         _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,
