@@ -56,30 +56,27 @@ namespace SharsorIPCpp{
                    std::string name_space = "",
                    bool verbose = false,
                    VLevel vlevel = VLevel::V0,
-                   bool force_reconnection = false);
+                   bool force_reconnection = false,
+                   bool safe = true);
 
             ~Server();
 
             bool write(const TRef<Scalar, Layout> data,
                              int row = 0,
-                             int col = 0,
-                             bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                             int col = 0
                              );
 
             bool write(const TensorView<Scalar, Layout>& data,
                              int row,
-                             int col,
-                             bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                             int col
                              );
 
             bool read(TRef<Scalar, Layout> output,
-                            int row = 0, int col = 0,
-                            bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                            int row = 0, int col = 0
                             ); // copies underlying shared tensor data to the output
 
             bool read(TensorView<Scalar, Layout> &output,
-                            int row = 0, int col = 0,
-                            bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                            int row = 0, int col = 0
                             ); // copies underlying shared tensor data to the output Map
 
             void run();
@@ -104,6 +101,8 @@ namespace SharsorIPCpp{
 
             bool _verbose = false;
 
+            bool _safe = false;
+            
             bool _terminated = false;
 
             bool _running = false;

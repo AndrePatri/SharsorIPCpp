@@ -33,10 +33,12 @@ namespace SharsorIPCpp {
                    std::string basename,
                    std::string name_space,
                    bool verbose,
-                   VLevel vlevel)
+                   VLevel vlevel,
+                   bool safe)
         : _mem_config(basename, name_space),
           _verbose(verbose),
           _vlevel(vlevel),
+          _safe(safe),
           _tensor_view(nullptr,
                        -1,
                        -1),
@@ -222,14 +224,13 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     bool Client<Scalar, Layout>::write(const TRef<Scalar, Layout> data,
                                  int row,
-                                 int col,
-                                 bool safe) {
+                                 int col) {
 
         if (_attached) {
 
             _data_acquired = true;
 
-            if (safe) {
+            if (_safe) {
 
                 // first acquire data semaphore
                 _data_acquired = _acquireData();
@@ -267,14 +268,13 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     bool Client<Scalar, Layout>::write(const TensorView<Scalar, Layout>& data,
                                      int row,
-                                     int col,
-                                     bool safe) {
+                                     int col) {
 
         if (_attached) {
 
             _data_acquired = true;
 
-            if (safe) {
+            if (_safe) {
 
                 // first acquire data semaphore
                 _data_acquired = _acquireData();
@@ -310,14 +310,13 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     bool Client<Scalar, Layout>::read(TRef<Scalar, Layout> output,
-                                    int row, int col,
-                                    bool safe) {
+                                    int row, int col) {
 
         if (_attached) {
 
             _data_acquired = true;
 
-            if (safe) {
+            if (_safe) {
 
                 // first acquire data semaphore
                 _data_acquired = _acquireData();
@@ -353,14 +352,13 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     bool Client<Scalar, Layout>::read(TensorView<Scalar, Layout>& output,
-                                    int row, int col,
-                                    bool safe) {
+                                    int row, int col) {
 
         if (_attached) {
 
             _data_acquired = true;
 
-            if (safe) {
+            if (_safe) {
 
                 // first acquire data semaphore
                 _data_acquired = _acquireData();

@@ -30,8 +30,7 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
 
         .def("write", [](SharsorIPCpp::Client<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col, 
-                       bool safe) {
+                       int row, int col) {
 
             // we get the strides directly from the array
             // (since we use the strides, we don't care if it's rowmajor
@@ -51,7 +50,7 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
                                 );
 
                 // we use SharsorIPCpp API to write to shared memory
-                return self.write(output_t, row, col, safe);
+                return self.write(output_t, row, col);
 
             } else {
 
@@ -63,8 +62,7 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
 
         .def("read", [](SharsorIPCpp::Client<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col, 
-                       bool safe) {
+                       int row, int col) {
 
             // we get the strides directly from the array
             // (since we use the strides, we don't care if it's rowmajor
@@ -84,7 +82,7 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
                                 );
 
                 // we use SharsorIPCpp API to write to shared memory
-                return self.read(output_t, row, col, safe);
+                return self.read(output_t, row, col);
 
             } else {
 
@@ -282,9 +280,8 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
     });
 
     cls.def("write", [](PySharsorIPC::ClientWrapper& wrapper,
-                            pybind11::array& np_array,
-                            int row, int col,
-                            bool safe) {
+                             pybind11::array& np_array,
+                             int row, int col) {
 
         return wrapper.execute([&](pybind11::object& client) -> bool {
 
@@ -307,10 +304,10 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
                                     pybind11::str(np_dtype).cast<std::string>();
 
                     SharsorIPCpp::Journal::log("Client",
-                                "write",
-                                error,
-                                LogType::EXCEP,
-                                true);
+                                 "write",
+                                 error,
+                                 LogType::EXCEP,
+                                 true);
 
                 }
 
@@ -376,17 +373,15 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
             // now we can safely read the tensor
             return client.attr("write")(np_array,
-                                        row, col,
-                                        safe).cast<bool>();
+                                             row, col).cast<bool>();
 
         });
 
-    }, pybind11::arg("data"), pybind11::arg("row") = 0, pybind11::arg("col") = 0, pybind11::arg("safe") = true);
+    }, pybind11::arg("data"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
 
     cls.def("read", [](PySharsorIPC::ClientWrapper& wrapper,
-                            pybind11::array& np_array,
-                            int row, int col,
-                            bool safe) {
+                             pybind11::array& np_array,
+                             int row, int col) {
 
         return wrapper.execute([&](pybind11::object& client) -> bool {
 
@@ -478,12 +473,11 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
             // now we can safely read the tensor
             return client.attr("read")(np_array,
-                                        row, col,
-                                        safe).cast<bool>();
+                                             row, col).cast<bool>();
 
         });
 
-    }, pybind11::arg("tensor"), pybind11::arg("row") = 0, pybind11::arg("col") = 0, pybind11::arg("safe") = true);
+    }, pybind11::arg("tensor"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
 }
 
 void PySharsorIPC::PyClient::bindClients(pybind11::module& m) {
