@@ -61,18 +61,26 @@ namespace SharsorIPCpp{
 
             bool write(const TRef<Scalar, Layout> data,
                              int row = 0,
-                             int col = 0);
+                             int col = 0,
+                             bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                             );
 
             bool write(const TensorView<Scalar, Layout>& data,
                              int row,
-                             int col);
+                             int col,
+                             bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                             );
 
             bool read(TRef<Scalar, Layout> output,
-                            int row = 0, int col = 0); // copies
+                            int row = 0, int col = 0,
+                            bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                            ); // copies
             // underlying shared tensor data to the output
 
             bool read(TensorView<Scalar, Layout>& output,
-                            int row = 0, int col = 0); // copies
+                            int row = 0, int col = 0,
+                            bool safe = true // DANGER! set to false only if writing to different mem. loc.
+                            ); // copies
             // underlying shared tensor data to a view of another
             // Tensor
 
@@ -100,6 +108,9 @@ namespace SharsorIPCpp{
             bool _terminated = false;
 
             bool _attached = false;
+
+            bool _data_acquired = false; // aux. variable,
+            // preallocated for efficiency
 
             int _n_rows = -1;
             int _n_cols = -1;

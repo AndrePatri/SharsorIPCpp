@@ -274,11 +274,20 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     bool Server<Scalar, Layout>::write(const TRef<Scalar, Layout> data,
                                  int row,
-                                 int col) {
+                                 int col,
+                                 bool safe) {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_write = MemUtils::write<Scalar, Layout>(
                                         data,
@@ -309,11 +318,20 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     bool Server<Scalar, Layout>::write(const TensorView<Scalar, Layout>& data,
                                      int row,
-                                     int col) {
+                                     int col,
+                                     bool safe) {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_write = MemUtils::write<Scalar, Layout>(
                                         data,
@@ -343,11 +361,20 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     bool Server<Scalar, Layout>::read(TRef<Scalar, Layout> output,
-                                    int row, int col) {
+                                    int row, int col,
+                                    bool safe) {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_read = MemUtils::read<Scalar, Layout>(
                             row, col,
@@ -377,11 +404,20 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     bool Server<Scalar, Layout>::read(TensorView<Scalar, Layout>& output,
-                                    int row, int col) {
+                                    int row, int col,
+                                    bool safe) {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_read = MemUtils::read<Scalar, Layout>(
                                        row, col,

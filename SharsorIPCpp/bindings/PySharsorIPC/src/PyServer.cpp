@@ -29,7 +29,8 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
         .def("write", [](SharsorIPCpp::Server<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col) {
+                       int row, int col, 
+                       bool safe) {
 
             // we get the strides directly from the array
             // (since we use the strides, we don't care if it's rowmajor
@@ -49,7 +50,7 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
                                 );
 
                 // we use SharsorIPCpp API to write to shared memory
-                return self.write(output_t, row, col);
+                return self.write(output_t, row, col, safe);
 
             } else {
 
@@ -61,7 +62,8 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
         .def("read", [](SharsorIPCpp::Server<Scalar, Layout>& self,
                        PySharsorIPC::NumpyArray<Scalar>& arr,
-                       int row, int col) {
+                       int row, int col, 
+                       bool safe) {
 
             // we get the strides directly from the array
             // (since we use the strides, we don't care if it's rowmajor
@@ -81,7 +83,7 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
                                 );
 
                 // we use SharsorIPCpp API to write to shared memory
-                return self.read(output_t, row, col);
+                return self.read(output_t, row, col, safe);
 
             } else {
 
@@ -318,8 +320,9 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
     });
 
     cls.def("write", [](PySharsorIPC::ServerWrapper& wrapper,
-                             pybind11::array& np_array,
-                             int row, int col) {
+                            pybind11::array& np_array,
+                            int row, int col,
+                            bool safe) {
 
         return wrapper.execute([&](pybind11::object& server) -> bool {
 
@@ -417,11 +420,12 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
 
         });
 
-    }, pybind11::arg("data"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
+    }, pybind11::arg("data"), pybind11::arg("row") = 0, pybind11::arg("col") = 0, pybind11::arg("safe") = true);
 
     cls.def("read", [](PySharsorIPC::ServerWrapper& wrapper,
-                             pybind11::array& np_array,
-                             int row, int col) {
+                            pybind11::array& np_array,
+                            int row, int col,
+                            bool safe) {
 
         return wrapper.execute([&](pybind11::object& server) -> bool {
 
@@ -517,7 +521,7 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
 
         });
 
-    }, pybind11::arg("tensor"), pybind11::arg("row") = 0, pybind11::arg("col") = 0);
+    }, pybind11::arg("tensor"), pybind11::arg("row") = 0, pybind11::arg("col") = 0, pybind11::arg("safe") = true);
 }
 
 void PySharsorIPC::PyServer::bindServers(pybind11::module& m) {
