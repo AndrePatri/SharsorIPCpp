@@ -3,7 +3,7 @@ from SharsorIPCpp.PySharsorIPC import StringTensorClient
 
 from typing import Union
 
-from SharsorIPCpp.PySharsorIPC.extensions.ros_bridge.defs import NamingConventions
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 
 class FromRos():
 

@@ -1,5 +1,5 @@
-from SharsorIPCpp.PySharsorIPC.extensions.ros_brige.abstractions import RosPublisher
-from SharsorIPCpp.PySharsorIPC.extensions.ros_brige.abstractions import RosSubscriber
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublisher
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
 
 import rospy
 

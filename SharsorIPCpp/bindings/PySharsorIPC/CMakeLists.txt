@@ -10,6 +10,8 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 # part of your library's public API
 
 set(PyBindName "PySharsorIPC")
+set(PyLayerName "PySharsor")
+
 # set(BINDINGS_BINARY_DIR ${CMAKE_BINARY_DIR}/bindings/${LIBRARY_NAME}/${PyBindName})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} include/ src/)
@@ -42,9 +44,23 @@ target_link_libraries(${PyBindName} PRIVATE "${PyBindName}Libs" pybind11::module
 #     LIBRARY_OUTPUT_DIRECTORY ${BINDINGS_BINARY_DIR}
 #     RUNTIME_OUTPUT_DIRECTORY ${BINDINGS_BINARY_DIR})
 
+# install python bindings
 install(TARGETS ${PyBindName}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME})
 
 install(FILES __init__.py DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME})
 
-# install(TARGETS  DESTINATION "${PREFIX}/")
+# install python wrappers
+install(
+    DIRECTORY wrappers/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME}/${PyLayerName}/wrappers
+)
+
+# install python extensions
+install(
+    DIRECTORY extensions/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME}/${PyLayerName}/extensions
+)
+
+# add init file for package
+install(FILES __init__.py DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME}/${PyLayerName})

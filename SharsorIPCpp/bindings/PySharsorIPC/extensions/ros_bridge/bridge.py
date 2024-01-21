@@ -1,5 +1,5 @@
-from SharsorIPCpp.PySharsorIPC.extensions.ros_bridge.from_ros import ToRos
-from SharsorIPCpp.PySharsorIPC.extensions.ros_bridge.from_ros import FromRos
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.to_ros import ToRos
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.from_ros import FromRos
 
 from typing import Union, List
 
