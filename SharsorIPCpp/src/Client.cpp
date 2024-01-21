@@ -33,10 +33,12 @@ namespace SharsorIPCpp {
                    std::string basename,
                    std::string name_space,
                    bool verbose,
-                   VLevel vlevel)
+                   VLevel vlevel,
+                   bool safe)
         : _mem_config(basename, name_space),
           _verbose(verbose),
           _vlevel(vlevel),
+          _safe(safe),
           _tensor_view(nullptr,
                        -1,
                        -1),
@@ -77,6 +79,23 @@ namespace SharsorIPCpp {
             close();
         }
 
+    }
+
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::_checkIsAttached()
+    {
+        if (!_attached && _verbose) {
+
+            std::string error = std::string("Client ") + 
+                    _mem_config.mem_path +
+                    std::string(" is not attached. ") +
+                    std::string("Did you remember to call the attach() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
     }
 
     template <typename Scalar, int Layout>
@@ -209,7 +228,15 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_write = MemUtils::write<Scalar, Layout>(
                                         data,
@@ -231,16 +258,8 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsAttached(); // cannot write if client is not
+        //attached
 
         return false;
 
@@ -253,7 +272,15 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_write = MemUtils::write<Scalar, Layout>(
                                         data,
@@ -275,18 +302,9 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
+        _checkIsAttached();
 
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
-
-         return false;
+        return false;
 
     }
 
@@ -296,7 +314,15 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_read = MemUtils::read<Scalar, Layout>(
                             row, col,
@@ -318,16 +344,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
+        _checkIsAttached();
 
         return false;
 
@@ -339,7 +356,15 @@ namespace SharsorIPCpp {
 
         if (_attached) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_read = MemUtils::read<Scalar, Layout>(
                                        row, col,
@@ -362,16 +387,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_attached && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsAttached();
 
         return false;
 
@@ -474,7 +490,6 @@ namespace SharsorIPCpp {
                                      sem_t*& sem)
     {
         _return_code = _return_code + ReturnCode::RESET;
-
 
         MemUtils::acquireSemTry(sem_path,
                              sem,
@@ -635,7 +650,6 @@ namespace SharsorIPCpp {
 
             _return_code = _return_code + ReturnCode::RESET;
 
-
             _cleanMetaMem(); // closes, but doesn't unlink, aux. data
 
             _closeSems(); // closing semaphores
@@ -643,12 +657,12 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Closed client at ") +
+                std::string info = std::string("Cleaning after client at ") +
                         _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,
-                     info,
-                     LogType::STAT);
+                    info,
+                    LogType::STAT);
 
             }
 

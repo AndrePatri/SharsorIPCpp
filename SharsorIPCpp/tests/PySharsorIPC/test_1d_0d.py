@@ -7,49 +7,12 @@ from SharsorIPCpp.PySharsorIPC import *
 
 namespace = "PerfTests"
 
-N_ITERATIONS = 1000000
-N_ITERATIONS_STR = 1000000
+N_ITERATIONS = 1
 
 N_ROWS = 100
 N_COLS = 60
 
-STR_TENSOR_LENGTH = 100
-
-class PerfThresholds():
-
-    def __init__(self,
-            dtype):
-
-        # [us] - microseconds
-        if dtype == dtype.Bool:
-
-            self.READ_T_MAX_THRESH = 20
-            self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 20
-            self.WRITE_T_AVRG_THRESH = 1000
-
-        if dtype == dtype.Int:
-
-            self.READ_T_MAX_THRESH = 20
-            self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 20
-            self.WRITE_T_AVRG_THRESH = 1000
-
-        if dtype == dtype.Float:
-
-            self.READ_T_MAX_THRESH = 20
-            self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 20
-            self.WRITE_T_AVRG_THRESH = 1000
-
-        if dtype == dtype.Double:
-
-            self.READ_T_MAX_THRESH = 20
-            self.WRITE_T_MAX_THRESH = 1000
-            self.READ_T_AVRG_THRESH = 20
-            self.WRITE_T_AVRG_THRESH = 1000
-
-class TestPerfBenchBase(unittest.TestCase):
+class TestBase(unittest.TestCase):
 
     # we only benchmark the Server write and
     # read method since the Client's versions
@@ -63,8 +26,6 @@ class TestPerfBenchBase(unittest.TestCase):
 
         self.is_release = isRelease()
 
-        self.thresholds = PerfThresholds(self.data_type)
-
         self.server_write = ServerFactory(self.rows,
                                     self.cols,
                                     basename="PySharsor_write" + \
@@ -72,21 +33,22 @@ class TestPerfBenchBase(unittest.TestCase):
                                     str(self.data_type),
                                     namespace=namespace,
                                     verbose=True,
-                                    vlevel=VLevel.V3,
-                                    force_reconnection = True,
+                                    vlevel=VLevel.V2,
+                                    force_reconnection = False,
                                     dtype=self.data_type,
                                     layout=self.layout)
 
-        self.client_read = ClientFactory(basename="PySharsor_write" + \
+        self.server_read = ClientFactory(
+                                    basename="PySharsor_write" + \
                                     str(self.layout)  +
                                     str(self.data_type),
                                     namespace=namespace,
                                     verbose=True,
-                                    vlevel=VLevel.V3,
+                                    vlevel=VLevel.V2,
                                     dtype=self.data_type,
                                     layout=self.layout)
         self.server_write.run()
-        self.client_read.attach()
+        self.server_read.attach()
 
         if self.layout == RowMajor:
 
@@ -96,26 +58,24 @@ class TestPerfBenchBase(unittest.TestCase):
 
             self.order = 'F' # 'F'
 
-        self.tensor_written = np.zeros((3 * self.server_write.getNRows(), 3 * self.server_write.getNCols()),
+        self.tensor_written = np.zeros((1, 1),
                                 dtype=toNumpyDType(self.server_write.getScalarType()),
                                 order=self.order)
-        self.tensor_buffer = np.zeros((3 * self.server_write.getNRows(), 3 * self.server_write.getNCols()),
+        self.tensor_buffer = np.zeros((1, 1),
                                 dtype=toNumpyDType(self.server_write.getScalarType()),
                                 order=self.order)
-        self.tensor_read = np.zeros((3 * self.client_read.getNRows(), 3 * self.client_read.getNCols()),
-                                dtype=toNumpyDType(self.client_read.getScalarType()),
+        self.tensor_read = np.zeros((1, 1),
+                                dtype=toNumpyDType(self.server_read.getScalarType()),
                                 order=self.order)
-        self.read_times = [] # microseconds
-        self.write_times = [] # microseconds
 
         self.consistency_checks = [] # True -> OK; False -> failed
 
     def tearDown(self):
 
         self.server_write.close()
-        self.client_read.close()
+        self.server_read.close()
 
-    def PerfAndConsistency(self):
+    def Test1D0D(self):
 
         if self.is_release:
 
@@ -144,61 +104,47 @@ class TestPerfBenchBase(unittest.TestCase):
 
             # randomize central block
             self.randomize(self.tensor_written,
-                           row, col,
-                           row, col)
+                           0, 0,
+                           1, 1)
 
-            writeTime = timeit.timeit(lambda: self.server_write.write(self.tensor_written[row:2*row, col:2*col], 0, 0),
-                                                    number=1) # we write the tensor and profile the performance)
-            self.write_times.append(writeTime * 1e6)  # Convert to microseconds
+            message = "Randomized tensor" + f"{self.tensor_written}"
 
-            self.server_write.read(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we read the tensor
+            Journal.log(self.__class__.__name__,
+                       "test_write_read",
+                       message,
+                       LogType.INFO)
 
-            self.client_read.write(self.tensor_buffer[row:2*row, col:2*col], 0, 0) # we write it on the other memory
+            print("1st write succeess:" + str(self.server_write.write(self.tensor_written[:, :], 0, 0)))
 
-            readTime = timeit.timeit(lambda: self.client_read.read(self.tensor_read[row:2*row, col:2*col], 0, 0),
-                                                    number=1) # and then read it again (and profile the performance)
-            self.read_times.append(readTime * 1e6)
+            self.server_write.read(self.tensor_buffer[:, :], 0, 0) # we read the tensor
+
+            self.server_read.write(self.tensor_buffer[:, :], 0, 0) # we write it on the other memory
+
+            self.server_read.read(self.tensor_read[:, :], 0, 0)
+
+            message = "Read tensor" + f"{self.tensor_read}"
+
+            Journal.log(self.__class__.__name__,
+                       "test_write_read",
+                       message,
+                       LogType.INFO)
 
             # we check that tensor_written and tensor_read match
             self.consistency_checks.append(self.check_equal(self.tensor_written, self.tensor_read))
 
         # test post-processing
         Journal.log(self.__class__.__name__,
-                    "PerfAndConsistency",
+                    "Test1D0D",
                     "running post-processing steps...\n",
-                    LogType.STAT)
-
-        # performance
-        averageReadTime = np.mean(self.read_times)
-        averageWriteTime = np.mean(self.write_times)
-        maxReadTime = np.max(self.read_times)
-        maxWriteTime = np.max(self.write_times)
-
-        post_proc_message = f"Number of performed iterations: {self.iterations}\n" + \
-                            f"Average Read (with copy) Time: {averageReadTime} us\n" + \
-                            f"Average Write Time: {averageWriteTime} us\n" + \
-                            f"Maximum Read (with copy) Time: {maxReadTime} us\n" + \
-                            f"Maximum Write Time: {maxWriteTime} us\n"
-
-        Journal.log(self.__class__.__name__,
-                    "PerfAndConsistency",
-                    post_proc_message,
                     LogType.STAT)
 
         # consistency
         n_of_failures = sum(1 for x in self.consistency_checks if not x)
         consistency_message = f"Number of consistency failures: {n_of_failures}/{self.iterations}\n"
         Journal.log(self.__class__.__name__,
-                            "PerfAndConsistency",
+                            "Test1D0D",
                             consistency_message,
                             LogType.STAT)
-
-        # Checking if perf. req. were met
-        self.assertLess(averageReadTime, self.thresholds.READ_T_AVRG_THRESH)
-        self.assertLess(averageWriteTime, self.thresholds.WRITE_T_AVRG_THRESH)
-        # Uncomment below if needed
-        # self.assertLess(maxReadTime, self.thresholds.READ_T_MAX_THRESH)
-        # self.assertLess(maxWriteTime, self.thresholds.WRITE_T_MAX_THRESH)
 
         # Checking data consistency
         self.assertTrue(all(self.consistency_checks))
@@ -269,84 +215,23 @@ class TestPerfBenchBase(unittest.TestCase):
 
                 raise ValueError("Unsupported dtype for randomization")
 
-class TestPerfBenchBoolRowMaj(TestPerfBenchBase):
+class TestPerfBenchBoolRowMaj(TestBase):
 
     data_type = dtype.Bool
     layout = RowMajor
 
     def test_write_read(self):
 
-        self.PerfAndConsistency()
+        self.Test1D0D()
 
-class TestPerfBenchBoolColMaj(TestPerfBenchBase):
+class TestPerfBenchBoolColMaj(TestBase):
 
     data_type = dtype.Bool
     layout = ColMajor
 
     def test_write_read(self):
 
-        self.PerfAndConsistency()
-
-class TestPerfBenchIntRowMaj(TestPerfBenchBase):
-
-    data_type = dtype.Int
-    layout = RowMajor
-
-    def test_write_read(self):
-
-        self.PerfAndConsistency()
-
-class TestPerfBenchFloatRowMaj(TestPerfBenchBase):
-
-    data_type = dtype.Float
-    layout = RowMajor
-
-    def test_write_read(self):
-
-        self.PerfAndConsistency()
-
-class TestPerfBenchDoubleRowMaj(TestPerfBenchBase):
-
-    data_type = dtype.Double
-    layout = RowMajor
-
-    def test_write_read(self):
-
-        self.PerfAndConsistency()
-
-class TestPerfBenchIntColMaj(TestPerfBenchBase):
-
-    data_type = dtype.Int
-    layout = ColMajor
-
-    def test_write_read(self):
-
-        self.PerfAndConsistency()
-
-class TestPerfBenchFloatColMaj(TestPerfBenchBase):
-
-    data_type = dtype.Float
-    layout = ColMajor
-
-    def test_write_read(self):
-
-        self.PerfAndConsistency()
-
-class TestPerfBenchDoubleColMaj(TestPerfBenchBase):
-
-    data_type = dtype.Double
-    layout = ColMajor
-
-    def test_write_read(self):
-
-        self.PerfAndConsistency()
-
-class TestPerfBenchStringTensor(unittest.TestCase):
-
-
-    def test_string_tensor(self):
-
-        a = 1
+        self.Test1D0D()
 
 if __name__ == "__main__":
 

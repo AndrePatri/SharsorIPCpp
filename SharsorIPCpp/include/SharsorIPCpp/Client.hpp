@@ -55,24 +55,29 @@ namespace SharsorIPCpp{
             Client(std::string basename = "MySharedMemory",
                    std::string name_space = "",
                    bool verbose = false,
-                   VLevel vlevel = VLevel::V0);
+                   VLevel vlevel = VLevel::V0,
+                   bool safe = true);
 
             ~Client();
 
             bool write(const TRef<Scalar, Layout> data,
                              int row = 0,
-                             int col = 0);
+                             int col = 0
+                             );
 
             bool write(const TensorView<Scalar, Layout>& data,
                              int row,
-                             int col);
+                             int col
+                             );
 
             bool read(TRef<Scalar, Layout> output,
-                            int row = 0, int col = 0); // copies
+                            int row = 0, int col = 0
+                            ); // copies
             // underlying shared tensor data to the output
 
             bool read(TensorView<Scalar, Layout>& output,
-                            int row = 0, int col = 0); // copies
+                            int row = 0, int col = 0
+                            ); // copies
             // underlying shared tensor data to a view of another
             // Tensor
 
@@ -97,9 +102,14 @@ namespace SharsorIPCpp{
 
             bool _verbose = false;
 
+            bool _safe = false;
+
             bool _terminated = false;
 
             bool _attached = false;
+
+            bool _data_acquired = false; // aux. variable,
+            // preallocated for efficiency
 
             int _n_rows = -1;
             int _n_cols = -1;
@@ -155,7 +165,8 @@ namespace SharsorIPCpp{
 
             void _waitForServer();
 
-            std::string _getThisName();
+            std::string _getThisName(); // used to get this class
+            // name
 
             void _checkDType();
             void _checkMemLayout(); // checks if mem. layout is
@@ -170,6 +181,8 @@ namespace SharsorIPCpp{
 
             void _cleanMetaMem();
             void _cleanMems();
+
+            void _checkIsAttached();
 
     };
 

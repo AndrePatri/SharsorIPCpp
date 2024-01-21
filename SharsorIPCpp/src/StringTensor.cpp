@@ -78,7 +78,8 @@ namespace SharsorIPCpp {
                          verbose, vlevel,
                          force_reconnection)),
       _length(length),
-      _buffer(Tensor<int>(_n_rows, length)){ // we can initialize buffer
+      _buffer(Tensor<int>(_n_rows, length)), // we can initialize buffer
+      _is_server(true){ 
 
     }
 
@@ -120,6 +121,26 @@ namespace SharsorIPCpp {
     StringTensor<ShMemType>::~StringTensor() {
 
         _sh_mem.close();
+
+    }
+
+    template <typename ShMemType>
+    bool StringTensor<ShMemType>::isServer() {
+        
+        return _is_server;
+    }
+    
+    template <>
+    int StringTensor<StrServer>::getNClients() {
+
+        return _sh_mem.getNClients();
+
+    }
+
+    template <>
+    int StringTensor<StrClient>::getNClients() {
+
+        return -1;
 
     }
 

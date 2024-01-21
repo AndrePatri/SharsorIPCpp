@@ -29,6 +29,8 @@
 #include <SharsorIPCpp/Journal.hpp>
 
 #include <PySharsorIPC/PyDTypes.hpp>
+
+#include <PySharsorIPCUtils.hpp>
 #include <WrapUtils.hpp>
 
 namespace PySharsorIPC{
@@ -45,6 +47,7 @@ namespace PySharsorIPC{
                                 std::string name_space = "",
                                 bool verbose = false,
                                 VLevel vlevel = VLevel::V0,
+                                bool safe = true,
                                 bool force_reconnection = false,
                                 SharsorIPCpp::DType dtype = SharsorIPCpp::DType::Float,
                                 int layout = SharsorIPCpp::ColMajor);

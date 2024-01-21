@@ -35,12 +35,14 @@ namespace SharsorIPCpp {
                    std::string name_space,
                    bool verbose,
                    VLevel vlevel,
-                   bool force_reconnection)
+                   bool force_reconnection,
+                   bool safe)
         : _n_rows(n_rows),
           _n_cols(n_cols),
           _mem_config(basename, name_space),
           _verbose(verbose),
           _vlevel(vlevel),
+          _safe(safe),
           _force_reconnection(force_reconnection),
           _tensor_view(nullptr,
                        n_rows,
@@ -96,15 +98,15 @@ namespace SharsorIPCpp {
         _initSems(); // creates necessary semaphores
 
         MemUtils::acquireSemWait(_mem_config.mem_path_data_sem,
-                             _data_sem,
-                             _n_acq_trials,
-                             _n_sem_acq_fail,
-                             _journal,
-                             _return_code,
-                             1.0, // [s]
-                             _force_reconnection,
-                             _verbose,
-                             _vlevel); // acquire shared data semaphore
+                            _data_sem,
+                            _n_acq_trials,
+                            _n_sem_acq_fail,
+                            _journal,
+                            _return_code,
+                            0.05, // [s]
+                            _force_reconnection,
+                            _verbose,
+                            _vlevel); // acquire shared data semaphore
         // Here to prevent access from any client (at this stage)
 
         _return_code = _return_code + ReturnCode::RESET; // resets to None
@@ -142,6 +144,22 @@ namespace SharsorIPCpp {
 
     }
 
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::_checkIsRunning()
+    {
+        if (!_running && _verbose) {
+
+            std::string error = std::string("Server ") + 
+                    _mem_config.mem_path +
+                    std::string(" is not running. ") +
+                    std::string("Did you remember to call the run() method?");
+
+            _journal.log(__FUNCTION__,
+                 error,
+                 LogType::EXCEP); // nonblocking
+
+        }
+    }
     template <typename Scalar, int Layout>
     void Server<Scalar, Layout>::run()
     {
@@ -262,7 +280,15 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_write = MemUtils::write<Scalar, Layout>(
                                         data,
@@ -284,16 +310,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsRunning();
 
         return false;
 
@@ -306,7 +323,15 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_write = MemUtils::write<Scalar, Layout>(
                                         data,
@@ -328,18 +353,9 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
+        _checkIsRunning();
 
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
-
-         return false;
+        return false;
 
     }
 
@@ -349,7 +365,15 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_read = MemUtils::read<Scalar, Layout>(
                             row, col,
@@ -371,16 +395,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP);
-
-        }
+        _checkIsRunning();
 
         return false;
 
@@ -392,7 +407,15 @@ namespace SharsorIPCpp {
 
         if (_running) {
 
-            if(_acquireData()) {
+            _data_acquired = true;
+
+            if (_safe) {
+
+                // first acquire data semaphore
+                _data_acquired = _acquireData();
+            }
+
+            if(_data_acquired) {
 
                 bool success_read = MemUtils::read<Scalar, Layout>(
                                        row, col,
@@ -415,16 +438,7 @@ namespace SharsorIPCpp {
 
         }
 
-        if (!_running && _verbose) {
-
-            std::string error = std::string("Server is not running. ") +
-                    std::string("Did you remember to call the run() method?");
-
-            _journal.log(__FUNCTION__,
-                 error,
-                 LogType::EXCEP); // nonblocking
-
-        }
+        _checkIsRunning();
 
         return false;
 
@@ -623,7 +637,7 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Stopped server at ") +
+                std::string info = std::string("Cleaning after server at ") +
                         _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,

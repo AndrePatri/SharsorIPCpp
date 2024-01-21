@@ -50,46 +50,52 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
 
         .def("close", &StringTensor<StrServer>::close)
 
-        .def("write",
+        .def("write_vec",
             (bool (StringTensor<StrServer>::*)(const std::vector<std::string>&, int))
             &StringTensor<StrServer>::write,
             py::arg("str_list"), py::arg("index") = 0)
 
-        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self,
-                            std::string& result_str,
-                            int index) {
-
-            bool success = false;
-
-            if (self.isRunning()) {
-
-                success = self.read(result_vec, index);
-
+        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self, 
+                    py::list py_list, 
+                    int index) {
+            
+            // Check if the Python list is empty
+            if (py_list.empty()) {
+                return false;  // Return false if the list is empty
             }
 
-            return success;
+            // Convert py::list to std::vector<std::string>
+            std::vector<std::string> result_vec;
+            for (auto item : py_list) {
+                result_vec.push_back(item.cast<std::string>());
+            }
 
-        }, py::arg("index") = 0)
+            // Call the C++ method
+            bool success = self.read(result_vec, index);
 
-        .def("write_str",
-            (bool (StringTensor<StrServer>::*)(const std::string&, int))
-            &StringTensor<StrServer>::write,
-            py::arg("str"), py::arg("index") = 0)
-
-        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self,
-                            std::string& result_str,
-                            int index) {
-
-            bool success = false;
-
-            if (self.isRunning()) {
-
-                success = self.read(result_str, index);
+            // Clear the original Python list and refill with updated values
+            py_list.attr("clear")();
+            for (auto& str : result_vec) {
+                py_list.append(str);
             }
 
             return success;
 
         }, py::arg("str_list"), py::arg("index") = 0)
+
+        .def("write_str",
+            (bool (StringTensor<StrServer>::*)(const std::string&, int))
+            &StringTensor<StrServer>::write,
+            py::arg("to_write"), py::arg("index") = 0)
+
+        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self, int index) {
+            std::string result_str;
+            bool success = self.read(result_str, index);
+
+            // Return a tuple containing the string and the success flag
+            return std::make_tuple(result_str, success);
+            
+        }, py::arg("index") = 0)
 
         ;
 
@@ -116,47 +122,52 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
 
         .def("close", &StringTensor<StrClient>::close)
 
-        .def("write",
+        .def("write_vec",
             (bool (StringTensor<StrClient>::*)(const std::vector<std::string>&, int))
             &StringTensor<StrClient>::write,
             py::arg("str_list"), py::arg("index") = 0)
 
-        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self,
-                            std::string& result_str,
-                            int index) {
-
-            bool success = false;
-
-            if (self.isRunning()) {
-
-                success = self.read(result_vec, index);
-
+        .def("read_vec", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self, 
+            py::list py_list, 
+            int index) {
+            
+            // Check if the Python list is empty
+            if (py_list.empty()) {
+                return false;  // Return false if the list is empty
             }
 
-            return success;
+            // Convert py::list to std::vector<std::string>
+            std::vector<std::string> result_vec;
+            for (auto item : py_list) {
+                result_vec.push_back(item.cast<std::string>());
+            }
 
-        }, py::arg("index") = 0)
+            // Call the C++ method
+            bool success = self.read(result_vec, index);
 
-        .def("write_str",
-            (bool (StringTensor<StrClient>::*)(const std::string&, int))
-            &StringTensor<StrClient>::write,
-            py::arg("str"), py::arg("index") = 0)
-
-        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self,
-                            std::string& result_str,
-                            int index) {
-
-            bool success = false;
-
-            if (self.isRunning()) {
-
-                success = self.read(result_str, index);
+            // Clear the original Python list and refill with updated values
+            py_list.attr("clear")();
+            for (auto& str : result_vec) {
+                py_list.append(str);
             }
 
             return success;
 
         }, py::arg("str_list"), py::arg("index") = 0)
 
-        ;
+        .def("write_str",
+            (bool (StringTensor<StrClient>::*)(const std::string&, int))
+            &StringTensor<StrClient>::write,
+            py::arg("to_write"), py::arg("index") = 0)
 
+        .def("read_str", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self, int index) {
+            std::string result_str;
+            bool success = self.read(result_str, index);
+
+            // Return a tuple containing the string and the success flag
+            return std::make_tuple(result_str, success);
+
+        }, py::arg("index") = 0)
+
+        ;
 }
