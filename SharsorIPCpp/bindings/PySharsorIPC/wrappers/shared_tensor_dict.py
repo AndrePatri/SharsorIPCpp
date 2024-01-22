@@ -80,7 +80,8 @@ class SharedTensorDict():
             namespace = "",
             is_server = False, 
             verbose: bool = False, 
-            vlevel: VLevel = VLevel.V0):
+            vlevel: VLevel = VLevel.V0,
+            safe: bool = True):
         
             basename = "debug_data_dims"
 
@@ -102,7 +103,9 @@ class SharedTensorDict():
                     n_cols = 1, 
                     verbose = verbose, 
                     vlevel = vlevel,
-                    dtype=sharsor_dtype.Int)
+                    dtype=sharsor_dtype.Int,
+                    fill_value=-1,
+                    safe = safe)
 
             else:
 
@@ -111,7 +114,9 @@ class SharedTensorDict():
                     is_server = is_server, 
                     verbose = verbose, 
                     vlevel = vlevel,
-                    dtype=sharsor_dtype.Int)
+                    dtype=sharsor_dtype.Int,
+                    fill_value=-1,
+                    safe = safe)
                 
         def run(self):
 
@@ -142,7 +147,8 @@ class SharedTensorDict():
             n_dims: int = -1, 
             n_nodes: int = -1, 
             verbose: bool = False, 
-            vlevel: VLevel = VLevel.V0):
+            vlevel: VLevel = VLevel.V0,
+            safe: bool = True):
         
             basename = "debug_data" 
 
@@ -153,7 +159,8 @@ class SharedTensorDict():
                 n_cols = n_nodes, 
                 verbose = verbose, 
                 vlevel = vlevel,
-                fill_value=np.nan)
+                fill_value=np.nan,
+                safe = safe)
 
     def __init__(self,
             names: List[str] = None, # not needed if client
@@ -162,7 +169,8 @@ class SharedTensorDict():
             namespace = "",
             is_server = False, 
             verbose: bool = False, 
-            vlevel: VLevel = VLevel.V0):
+            vlevel: VLevel = VLevel.V0,
+            safe: bool = True):
         
         self.names = names
         self.dimensions = dimensions
@@ -190,7 +198,8 @@ class SharedTensorDict():
                 n_dims= self.n_dims, 
                 n_nodes = n_nodes, 
                 verbose = verbose, 
-                vlevel = vlevel)
+                vlevel = vlevel,
+                safe = safe)
         
         # names of each block of data
         self.shared_names = self.Names(namespace = namespace,
@@ -204,7 +213,8 @@ class SharedTensorDict():
                 is_server = is_server, 
                 dims = dimensions,
                 verbose = verbose, 
-                vlevel = vlevel)
+                vlevel = vlevel,
+                safe = safe)
 
     def _sanity_checks(self):
 
