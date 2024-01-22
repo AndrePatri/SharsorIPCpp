@@ -190,8 +190,6 @@ class SharedTensorDict():
 
             self.n_dims = n_dims
 
-        self._sanity_checks()
-
         # actual data
         self.data = self.Data(namespace = namespace,
                 is_server = is_server, 
@@ -215,19 +213,6 @@ class SharedTensorDict():
                 verbose = verbose, 
                 vlevel = vlevel,
                 safe = safe)
-
-    def _sanity_checks(self):
-
-        if len(self.names) != len(self.dimensions):
-            
-            exception = "Length mismatch in provided names and dimensions lists." + \
-                f"Got {len(self.names)} VS {len(self.dimensions)}, respectively."
-
-            Journal.log(self.__class__.__name__,
-                    "_sanity_checks",
-                    exception,
-                    LogType.EXCEP,
-                    throw_when_excep = True)
             
     def run(self):
         
