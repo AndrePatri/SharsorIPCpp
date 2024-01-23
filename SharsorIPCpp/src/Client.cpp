@@ -396,24 +396,37 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::_waitForServer()
     {
-        while(!(_isrunning_view(0, 0) > 0)) {
+        _msg_counter = 0; // reset counter
 
-            if (_verbose &&
-                _vlevel > VLevel::V0) {
-
-                std::string info = std::string("Waiting transition of Server at ") +
+        // preallocating message, in case it's necessary
+        std::string info = std::string("Waiting transition of Server at ") +
                         _mem_config.mem_path +
                         std::string(" to running state...");
 
-                _journal.log(__FUNCTION__,
-                     info,
-                     LogType::WARN);
+        while(!(_isrunning_view(0, 0) > 0)) {
+            
+            if (_verbose &&
+                _vlevel > VLevel::V0) {
+
+                    if (_msg_counter % _msg_sample_interval == 0) {
+                        
+                        // only log every now and then
+                        
+                        _journal.log(__FUNCTION__,
+                            info,
+                            LogType::WARN);
+
+                    }
 
             }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
+            _msg_counter++;
+
         }
+
+        _msg_counter = 0; // reset counter
     }
 
     template <typename Scalar, int Layout>

@@ -127,6 +127,9 @@ namespace SharsorIPCpp{
             int _n_sem_acq_fail = 0;
             int _n_acq_trials = 100;
 
+            int _msg_counter = 0; // aux variable using for periodic logging
+            int _msg_sample_interval = 2000; // msg printed every n iterations
+
             std::string _this_name = "SharsorIPCpp::Client";
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
