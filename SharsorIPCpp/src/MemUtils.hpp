@@ -336,8 +336,10 @@ namespace SharsorIPCpp{
                                  Journal journal) {
 
             std::string error = std::string("Failed with error code: ") +
-                    toString(fail_code);
-
+                    toString(fail_code) + 
+                    std::string(", which corresponds to ") +
+                    getDescriptions(fail_code);
+        
             // we throw an exception
             journal.log(__FUNCTION__,
                         error,
