@@ -22,7 +22,8 @@ class SharedTensorDict():
             namespace = "",
             is_server = False, 
             verbose: bool = False, 
-            vlevel: VLevel = VLevel.V0):
+            vlevel: VLevel = VLevel.V0,
+            force_reconnection: bool = False):
 
             basename = "debug_data_names"
             
@@ -37,7 +38,7 @@ class SharedTensorDict():
                                             name_space = namespace,
                                             verbose = verbose, 
                                             vlevel = vlevel, 
-                                            force_reconnection = True)
+                                            force_reconnection = force_reconnection)
 
             else:
 
@@ -81,7 +82,8 @@ class SharedTensorDict():
             is_server = False, 
             verbose: bool = False, 
             vlevel: VLevel = VLevel.V0,
-            safe: bool = True):
+            safe: bool = True,
+            force_reconnection: bool = False):
         
             basename = "debug_data_dims"
 
@@ -105,7 +107,8 @@ class SharedTensorDict():
                     vlevel = vlevel,
                     dtype=sharsor_dtype.Int,
                     fill_value=-1,
-                    safe = safe)
+                    safe = safe,
+                    force_reconnection = force_reconnection)
 
             else:
 
@@ -148,7 +151,8 @@ class SharedTensorDict():
             n_nodes: int = -1, 
             verbose: bool = False, 
             vlevel: VLevel = VLevel.V0,
-            safe: bool = True):
+            safe: bool = True,
+            force_reconnection: bool = False):
         
             basename = "debug_data" 
 
@@ -160,7 +164,8 @@ class SharedTensorDict():
                 verbose = verbose, 
                 vlevel = vlevel,
                 fill_value=np.nan,
-                safe = safe)
+                safe = safe,
+                force_reconnection = force_reconnection)
 
     def __init__(self,
             names: List[str] = None, # not needed if client
@@ -170,7 +175,8 @@ class SharedTensorDict():
             is_server = False, 
             verbose: bool = False, 
             vlevel: VLevel = VLevel.V0,
-            safe: bool = True):
+            safe: bool = True,
+            force_reconnection: bool = False):
         
         self.names = names
         self.dimensions = dimensions
@@ -197,14 +203,16 @@ class SharedTensorDict():
                 n_nodes = n_nodes, 
                 verbose = verbose, 
                 vlevel = vlevel,
-                safe = safe)
+                safe = safe,
+                force_reconnection = force_reconnection)
         
         # names of each block of data
         self.shared_names = self.Names(namespace = namespace,
                 is_server = is_server, 
                 names = self.names,
                 verbose = verbose, 
-                vlevel = vlevel)
+                vlevel = vlevel,
+                force_reconnection = force_reconnection)
 
         # dimenions of each block of data
         self.shared_dims = self.DataDims(namespace = namespace,
@@ -212,7 +220,8 @@ class SharedTensorDict():
                 dims = dimensions,
                 verbose = verbose, 
                 vlevel = vlevel,
-                safe = safe)
+                safe = safe,
+                force_reconnection = force_reconnection)
             
     def run(self):
         

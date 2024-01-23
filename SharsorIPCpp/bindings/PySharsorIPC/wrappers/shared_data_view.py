@@ -24,7 +24,8 @@ class SharedDataView:
             vlevel: VLevel = VLevel.V0,
             dtype: sharsor_dtype = sharsor_dtype.Float,
             fill_value = None,
-            safe = True):
+            safe = True,
+            force_reconnection = False):
 
         self.basename = basename
         self.namespace = namespace
@@ -59,7 +60,7 @@ class SharedDataView:
                     namespace = self.namespace, 
                     verbose = self.verbose, 
                     vlevel = self.vlevel, 
-                    force_reconnection = True, 
+                    force_reconnection = force_reconnection, 
                     dtype = self.dtype,
                     layout = self.layout,
                     safe = self.safe)
