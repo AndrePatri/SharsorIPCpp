@@ -134,6 +134,37 @@ namespace SharsorIPCpp {
 
     }
 
+    inline std::string getDescriptions(ReturnCode combinedCode) {
+        
+        // gets all descriptions in combinedCode and puts them in a single string
+        // this can be very useful for improving interpretability of debugging codes
+
+        std::string descriptions = "[";
+
+        bool first = true;
+
+        // Iterate through each base code and check if it is present in the combinedCode
+        for (unsigned long long i = 0; i <= 62; ++i) {
+
+            ReturnCode baseCode = static_cast<ReturnCode>(1ULL << i);
+
+            if (isin(baseCode, combinedCode)) {
+                
+                if (!first) {
+                    descriptions += ", ";
+                }
+
+                descriptions += getDescription(baseCode);
+
+                first = false;
+            }
+        }
+
+        descriptions += "]";
+
+        return descriptions;
+    }
+
     inline void reset() {
 
     }
