@@ -340,9 +340,9 @@ namespace SharsorIPCpp{
 
             // we throw an exception
             journal.log(__FUNCTION__,
-                         error,
-                         LogType::EXCEP,
-                         true);
+                        error,
+                        LogType::EXCEP,
+                        true);
 
         }
 
