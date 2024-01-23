@@ -66,7 +66,6 @@ namespace SharsorIPCpp {
         static_assert(MemUtils::IsValidDType<Scalar>::value,
                 "Invalid data type provided.");
 
-
         _terminated = false; // just in case
 
     }
@@ -149,7 +148,8 @@ namespace SharsorIPCpp {
     {
         if (_attached) {
 
-            _acquireData(); // blocking
+            _acquireData(); // blocking (probably not necessary, 
+            // int operations should be atomic on 64 bit machines)
 
             _n_clients_view(0, 0) = _n_clients_view(0, 0) - 1; // increase clients counter
 
@@ -391,11 +391,12 @@ namespace SharsorIPCpp {
 
         return false;
 
-    }
+    } 
 
     template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::_waitForServer()
     {
+        
         _msg_counter = 0; // reset counter
 
         // preallocating message, in case it's necessary
@@ -420,7 +421,7 @@ namespace SharsorIPCpp {
 
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1)); // no busy wait
 
             _msg_counter++;
 
@@ -652,14 +653,13 @@ namespace SharsorIPCpp {
 
             _return_code = _return_code + ReturnCode::RESET;
 
-
             MemUtils::cleanUpMem(_mem_config.mem_path,
-                                 _data_shm_fd,
-                                 _journal,
-                                 _return_code,
-                                 _verbose,
-                                 _vlevel,
-                                 false); // closing but no unlinking
+                                _data_shm_fd,
+                                _journal,
+                                _return_code,
+                                _verbose,
+                                _vlevel,
+                                false); // closing but no unlinking
 
             _return_code = _return_code + ReturnCode::RESET;
 

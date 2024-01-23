@@ -107,7 +107,7 @@ namespace SharsorIPCpp{
             bool _terminated = false;
 
             bool _attached = false;
-
+            
             bool _data_acquired = false; // aux. variable,
             // preallocated for efficiency
 
