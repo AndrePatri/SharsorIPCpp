@@ -95,6 +95,9 @@ namespace SharsorIPCpp{
 
             int getMemLayout() const;
 
+            std::string getNamespace() const;
+            std::string getBasename() const;
+
         protected:
 
             bool _unlink_data = false; // will never unlink data
@@ -131,6 +134,8 @@ namespace SharsorIPCpp{
             int _msg_sample_interval = 4000; // msg printed every n iterations
 
             std::string _this_name = "SharsorIPCpp::Client";
+
+            std::string _basename, _namespace;
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 

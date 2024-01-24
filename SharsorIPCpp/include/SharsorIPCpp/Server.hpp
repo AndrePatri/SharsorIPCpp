@@ -94,6 +94,9 @@ namespace SharsorIPCpp{
 
             int getMemLayout() const;
 
+            std::string getNamespace() const;
+            std::string getBasename() const;
+
         protected:
 
             bool _unlink_data = true; // will also unlink data
@@ -131,6 +134,7 @@ namespace SharsorIPCpp{
             int _n_acq_trials = 10;       
 
             std::string _this_name = "SharsorIPCpp::Server";
+            std::string _basename, _namespace;
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 

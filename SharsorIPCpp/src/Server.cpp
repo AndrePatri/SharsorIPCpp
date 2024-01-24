@@ -38,34 +38,35 @@ namespace SharsorIPCpp {
                    bool force_reconnection,
                    bool safe)
         : _n_rows(n_rows),
-          _n_cols(n_cols),
-          _mem_config(basename, name_space),
-          _verbose(verbose),
-          _vlevel(vlevel),
-          _safe(safe),
-          _force_reconnection(force_reconnection),
-          _tensor_view(nullptr,
-                       n_rows,
-                       n_cols),
-          _n_rows_view(nullptr,
-                       1,
-                       1),
-          _n_cols_view(nullptr,
-                       1,
-                       1),
-          _n_clients_view(nullptr,
-                          1,
-                          1),
-          _dtype_view(nullptr,
-                      1,
-                      1),
-          _isrunning_view(nullptr,
-                      1,
-                      1),
-          _mem_layout_view(nullptr,
-                      1,
-                      1),
-          _journal(Journal(_getThisName()))
+        _n_cols(n_cols),
+        _mem_config(basename, name_space),
+        _basename(basename), _namespace(name_space),
+        _verbose(verbose),
+        _vlevel(vlevel),
+        _safe(safe),
+        _force_reconnection(force_reconnection),
+        _tensor_view(nullptr,
+                    n_rows,
+                    n_cols),
+        _n_rows_view(nullptr,
+                    1,
+                    1),
+        _n_cols_view(nullptr,
+                    1,
+                    1),
+        _n_clients_view(nullptr,
+                        1,
+                        1),
+        _dtype_view(nullptr,
+                    1,
+                    1),
+        _isrunning_view(nullptr,
+                    1,
+                    1),
+        _mem_layout_view(nullptr,
+                    1,
+                    1),
+        _journal(Journal(_getThisName()))
     {
 
         static_assert(MemUtils::IsValidDType<Scalar>::value, "Invalid data type provided.");
@@ -271,6 +272,20 @@ namespace SharsorIPCpp {
     int Server<Scalar, Layout>::getMemLayout() const {
 
         return _mem_layout;
+
+    }
+
+    template <typename Scalar, int Layout>
+    std::string Server<Scalar, Layout>::getNamespace() const {
+
+        return _namespace;
+
+    }
+
+    template <typename Scalar, int Layout>
+    std::string Server<Scalar, Layout>::getBasename() const {
+
+        return _basename;
 
     }
 
