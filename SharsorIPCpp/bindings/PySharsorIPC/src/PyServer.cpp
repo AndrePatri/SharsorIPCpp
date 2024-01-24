@@ -333,7 +333,7 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
 
         return wrapper.execute([&](pybind11::object& server) {
 
-            return server.attr("getNamespace")().cast<DType>();
+            return server.attr("getNamespace")().cast<std::string>();
 
         });
 
@@ -343,7 +343,7 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
 
         return wrapper.execute([&](pybind11::object& server) {
 
-            return server.attr("getBasename")().cast<DType>();
+            return server.attr("getBasename")().cast<std::string>();
 
         });
 

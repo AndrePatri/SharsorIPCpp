@@ -1,3 +1,5 @@
+
+
 class NamingConventions():
 
     def __init__(self):
@@ -14,4 +16,32 @@ class NamingConventions():
             namespace: str, 
             basename: str):
         
-        return namespace + basename + self.data_basename
+        return namespace + "/" + \
+            basename + "/" + \
+            self.data_basename
+    
+    def nRowsName(self, 
+            namespace: str, 
+            basename: str):
+        
+        return namespace + "/" + \
+            basename + "/" + \
+            self.n_rows_basename
+    
+    def nColsName(self, 
+            namespace: str, 
+            basename: str):
+
+        return namespace + "/" + \
+            basename + "/" + \
+            self.n_cols_basename
+    
+    def dTypeName(self, 
+            namespace: str, 
+            basename: str):
+
+        return namespace + "/" + \
+            basename + "/" + \
+            self.dtype_basename
+
+

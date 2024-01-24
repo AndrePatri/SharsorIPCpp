@@ -295,7 +295,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
         return wrapper.execute([&](pybind11::object& client) {
 
-            return client.attr("getNamespace")().cast<DType>();
+            return client.attr("getNamespace")().cast<std::string>();
 
         });
 
@@ -305,7 +305,7 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
         return wrapper.execute([&](pybind11::object& client) {
 
-            return client.attr("getBasename")().cast<DType>();
+            return client.attr("getBasename")().cast<std::string>();
 
         });
 
