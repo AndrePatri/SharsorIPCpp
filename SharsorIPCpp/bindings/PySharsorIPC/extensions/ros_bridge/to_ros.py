@@ -22,7 +22,7 @@ class ToRos():
     def __init__(self,
                 client: Union[Client, 
                             StringTensorClient],
-                queue_size: int = 10,
+                queue_size: int = 1, # by default only read latest msg
                 ros_backend = "ros1"):
 
         self._check_client(client)
@@ -63,7 +63,22 @@ class ToRos():
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)
-                        
+    
+    def _synch_from_shared_mem(self,
+                    wait: bool = True):
+
+        if wait:
+
+            while not self._client.read(self._publisher.preallocated_np_array[:, :], 0, 0):
+                
+                continue
+
+            return True
+        
+        else:
+
+            return self._client.read(self._publisher.preallocated_np_array[:, :], 0, 0)
+        
     def run(self):
 
         if not self._client.isRunning():
@@ -79,8 +94,16 @@ class ToRos():
                     queue_size = self._queue_size,
                     dtype = toNumpyDType(self._client.getScalarType()))
         
-        self._publisher.run()
+        self._publisher.run() # initialized topics and writes initializations
     
     def stop(self):
 
         self._client.close()
+
+    def update(self):
+        
+        success = self._synch_from_shared_mem() # updated publisher np view with shared memory
+
+        self._publisher.pub_data()
+                
+        return success

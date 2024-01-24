@@ -49,8 +49,7 @@ try:
 
         # server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
-        client.synch_all(read=True, 
-                    wait=True)
+        bridge.update()
 
         elapsed_time = time.perf_counter() - start_time
 

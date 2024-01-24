@@ -39,12 +39,13 @@ class Ros1Publisher(RosPublisher):
                     name: str, 
                     dtype, 
                     queue_size: int,
-                    is_array = False):
+                    is_array = False,
+                    latch = True):
 
         publisher = rospy.Publisher(name =name, 
                         data_class=toRosDType(dtype, is_array), 
                         queue_size=queue_size, 
-                        latch=True)
+                        latch=latch)
         
         return publisher
     
@@ -52,7 +53,6 @@ class Ros1Publisher(RosPublisher):
 
         self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
                                     is_array=True)()
-        
 
         self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
     

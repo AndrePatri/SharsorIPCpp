@@ -43,7 +43,7 @@ try:
 
         start_time = time.perf_counter() 
 
-        # server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
+        server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
         server.synch_all(read=False, 
                     wait=True)

@@ -18,7 +18,7 @@ class RosPublisher(ABC):
                 n_cols: int,
                 basename: str,
                 namespace: str = "",
-                queue_size: int = 10,
+                queue_size: int = 1, # by default only read latest msg
                 dtype = np.float32):
         
         self._topics = []
@@ -74,7 +74,83 @@ class RosPublisher(ABC):
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)
+        
+    def _encode_dtype(self, numpy_dtype):
+        
+        if numpy_dtype == np.bool_:
+
+            return 0
+        
+        elif numpy_dtype == np.int32:
+
+            return 1
+        
+        elif numpy_dtype == np.float32:
+
+            return 2
+        
+        elif numpy_dtype == np.float64:
+
+            return 3
+        
+        else:
+            
+            exception = f"Unsupported NumPy data type: {numpy_dtype}"
+
+            Journal.log(self.__class__.__name__,
+                        "_encode_dtype",
+                        exception,
+                        LogType.EXCEP,
+                        throw_when_excep = True)
+                    
+    def _decode_dtype(self, dtype_code: int):
+
+        if dtype_code == 0:
+
+            return np.bool_
+        
+        elif dtype_code == 1:
+
+            return np.int32
+        
+        elif dtype_code == 2:
+            
+            return np.float32
+        
+        elif dtype_code == 3:
+
+            return np.float64
+        
+        else:
+            
+            exception = f"Unsupported encoded integer: {dtype_code}"
+
+            Journal.log(self.__class__.__name__,
+                        "_encode_dtype",
+                        exception,
+                        LogType.EXCEP,
+                        throw_when_excep = True)
     
+    def _write_metadata(self):
+
+        self._ros_publishers[1].publish(self.n_rows)
+
+        self._ros_publishers[2].publish(self.n_cols)
+
+        self._ros_publishers[3].publish(self._encode_dtype(self._dtype))
+        
+    def _write_data_init(self):
+
+        self._ros_publishers[0].publish(self.preallocated_ros_array)
+
+    def pub_data(self):
+
+        # writes latest value in preallocated_np_array
+
+        self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
+        
+        self._ros_publishers[0].publish(self.preallocated_ros_array)
+
     def run(self):
         
         self._prerun()
@@ -83,25 +159,32 @@ class RosPublisher(ABC):
                                                                             self._basename),
                                                         dtype=self._dtype,
                                                         is_array=True,
-                                                        queue_size=self._queue_size)
+                                                        queue_size=self._queue_size,
+                                                        latch=True)
         
         self._ros_publishers[1] = self._create_publisher(self._naming_conv.nRowsName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
-                                                        queue_size=self._queue_size)
+                                                        queue_size=self._queue_size,
+                                                        latch=True)
         
         self._ros_publishers[2] = self._create_publisher(self._naming_conv.nColsName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
-                                                        queue_size=self._queue_size)
+                                                        queue_size=self._queue_size,
+                                                        latch=True)
         
         self._ros_publishers[3] = self._create_publisher(self._naming_conv.dTypeName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
-                                                        queue_size=self._queue_size)
+                                                        queue_size=self._queue_size,
+                                                        latch=True)
+        
+        self._write_metadata()
+        self._write_data_init()
         
     @abstractmethod
     def _prerun(self):
