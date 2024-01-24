@@ -5,6 +5,8 @@ from typing import List
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 from SharsorIPCpp.PySharsorIPC import Journal, VLevel, LogType
 
+from perf_sleep.pyperfsleep import PerfSleep
+
 import numpy as np
 
 class RosMessage(ABC):
@@ -29,13 +31,11 @@ class RosPublisher(ABC):
 
         self._queue_size = queue_size
 
+        self._naming_conv = NamingConventions()
+
         self._dtype = dtype
 
         self._consistency_checks()
-
-        self._naming_conv = NamingConventions()
-        
-        self._terminated = False
 
         self._ros_publishers = [None] * 4
 
@@ -46,6 +46,8 @@ class RosPublisher(ABC):
 
         self.preallocated_np_array = np.full(shape=(self.n_rows, self.n_cols), fill_value=np.nan, 
                                             dtype=self._dtype)
+        
+        self._terminated = False
 
     def __del__(self):
 
@@ -204,18 +206,11 @@ class RosPublisher(ABC):
     def close(self):
 
         if not self._terminated:
-            
+
             self._close()
 
             self._terminated = True
-
-    @abstractmethod
-    def publish(self, 
-            topic: str, 
-            message: RosMessage):
-        
-        pass
-    
+ 
     @abstractmethod
     def _close(self):
         
@@ -224,36 +219,157 @@ class RosPublisher(ABC):
 class RosSubscriber(ABC):
 
     def __init__(self,
-                topics: List[str],
-                rate: float):
+                basename: str,
+                namespace: str = "",
+                queue_size: int = 1):
         
-        self._topics = topics
+        self._basename = basename
+
+        self._namespace = namespace 
+
+        self._queue_size = queue_size
         
-        self._rate = rate
+        self._naming_conv = NamingConventions()
+
+        self._ros_subscribers = [None] * 4
+    
+        # to be read from publisher
+        self.n_rows = -1 
+        self.n_cols = -1
+        self._dtype = None
+
+        self.preallocated_ros_array = None
+
+        self.preallocated_np_array = None
+        
+        np.full(shape=(self.n_rows, self.n_cols), fill_value=np.nan, 
+                                            dtype=self._dtype)
+        
+        self._n_rows_retrieved = False
+        self._n_cols_retrieved = False
+        self._dtype_retrieved = False
 
         self._terminated = False
 
-        self._init_subscriber()
+        self._init_sleep_time = 1e-5 # [s] 
+
+        self._init_sleep_time_ns = int((self._init_sleep_time) * 1e+9)
+        self._perf_timer = PerfSleep()
 
     def __del__(self):
 
         self.shutdown()
 
-    @abstractmethod
-    def _init_subscriber(self):
+    def _init_metadata_subs(self):
 
-        pass
+        self._ros_subscribers[1].
+
+        self._ros_subscribers[2].
+
+        self._ros_subscribers[3].
     
-    @abstractmethod
-    def subscribe(self, 
-            topic: str, 
-            callback: RosMessage):
+    def _n_rows_callback(self,
+                    msg):
         
-        pass
+        if not self._n_rows_retrieved:
+            
+            n_rows = 
+
+            self.n_rows = n_rows
+
+            self._n_rows_retrieved = True
+        
+        else:
+
+            warning = f"New n_rows "
+
+            Journal.log("test_to_ros.py",
+                        "",
+                        warning,
+                        LogType.WARN,
+                        throw_when_excep = True)
+            
+            n_rows = 
+
+            if not self.n_rows == n_rows:
+
+                # dimensions mismatch!!
+
+                exception = f""
+
+                Journal.log("test_to_ros.py",
+                            "",
+                            warning,
+                            LogType.WARN,
+                            throw_when_excep = True)
+
+    def _n_cols_callback(self,
+                    msg):
+
+        if not self._n_cols_retrieved:
+
+            self.n_cols = -1 
+
+            self._n_cols_retrieved = True
+
+        else:
+
+    def _dtype_callback(self,
+                    msg):
+
+        if not self._dtype_retrieved:
+
+            self._dtype = -1
+
+            self._dtype_retrieved = True
+
+        else:
+
+    def _got_metadata(self):
+        
+        metadata_retrieved = self._n_rows_retrieved and \
+                self._n_cols_retrieved and \
+                self._n_rows_retrieved
+        
+        return metadata_retrieved
     
-    @abstractmethod
-    def shutdown(self):
+    def run(self):
         
+        while not self._got_metadata():
+            
+            # wait for metadata to be read on callbacks
+
+            self._perf_timer.clock_sleep(self._init_sleep_time_ns)
+
+        self._write_data_init()
+
+        self._postrun()
+
+    def close(self):
+
         if not self._terminated:
 
+            self._close()
+
             self._terminated = True
+
+    @abstractmethod
+    def _create_subscriber(self,
+                    name: str, 
+                    namespace: str, 
+                    dtype, 
+                    queue_size: int):
+
+        pass
+
+    @abstractmethod
+    def _postrun(self):
+
+        pass
+    
+    @abstractmethod
+    def _close(self):
+        
+        pass
+ 
+    

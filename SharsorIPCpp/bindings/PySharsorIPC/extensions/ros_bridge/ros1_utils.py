@@ -51,18 +51,21 @@ class Ros1Publisher(RosPublisher):
     
     def _prerun(self):
 
+        # pre-allocate stuff
         self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
                                     is_array=True)()
 
         self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
-    
-    def publish(self):
-
-        a = 1
 
     def _close(self):
+        
+        # called in the close()
 
-        a = 2
+        for i in range(len(self._ros_publishers)):
+
+                if self._ros_publishers[i] is not None:
+
+                    self._ros_publishers[i].unregister()
             
 class Ros1Subscriber(RosSubscriber):
 
