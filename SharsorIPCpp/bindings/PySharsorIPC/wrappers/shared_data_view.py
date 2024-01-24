@@ -185,7 +185,7 @@ class SharedDataView:
             row_index: int, 
             col_index: int):
         
-        if not self.shared_mem.isRunning:
+        if not self.shared_mem.isRunning():
 
             message = "You can only call write() if the run() method was previously called!"
 
@@ -316,7 +316,7 @@ class SharedDataView:
             data: Union[np.ndarray, 
                         torch.Tensor] = None):
         
-        if not self.shared_mem.isRunning:
+        if not self.shared_mem.isRunning():
 
             message = "You can only call read() if the run() method was previously called!"
 
