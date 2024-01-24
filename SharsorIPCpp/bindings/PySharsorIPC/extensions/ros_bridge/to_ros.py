@@ -87,13 +87,25 @@ class ToRos():
 
             self._client.attach()
         
-        self._publisher = Ros1Publisher(n_rows = self._client.getNRows(), 
-                    n_cols = self._client.getNCols(),
-                    basename = self._client.getBasename(),
-                    namespace = self._client.getNamespace(),
-                    queue_size = self._queue_size,
-                    dtype = toNumpyDType(self._client.getScalarType()))
+        if self._ros_backend == "ros1":
+
+            self._publisher = Ros1Publisher(n_rows = self._client.getNRows(), 
+                        n_cols = self._client.getNCols(),
+                        basename = self._client.getBasename(),
+                        namespace = self._client.getNamespace(),
+                        queue_size = self._queue_size,
+                        dtype = toNumpyDType(self._client.getScalarType()))
         
+        elif self._ros_backend == "ros2":
+
+            exception = f"ros2 backend not yet supported!"
+
+            Journal.log(self.__class__.__name__,
+                        "_check_client",
+                        exception,
+                        LogType.EXCEP,
+                        throw_when_excep = True)
+
         self._publisher.run() # initialized topics and writes initializations
     
     def stop(self):
