@@ -79,7 +79,8 @@ class ToRos():
 
             return self._client.read(self._publisher.preallocated_np_array[:, :], 0, 0)
         
-    def run(self):
+    def run(self,
+            latch: bool = True):
 
         if not self._client.isRunning():
                         
@@ -106,7 +107,7 @@ class ToRos():
                         LogType.EXCEP,
                         throw_when_excep = True)
 
-        self._publisher.run() # initialized topics and writes initializations
+        self._publisher.run(latch=latch) # initialized topics and writes initializations
     
     def stop(self):
 

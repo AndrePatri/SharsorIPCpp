@@ -151,7 +151,8 @@ class RosPublisher(ABC):
         
         self._ros_publishers[0].publish(self.preallocated_ros_array)
 
-    def run(self):
+    def run(self,
+            latch: bool = True):
         
         self._prerun()
 
@@ -160,28 +161,28 @@ class RosPublisher(ABC):
                                                         dtype=self._dtype,
                                                         is_array=True,
                                                         queue_size=self._queue_size,
-                                                        latch=True)
+                                                        latch=latch)
         
         self._ros_publishers[1] = self._create_publisher(self._naming_conv.nRowsName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
                                                         queue_size=self._queue_size,
-                                                        latch=True)
+                                                        latch=latch)
         
         self._ros_publishers[2] = self._create_publisher(self._naming_conv.nColsName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
                                                         queue_size=self._queue_size,
-                                                        latch=True)
+                                                        latch=latch)
         
         self._ros_publishers[3] = self._create_publisher(self._naming_conv.dTypeName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
                                                         queue_size=self._queue_size,
-                                                        latch=True)
+                                                        latch=latch)
         
         self._write_metadata()
         self._write_data_init()

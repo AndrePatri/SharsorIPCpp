@@ -10,6 +10,16 @@ from perf_sleep.pyperfsleep import PerfSleep
 
 import rospy
 
+import os
+
+# Function to set CPU affinity
+def set_affinity(cores):
+    try:
+        os.sched_setaffinity(0, cores)
+        print(f"Set CPU affinity to cores: {cores}")
+    except Exception as e:
+        print(f"Error setting CPU affinity: {e}")
+
 order = 'C'
 
 client = SharedDataView(namespace = "Prova",
@@ -34,14 +44,24 @@ perf_timer = PerfSleep()
 
 namespace = 'Shared2RosBridge'
 rospy.init_node(namespace)
+# loop_rate = rospy.Rate(int(1/update_dt))  # Set an initial loop rate, e.g., 1000 Hz
 
 bridge = ToRos(client.shared_mem,
-        queue_size = 10,
+        queue_size = 1,
         ros_backend = "ros1")
 
-bridge.run()
+bridge.run(latch=True)
+
+msg = f"Will try to run the bridge at {1/update_dt} Hz."
+Journal.log("test_to_ros.py",
+            "",
+            msg,
+            LogType.INFO,
+            throw_when_excep = True)
 
 try:
+
+    set_affinity([15])
 
     while not rospy.is_shutdown():
 
@@ -67,6 +87,8 @@ try:
                         throw_when_excep = True)
 
         perf_timer.clock_sleep(time_to_sleep_ns) 
+
+        # loop_rate.sleep()
 
         actual_loop_dt = time.perf_counter() - start_time
 
