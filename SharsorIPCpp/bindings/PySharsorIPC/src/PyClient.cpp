@@ -104,7 +104,10 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
 
         .def("getNRows", &SharsorIPCpp::Client<Scalar, Layout>::getNRows)
 
-        .def("getNCols", &SharsorIPCpp::Client<Scalar, Layout>::getNCols);
+        .def("getNCols", &SharsorIPCpp::Client<Scalar, Layout>::getNCols)
+        
+        .def("getNamespace", &SharsorIPCpp::Client<Scalar, Layout>::getNamespace)
+        .def("getBasename", &SharsorIPCpp::Client<Scalar, Layout>::getBasename);
 }
 
 pybind11::object PySharsorIPC::PyClient::ClientFactory(std::string basename,
@@ -283,6 +286,26 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
         return wrapper.execute([&](pybind11::object& client) {
 
             return client.attr("getScalarType")().cast<DType>();
+
+        });
+
+    });
+
+    cls.def("getNamespace", [](PySharsorIPC::ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& client) {
+
+            return client.attr("getNamespace")().cast<DType>();
+
+        });
+
+    });
+
+    cls.def("getBasename", [](PySharsorIPC::ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& client) {
+
+            return client.attr("getBasename")().cast<DType>();
 
         });
 

@@ -105,7 +105,10 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
 
         .def("getNRows", &SharsorIPCpp::Server<Scalar, Layout>::getNRows)
 
-        .def("getNCols", &SharsorIPCpp::Server<Scalar, Layout>::getNCols);
+        .def("getNCols", &SharsorIPCpp::Server<Scalar, Layout>::getNCols)
+        
+        .def("getNamespace", &SharsorIPCpp::Server<Scalar, Layout>::getNamespace)
+        .def("getBasename", &SharsorIPCpp::Server<Scalar, Layout>::getBasename);
 }
 
 pybind11::object PySharsorIPC::PyServer::ServerFactory(int n_rows,
@@ -321,6 +324,26 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
         return wrapper.execute([&](pybind11::object& server) {
 
             return server.attr("getScalarType")().cast<DType>();
+
+        });
+
+    });
+
+    cls.def("getNamespace", [](PySharsorIPC::ServerWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& server) {
+
+            return server.attr("getNamespace")().cast<DType>();
+
+        });
+
+    });
+
+    cls.def("getBasename", [](PySharsorIPC::ServerWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& server) {
+
+            return server.attr("getBasename")().cast<DType>();
 
         });
 
