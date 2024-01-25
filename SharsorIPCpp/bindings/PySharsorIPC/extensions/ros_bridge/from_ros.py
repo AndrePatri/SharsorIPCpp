@@ -120,11 +120,8 @@ class FromRos():
         
         # first run subcriber
 
-        print("UAAAAAAAAAAAAAAAAAA")
         self._subscriber.run() # blocking, waits for 
         # subscriber to initialize itself properly
-
-        print("IAAAAAAAAAAAAAAAAAAAAAAA")
 
         # creating a shared mem server
         self._server = ServerFactory(n_rows = self._subscriber.n_rows(), 
@@ -147,6 +144,6 @@ class FromRos():
         
         self._subscriber.acquire_data() # blocking
 
-        success = self._write_to_shared() # updated publisher np view with shared memory
+        # success = self._write_to_shared() # updated publisher np view with shared memory
                 
-        return success
+        return True

@@ -321,7 +321,7 @@ class RosSubscriber(ABC):
                     tcp_nodelay = False)
     
     def _init_data_subs(self):
-
+        
         self._ros_subscribers[0] = self._create_subscriber(name = self._naming_conv.DataName(
                                                                     self._namespace, 
                                                                     self._basename), 
@@ -329,7 +329,7 @@ class RosSubscriber(ABC):
                     callback=self._data_callback, 
                     callback_args = None,
                     queue_size = self._queue_size,
-                    is_array = False,
+                    is_array = True,
                     tcp_nodelay = False)
 
     def _n_rows_callback(self,
@@ -451,7 +451,6 @@ class RosSubscriber(ABC):
         # write data (also updated numpy view)
         self.preallocated_ros_array.data = msg.data
 
-        print(self.preallocated_ros_array)
         # "release" data 
         self._writing_data = False
                 
@@ -485,6 +484,8 @@ class RosSubscriber(ABC):
         #                                                                        self._n_cols))
         
         self._init_data_subs()
+
+        print("UIIIIIIIIIIIIIIIIIIII")
 
     def close(self):
 

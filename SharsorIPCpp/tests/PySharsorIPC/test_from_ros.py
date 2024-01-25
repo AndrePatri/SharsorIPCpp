@@ -58,7 +58,7 @@ Journal.log("test_from_ros.py",
 
 try:
 
-    set_affinity([15])
+    set_affinity([14])
 
     while not rospy.is_shutdown():
 
@@ -69,7 +69,7 @@ try:
         elapsed_time = time.perf_counter() - start_time
 
         time_to_sleep_ns = int((update_dt - elapsed_time) * 1e+9) # [ns]
-
+        
         if time_to_sleep_ns < 0:
 
             warning = f"Could not match desired update dt of {update_dt} s. " + \
