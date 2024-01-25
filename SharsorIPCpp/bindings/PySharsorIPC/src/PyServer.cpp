@@ -283,7 +283,7 @@ void PySharsorIPC::PyServer::bind_ServerWrapper(pybind11::module& m) {
 
         return wrapper.execute([&](pybind11::object& server) {
 
-            return server.attr("isAttached")().cast<bool>();
+            return server.attr("isRunning")().cast<bool>();
 
         });
 
