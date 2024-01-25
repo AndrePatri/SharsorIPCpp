@@ -59,7 +59,7 @@ class ToRos():
             exception = f"Unsupported ROS backend. Supported are \"ros1\" and \"ros2\""
 
             Journal.log(self.__class__.__name__,
-                        "_check_client",
+                        "_check_backend",
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)

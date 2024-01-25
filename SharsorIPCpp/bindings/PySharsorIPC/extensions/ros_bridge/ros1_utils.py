@@ -69,4 +69,38 @@ class Ros1Publisher(RosPublisher):
             
 class Ros1Subscriber(RosSubscriber):
 
-    pass
+    def _create_subscriber(self,
+                    name: str, 
+                    dtype, 
+                    callback, 
+                    callback_args = None,
+                    queue_size: int = None,
+                    is_array = False,
+                    tcp_nodelay = False):
+
+        subscriber = rospy.Subscriber(name =name, 
+                        data_class=toRosDType(dtype, is_array), 
+                        callback=callback,
+                        callback_args=callback_args,
+                        queue_size=queue_size, 
+                        tcp_nodelay=tcp_nodelay
+                        )
+        
+        return subscriber
+    
+    def _postrun(self):
+        
+        # pre-allocate stuff
+        self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
+                                    is_array=True)()
+
+    def _close(self):
+    
+        # called in the close()
+
+        for i in range(len(self._ros_subscribers)):
+
+                if self._ros_subscribers[i] is not None:
+
+                    self._ros_subscribers[i].unregister()
+                    
