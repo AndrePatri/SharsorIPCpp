@@ -8,8 +8,6 @@ import numpy as np
 import time
 from perf_sleep.pyperfsleep import PerfSleep
 
-import rospy
-
 import os
 
 # Function to set CPU affinity
@@ -34,18 +32,42 @@ debug = False
 perf_timer = PerfSleep()
 
 namespace = 'Prova'
-rospy.init_node(namespace + "asasasas")
-# loop_rate = rospy.Rate(int(1/update_dt))  # Set an initial loop rate, e.g., 1000 Hz
-
 basename = "ToRosTest"
 
-bridge = FromRos(basename = basename, 
+ros_backend = "ros2" # ros1, ros2
+node = None
+bridge = None
+
+if ros_backend == "ros1":
+
+    import rospy
+
+    rospy.init_node(namespace + "asasasas")
+
+    bridge = FromRos(basename = basename, 
             namespace = namespace, 
             queue_size =1,
-            ros_backend="ros1",
+            ros_backend=ros_backend,
             vlevel=VLevel.V3,
             verbose=True,
             force_reconnection=True)
+
+if ros_backend == "ros2":
+
+    import rclpy
+
+    rclpy.init()
+
+    node = rclpy.create_node(namespace + "asasasas")
+
+    bridge = FromRos(basename = basename, 
+            namespace = namespace, 
+            queue_size =1,
+            ros_backend="ros2",
+            vlevel=VLevel.V3,
+            verbose=True,
+            force_reconnection=True,
+            node=node)
 
 bridge.run()
 
@@ -60,7 +82,19 @@ try:
 
     set_affinity([15])
 
-    while not rospy.is_shutdown():
+    while True:
+        
+        if ros_backend == "ros1":
+            
+            if rospy.is_shutdown():
+
+                break
+
+        if ros_backend == "ros2":
+            
+            if not rclpy.ok():
+
+                break
 
         start_time = time.perf_counter() 
 

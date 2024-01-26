@@ -27,7 +27,8 @@ class FromRos():
                 ros_backend = "ros1",
                 vlevel = VLevel.V3,
                 verbose: bool = True,
-                force_reconnection: bool = False):
+                force_reconnection: bool = False,
+                node = None):
         
         self._queue_size = queue_size
 
@@ -40,18 +41,22 @@ class FromRos():
 
         self._subscriber = None
 
+        self._node = node # only used when ros2
+
         self._server = None
 
         self._ros_backend = ros_backend
+
+        self._check_backend()
 
         self._init_subscriber()
 
     def _check_backend(self):
 
         if not (self._ros_backend == "ros1" or \
-                self._ros_backend == "ros1"):
+                self._ros_backend == "ros2"):
             
-            exception = f"Unsupported ROS backend. Supported are \"ros1\" and \"ros2\""
+            exception = f"Unsupported ROS backend {self._ros_backend}. Supported are \"ros1\" and \"ros2\""
 
             Journal.log(self.__class__.__name__,
                         "_check_backend",
@@ -60,28 +65,49 @@ class FromRos():
                         throw_when_excep = True)
     
     def _init_subscriber(self):
-
+        
         if self._ros_backend == "ros1":
             
+            if self._node is not None:
+
+                warn = f"A node argument was provided to constructor!" + \
+                    f"but when using ros2 backend, that's not necessary!"
+
+                Journal.log(self.__class__.__name__,
+                            "_init_subscriber",
+                            warn,
+                            LogType.WARN,
+                            throw_when_excep = True)
+
             from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros1Subscriber
 
             self._subscriber = Ros1Subscriber(basename = self._basename,
                                 namespace = self._namespace,
                                 queue_size = self._queue_size)
-        
+
         elif self._ros_backend == "ros2":
+            
+            if self._node is None:
 
-            self._subscriber = ROS
+                exception = f"No node argument provided to constructor! " + \
+                    f"When using ros2 backend, you should provide it!"
 
-            from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros2Subscriber
+                Journal.log(self.__class__.__name__,
+                            "_init_subscriber",
+                            exception,
+                            LogType.EXCEP,
+                            throw_when_excep = True)
+                            
+            from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros2_utils import Ros2Subscriber
 
             self._subscriber = Ros2Subscriber(basename = self._basename,
                                 namespace = self._namespace,
-                                queue_size = self._queue_size)
+                                queue_size = self._queue_size,
+                                node = self._node)
 
         else:
             
-            exception = f"Backend {self._ros_backend} not supported. Please use either" + \
+            exception = f"backend {self._ros_backend} not supported. Please use either" + \
                     "\"ros1\" or \"ros2\"!"
 
             Journal.log(self.__class__.__name__,
@@ -89,6 +115,8 @@ class FromRos():
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)
+
+        self._subscriber.run() # initialized topics and writes initializations
 
     def _write_to_shared(self,
                     wait: bool = True):

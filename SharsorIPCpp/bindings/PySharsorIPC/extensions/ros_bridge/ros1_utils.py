@@ -2,12 +2,16 @@ from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublish
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import toRosDType
 
-import rospy
+import rclpy
+from rclpy.qos import QoSProfile
+from rclpy.node import Node
+from rclpy.publisher import Publisher
+from rclpy.subscription import Subscription
+from rclpy.qos import ReliabilityPolicy, DurabilityPolicy, HistoryPolicy, LivelinessPolicy
+
 
 from std_msgs.msg import Bool, Int32, Float32, Float64
 from std_msgs.msg import Int32MultiArray, Float32MultiArray, Float64MultiArray
-
-from std_msgs.msg import String
 
 import numpy as np
         
@@ -91,10 +95,9 @@ class Ros1Subscriber(RosSubscriber):
     def _close(self):
     
         # called in the close()
-
         for i in range(len(self._ros_subscribers)):
 
-                if self._ros_subscribers[i] is not None:
+            if self._ros_subscribers[i] is not None:
 
-                    self._ros_subscribers[i].unregister()
+                self._ros_subscribers[i].unregister()
                     

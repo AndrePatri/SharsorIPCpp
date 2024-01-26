@@ -279,7 +279,7 @@ class RosSubscriber(ABC):
 
     def __del__(self):
 
-        self.shutdown()
+        self.close()
 
     def n_rows(self):
 

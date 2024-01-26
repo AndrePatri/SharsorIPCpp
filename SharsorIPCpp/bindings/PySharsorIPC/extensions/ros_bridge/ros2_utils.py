@@ -1,3 +1,7 @@
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublisher
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import toRosDType
+
 import rclpy
 from rclpy.qos import QoSProfile
 from rclpy.node import Node
@@ -5,12 +9,9 @@ from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
 from rclpy.qos import ReliabilityPolicy, DurabilityPolicy, HistoryPolicy, LivelinessPolicy
 
+
 from std_msgs.msg import Bool, Int32, Float32, Float64
 from std_msgs.msg import Int32MultiArray, Float32MultiArray, Float64MultiArray
-
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublisher
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import ToRosDType
 
 import numpy as np
 
@@ -57,15 +58,6 @@ class Ros2Publisher(RosPublisher):
         
         return publisher
 
-    def _prerun(self):
-        
-        # pre-allocate stuff
-
-        self.preallocated_ros_array = toRosDType(
-            numpy_dtype=self._dtype, is_array=True)()
-
-        self.preallocated_ros_array.data = self.np_data.flatten()
-
     def _close(self):
 
         # called in the close()
@@ -74,7 +66,7 @@ class Ros2Publisher(RosPublisher):
 
             self.publisher.destroy()
 
-class Ros2Subscriber(Node):
+class Ros2Subscriber(RosSubscriber):
 
     def __init__(self,
                 node: rclpy.node.Node,
@@ -101,20 +93,15 @@ class Ros2Subscriber(Node):
         subscriber = self._node.create_subscription(msg_type = toRosDType(dtype, is_array),
                         topic=name,
                         callback=callback,
-                        qos_settings=qos_settings,
+                        qos_profile=qos_settings,
                         raw=False
                         )
 
-    def postrun(self):
-
-        # pre-allocate stuff
-
-        self.preallocated_ros_array = toRosDType(
-            numpy_dtype=self._dtype, is_array=True)()
-
-    def close(self):
+    def _close(self):
 
         # called in the close()
-        if self.subscription is not None:
+        for i in range(len(self._ros_subscribers)):
 
-            self.subscription.destroy()
+            if self._ros_subscribers[i] is not None:
+
+                self._ros_subscribers[i].destroy()

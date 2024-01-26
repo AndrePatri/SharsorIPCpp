@@ -60,7 +60,7 @@ class ToRos():
         if not (self._ros_backend == "ros1" or \
                 self._ros_backend == "ros2"):
             
-            exception = f"Unsupported ROS backend. Supported are \"ros1\" and \"ros2\""
+            exception = f"Unsupported ROS backend {self._ros_backend}. Supported are \"ros1\" and \"ros2\""
 
             Journal.log(self.__class__.__name__,
                         "_check_backend",
@@ -82,15 +82,9 @@ class ToRos():
         else:
 
             return self._client.read(self._publisher.np_data[:, :], 0, 0)
-        
-    def run(self):
+    
+    def _init_publisher(self):
 
-        if not self._client.isRunning():
-                        
-            # manually run client if not running
-
-            self._client.attach()
-        
         if self._ros_backend == "ros1":
             
             if self._node is not None:
@@ -99,7 +93,7 @@ class ToRos():
                     f"but when using ros2 backend, that's not necessary!"
 
                 Journal.log(self.__class__.__name__,
-                            "run",
+                            "_init_publisher",
                             warn,
                             LogType.WARN,
                             throw_when_excep = True)
@@ -121,7 +115,7 @@ class ToRos():
                     f"When using ros2 backend, you should provide it!"
 
                 Journal.log(self.__class__.__name__,
-                            "run",
+                            "_init_publisher",
                             exception,
                             LogType.EXCEP,
                             throw_when_excep = True)
@@ -142,12 +136,22 @@ class ToRos():
                     "\"ros1\" or \"ros2\"!"
 
             Journal.log(self.__class__.__name__,
-                        "run",
+                        "_init_publisher",
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)
 
         self._publisher.run() # initialized topics and writes initializations
+
+    def run(self):
+
+        if not self._client.isRunning():
+                        
+            # manually run client if not running
+
+            self._client.attach()
+        
+        self._init_publisher()
     
     def stop(self):
 
