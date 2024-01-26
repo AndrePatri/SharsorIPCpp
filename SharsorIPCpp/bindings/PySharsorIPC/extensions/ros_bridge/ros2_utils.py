@@ -3,12 +3,13 @@ from rclpy.qos import QoSProfile
 from rclpy.node import Node
 from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
-
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublisher
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
+from rclpy.qos import ReliabilityPolicy, DurabilityPolicy, HistoryPolicy, LivelinessPolicy
 
 from std_msgs.msg import Bool, Int32, Float32, Float64
 from std_msgs.msg import Int32MultiArray, Float32MultiArray, Float64MultiArray
+
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublisher
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
 
 import numpy as np
 
@@ -42,7 +43,15 @@ class Ros2Publisher(RosPublisher):
         
         self._node = node
 
-        self._qos_settings = QoSProfile(depth=queue_size)
+        self._qos_settings = QoSProfile(
+                    reliability=ReliabilityPolicy.RELIABLE, # BEST_EFFORT
+                    durability=DurabilityPolicy.TRANSIENT_LOCAL, # VOLATILE
+                    history=HistoryPolicy.KEEP_LAST, # KEEP_ALL
+                    depth=queue_size,  # Number of samples to keep if KEEP_LAST is used
+                    liveliness=LivelinessPolicy.AUTOMATIC,
+                    deadline=1000000000,  # [ns]
+                    # partition='my_partition' # useful to isolate communications
+                    )
 
         super().__init__(n_rows=n_rows, 
                 n_cols=n_cols,
