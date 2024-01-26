@@ -73,7 +73,7 @@ class ToRos():
 
         if wait:
 
-            while not self._client.read(self._publisher.preallocated_np_array[:, :], 0, 0):
+            while not self._client.read(self._publisher.np_data[:, :], 0, 0):
                 
                 continue
 
@@ -81,7 +81,7 @@ class ToRos():
         
         else:
 
-            return self._client.read(self._publisher.preallocated_np_array[:, :], 0, 0)
+            return self._client.read(self._publisher.np_data[:, :], 0, 0)
         
     def run(self):
 

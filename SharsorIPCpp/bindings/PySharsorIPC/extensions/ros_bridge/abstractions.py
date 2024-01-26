@@ -5,12 +5,37 @@ from typing import List
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 from SharsorIPCpp.PySharsorIPC import Journal, VLevel, LogType
 
-from std_msgs.msg import Int32
+# same naming between ros1 and ros2
+from std_msgs.msg import Bool, Int32, Float32, Float64
+from std_msgs.msg import Int32MultiArray, Float32MultiArray, Float64MultiArray
 
 from perf_sleep.pyperfsleep import PerfSleep
 
 import numpy as np
 
+def toRosDType(numpy_dtype,
+            is_array: False):
+
+        if numpy_dtype == np.bool_:
+
+            return Int32MultiArray if is_array else Bool
+        
+        elif numpy_dtype == np.int32:
+            
+            return Int32MultiArray if is_array else Int32
+        
+        elif numpy_dtype == np.float32:
+
+            return Float32MultiArray if is_array else Float32
+        
+        elif numpy_dtype == np.float64:
+
+            return Float64MultiArray if is_array else Float64
+        
+        else:
+
+            raise ValueError(f"Unsupported NumPy data type: {numpy_dtype}")
+        
 class RosMessage(ABC):
     
     pass
@@ -43,15 +68,25 @@ class RosPublisher(ABC):
 
         self._n_rows = n_rows
         self._n_cols = n_cols
-
-        self.preallocated_ros_array = None
-
-        self.preallocated_np_array = np.full(shape=(self._n_rows, self._n_cols), fill_value=np.nan, 
-                                            dtype=self._dtype)
         
-        self._to_list_first = False
+        self._encode_dtype(self._dtype) # checks dtype
 
-        self._use_np_directly = False
+        self.np_data = None
+        if self._dtype == np.float32 or \
+            self._dtype == np.float64:
+
+            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=np.nan, 
+                                                dtype=self._dtype)
+
+        if self._dtype == np.bool_ or \
+            self._dtype == np.int32:
+
+            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=0, 
+                                                dtype=self._dtype)
+            
+        self.ros_msg_view = toRosDType(numpy_dtype=self._dtype, 
+                                    is_array=True)(data=self.np_data.reshape(-1)) # changes in np_data
+        # also reflectin ros msg. Reshape needed because ros msg type need a 1D array
 
         self._terminated = False
 
@@ -137,33 +172,18 @@ class RosPublisher(ABC):
         self._ros_publishers[3].publish(int32_msg)
         
     def _write_data_init(self):
-
-        self._ros_publishers[0].publish(self.preallocated_ros_array)
+        
+        self._ros_publishers[0].publish(self.ros_msg_view)
 
     def pub_data(self):
 
-        # writes latest value in preallocated_np_array
+        # writes latest value in np_data
+        # (ros_msg_view is a view)
 
-        if not self._use_np_directly:
-
-            if self._to_list_first:
-
-                self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
-            
-            else:
-
-                self.preallocated_ros_array.data = self.preallocated_np_array.flatten()
-
-            self._ros_publishers[0].publish(self.preallocated_ros_array)
-        
-        else:
-
-            self._ros_publishers[0].publish(self.preallocated_np_array)
+        self._ros_publishers[0].publish(self.ros_msg_view)
 
     def run(self):
         
-        self._prerun()
-
         self._ros_publishers[0] = self._create_publisher(name=self._naming_conv.DataName(self._namespace, 
                                                                             self._basename),
                                                         dtype=self._dtype,
@@ -190,11 +210,6 @@ class RosPublisher(ABC):
         
         self._write_metadata()
         self._write_data_init()
-        
-    @abstractmethod
-    def _prerun(self):
-
-        pass
 
     @abstractmethod
     def _create_publisher(self,
@@ -241,10 +256,8 @@ class RosSubscriber(ABC):
         self._n_cols = -1
         self._dtype = None
 
-        self.preallocated_ros_array = None
+        self.np_data = None
 
-        self.preallocated_np_array = None
-        
         self._n_rows_retrieved = False
         self._n_cols_retrieved = False
         self._dtype_retrieved = False
@@ -463,13 +476,7 @@ class RosSubscriber(ABC):
         self._writing_data = True
 
         # write data (also updated numpy view)
-        if not self._use_np_directly:
-
-            self.preallocated_ros_array.data = msg.data
-
-        else:
-            
-            self.preallocated_np_array[:, :] = msg.data
+        self.np_data[:, :] = msg.data
 
         # "release" data 
         self._writing_data = False
@@ -492,20 +499,19 @@ class RosSubscriber(ABC):
 
             self._perf_timer.clock_sleep(self._init_sleep_time_ns)
         
-        self._postrun()
+        if self._dtype == np.float32 or \
+            self._dtype == np.float64:
 
-        # self.preallocated_ros_array.data = np.full(shape=(self._n_rows, self._n_cols), 
-        #                                     fill_value=np.nan, 
-        #                                     dtype=self._dtype).flatten().tolist()
-        
-        # # view from buffer, this way changes reflect on both
-        # self.preallocated_np_array[:, :] = np.frombuffer(self.preallocated_ros_array.data.data, 
-        #                                             dtype=self._dtype).reshape((self._n_rows, 
-        #                                                                        self._n_cols))
-        
+            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=np.nan, 
+                                                dtype=self._dtype)
+
+        if self._dtype == np.bool_ or \
+            self._dtype == np.int32:
+
+            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=0, 
+                                                dtype=self._dtype)
+            
         self._init_data_subs()
-
-        print("UIIIIIIIIIIIIIIIIIIII")
 
     def close(self):
 
@@ -524,11 +530,6 @@ class RosSubscriber(ABC):
                     queue_size: int = None,
                     is_array = False,
                     tcp_nodelay = False):
-
-        pass
-
-    @abstractmethod
-    def _postrun(self):
 
         pass
     

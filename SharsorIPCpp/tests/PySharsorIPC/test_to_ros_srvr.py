@@ -35,7 +35,7 @@ server.run()
 
 server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
-update_dt = 0.001
+update_dt = 0.01
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0

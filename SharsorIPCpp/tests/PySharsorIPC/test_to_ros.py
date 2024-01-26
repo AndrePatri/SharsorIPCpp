@@ -29,7 +29,7 @@ client = SharedDataView(namespace = "Prova",
             safe = False)
 client.run()
 
-update_dt = 0.001
+update_dt = 0.01
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
@@ -42,7 +42,7 @@ perf_timer = PerfSleep()
 
 namespace = 'Shared2RosBridge'
 
-ros_backend = "ros2" # ros1, ros2
+ros_backend = "ros1" # ros1, ros2
 node = None
 bridge = None
 
@@ -80,7 +80,7 @@ Journal.log("test_to_ros.py",
 
 try:
 
-    set_affinity([28])
+    set_affinity([15])
     
     while True:
         
@@ -105,10 +105,6 @@ try:
         if ros_backend == "ros2":
 
             rclpy.spin_once(node) # processes callbacks
-        
-        if ros_backend == "ros1":
-
-            rospy.spin_once()
 
         elapsed_time = time.perf_counter() - start_time
 

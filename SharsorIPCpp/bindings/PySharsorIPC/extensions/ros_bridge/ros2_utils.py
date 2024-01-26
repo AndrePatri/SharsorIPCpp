@@ -10,25 +10,9 @@ from std_msgs.msg import Int32MultiArray, Float32MultiArray, Float64MultiArray
 
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosPublisher
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import RosSubscriber
+from SharsorIPCpp.PySharsor.extensions.ros_bridge.abstractions import ToRosDType
 
 import numpy as np
-
-def toRosDType(numpy_dtype, is_array=False):
-
-    if numpy_dtype == np.bool_:
-        return Int32MultiArray if is_array else Bool
-
-    elif numpy_dtype == np.int32:
-        return Int32MultiArray if is_array else Int32
-
-    elif numpy_dtype == np.float32:
-        return Float32MultiArray if is_array else Float32
-
-    elif numpy_dtype == np.float64:
-        return Float64MultiArray if is_array else Float64
-
-    else:
-        raise ValueError(f"Unsupported NumPy data type: {numpy_dtype}")
 
 class Ros2Publisher(RosPublisher):
 
@@ -60,10 +44,6 @@ class Ros2Publisher(RosPublisher):
                 queue_size=queue_size, # by default only read latest msg
                 dtype=dtype)
 
-        self._to_list_first = False # override default
-
-        self._use_np_directly = False
-
     def _create_publisher(self,
                     name: str, 
                     dtype, 
@@ -84,7 +64,7 @@ class Ros2Publisher(RosPublisher):
         self.preallocated_ros_array = toRosDType(
             numpy_dtype=self._dtype, is_array=True)()
 
-        self.preallocated_ros_array.data = self.preallocated_np_array.flatten()
+        self.preallocated_ros_array.data = self.np_data.flatten()
 
     def _close(self):
 
@@ -107,8 +87,6 @@ class Ros2Subscriber(Node):
         super().__init__(basename=basename,
                 namespace=namespace,
                 queue_size=queue_size)
-
-        self._use_np_directly = False
         
     def _create_subscriber(self,
                     name: str, 
