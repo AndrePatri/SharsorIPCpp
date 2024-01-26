@@ -10,6 +10,15 @@ from perf_sleep.pyperfsleep import PerfSleep
 
 order = 'C'
 
+def set_affinity(cores):
+    try:
+        os.sched_setaffinity(0, cores)
+        print(f"Set CPU affinity to cores: {cores}")
+    except Exception as e:
+        print(f"Error setting CPU affinity: {e}")
+
+set_affinity([0])
+
 server = SharedDataView(namespace = "Prova",
             basename = "ToRosTest",
             is_server = True, 
@@ -26,7 +35,7 @@ server.run()
 
 server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
-update_dt = 0.001
+update_dt = 0.005
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0

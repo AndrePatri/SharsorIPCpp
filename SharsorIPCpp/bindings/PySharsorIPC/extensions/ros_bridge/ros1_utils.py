@@ -35,17 +35,34 @@ def toRosDType(numpy_dtype,
         
 class Ros1Publisher(RosPublisher):
 
+    def __init__(self,
+            n_rows: int, 
+            n_cols: int,
+            basename: str,
+            namespace: str = "",
+            queue_size: int = 1, # by default only read latest msg
+            dtype = np.float32,
+            latch: bool = True):
+
+        self._latch = latch
+
+        super().__init__(n_rows=n_rows, 
+                n_cols=n_cols,
+                basename=basename,
+                namespace=namespace,
+                queue_size=queue_size, # by default only read latest msg
+                dtype=dtype)
+
     def _create_publisher(self,
                     name: str, 
                     dtype, 
                     queue_size: int,
-                    is_array = False,
-                    latch = True):
+                    is_array = False):
 
         publisher = rospy.Publisher(name =name, 
                         data_class=toRosDType(dtype, is_array), 
-                        queue_size=queue_size, 
-                        latch=latch)
+                        queue_size=queue_size,
+                        latch=self._latch)
         
         return publisher
     
@@ -69,21 +86,30 @@ class Ros1Publisher(RosPublisher):
             
 class Ros1Subscriber(RosSubscriber):
 
+    def __init__(self,
+                basename: str,
+                namespace: str = "",
+                queue_size: int = 1,
+                tcp_nodelay = False):
+
+        self._tcp_nodelay = tcp_nodelay
+        
+        super().__init__(basename=basename,
+                namespace=namespace,
+                queue_size=queue_size)
+
     def _create_subscriber(self,
                     name: str, 
                     dtype, 
                     callback, 
-                    callback_args = None,
                     queue_size: int = None,
-                    is_array = False,
-                    tcp_nodelay = False):
+                    is_array = False):
 
         subscriber = rospy.Subscriber(name =name, 
                         data_class=toRosDType(dtype, is_array), 
                         callback=callback,
-                        callback_args=callback_args,
                         queue_size=queue_size, 
-                        tcp_nodelay=tcp_nodelay
+                        tcp_nodelay=self._tcp_nodelay
                         )
         
         return subscriber

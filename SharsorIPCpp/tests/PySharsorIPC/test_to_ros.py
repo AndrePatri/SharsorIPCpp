@@ -8,8 +8,6 @@ import numpy as np
 import time
 from perf_sleep.pyperfsleep import PerfSleep
 
-import rospy
-
 import os
 
 # Function to set CPU affinity
@@ -43,14 +41,35 @@ debug = False
 perf_timer = PerfSleep()
 
 namespace = 'Shared2RosBridge'
-rospy.init_node(namespace)
-# loop_rate = rospy.Rate(int(1/update_dt))  # Set an initial loop rate, e.g., 1000 Hz
 
-bridge = ToRos(client.shared_mem,
+ros_backend = "ros2" # ros1, ros2
+node = None
+bridge = None
+
+if ros_backend == "ros1":
+
+    import rospy
+
+    node = rospy.init_node(namespace)
+
+    bridge = ToRos(client=client.shared_mem,
         queue_size = 1,
-        ros_backend = "ros1")
+        ros_backend = ros_backend)
 
-bridge.run(latch=True)
+if ros_backend == "ros2":
+
+    import rclpy
+
+    rclpy.init()
+
+    node = rclpy.create_node(namespace)
+
+    bridge = ToRos(client=client.shared_mem,
+        queue_size=1,
+        ros_backend=ros_backend,
+        node=node)
+
+bridge.run()
 
 msg = f"Will try to run the bridge at {1/update_dt} Hz."
 Journal.log("test_to_ros.py",
@@ -61,15 +80,35 @@ Journal.log("test_to_ros.py",
 
 try:
 
-    set_affinity([15])
+    set_affinity([1])
+    
+    while True:
+        
+        if ros_backend == "ros1":
+            
+            if rospy.is_shutdown():
 
-    while not rospy.is_shutdown():
+                break
+
+        if ros_backend == "ros2":
+            
+            if not rclpy.ok():
+
+                break
 
         start_time = time.perf_counter() 
 
         # server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
         bridge.update()
+
+        if ros_backend == "ros2":
+
+            rclpy.spin_once(node) # processes callbacks
+        
+        if ros_backend == "ros1":
+
+            rospy.spin_once()
 
         elapsed_time = time.perf_counter() - start_time
 

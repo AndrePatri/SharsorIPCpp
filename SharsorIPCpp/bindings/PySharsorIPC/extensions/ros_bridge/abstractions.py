@@ -5,6 +5,8 @@ from typing import List
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 from SharsorIPCpp.PySharsorIPC import Journal, VLevel, LogType
 
+from std_msgs.msg import Int32
+
 from perf_sleep.pyperfsleep import PerfSleep
 
 import numpy as np
@@ -118,12 +120,17 @@ class RosPublisher(ABC):
                         throw_when_excep = True)
                
     def _write_metadata(self):
+        
+        int32_msg = Int32()
+        int32_msg.data = self._n_rows
 
-        self._ros_publishers[1].publish(self._n_rows)
+        self._ros_publishers[1].publish(int32_msg)
+    
+        int32_msg.data = self._n_cols
+        self._ros_publishers[2].publish(int32_msg)
 
-        self._ros_publishers[2].publish(self._n_cols)
-
-        self._ros_publishers[3].publish(self._encode_dtype(self._dtype))
+        int32_msg.data = self._encode_dtype(self._dtype)
+        self._ros_publishers[3].publish(int32_msg)
         
     def _write_data_init(self):
 
@@ -137,8 +144,7 @@ class RosPublisher(ABC):
         
         self._ros_publishers[0].publish(self.preallocated_ros_array)
 
-    def run(self,
-            latch: bool = True):
+    def run(self):
         
         self._prerun()
 
@@ -146,29 +152,25 @@ class RosPublisher(ABC):
                                                                             self._basename),
                                                         dtype=self._dtype,
                                                         is_array=True,
-                                                        queue_size=self._queue_size,
-                                                        latch=latch)
+                                                        queue_size=self._queue_size)
         
         self._ros_publishers[1] = self._create_publisher(self._naming_conv.nRowsName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
-                                                        queue_size=self._queue_size,
-                                                        latch=latch)
+                                                        queue_size=self._queue_size)
         
         self._ros_publishers[2] = self._create_publisher(self._naming_conv.nColsName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
-                                                        queue_size=self._queue_size,
-                                                        latch=latch)
+                                                        queue_size=self._queue_size)
         
         self._ros_publishers[3] = self._create_publisher(self._naming_conv.dTypeName(self._namespace, 
                                                                             self._basename),
                                                         dtype=np.int32,
                                                         is_array=False,
-                                                        queue_size=self._queue_size,
-                                                        latch=latch)
+                                                        queue_size=self._queue_size)
         
         self._write_metadata()
         self._write_data_init()
@@ -297,8 +299,7 @@ class RosSubscriber(ABC):
                     callback=self._n_rows_callback, 
                     callback_args = None,
                     queue_size = self._queue_size,
-                    is_array = False,
-                    tcp_nodelay = False)
+                    is_array = False)
 
         self._ros_subscribers[2] = self._create_subscriber(name = self._naming_conv.nColsName(
                                                                     self._namespace, 
@@ -307,8 +308,7 @@ class RosSubscriber(ABC):
                     callback=self._n_cols_callback, 
                     callback_args = None,
                     queue_size = self._queue_size,
-                    is_array = False,
-                    tcp_nodelay = False)
+                    is_array = False)
 
         self._ros_subscribers[3] = self._create_subscriber(name = self._naming_conv.dTypeName(
                                                                     self._namespace, 
@@ -317,8 +317,7 @@ class RosSubscriber(ABC):
                     callback=self._dtype_callback, 
                     callback_args = None,
                     queue_size = self._queue_size,
-                    is_array = False,
-                    tcp_nodelay = False)
+                    is_array = False)
     
     def _init_data_subs(self):
         
@@ -329,8 +328,7 @@ class RosSubscriber(ABC):
                     callback=self._data_callback, 
                     callback_args = None,
                     queue_size = self._queue_size,
-                    is_array = True,
-                    tcp_nodelay = False)
+                    is_array = True)
 
     def _n_rows_callback(self,
                     msg):

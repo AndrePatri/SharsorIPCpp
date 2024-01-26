@@ -7,7 +7,6 @@ from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 
 from SharsorIPCpp.PySharsorIPC import Journal, VLevel, LogType
 from SharsorIPCpp.PySharsorIPC import toNumpyDType
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros1Publisher
 
 class ToRos():
 
@@ -23,7 +22,8 @@ class ToRos():
                 client: Union[Client, 
                             StringTensorClient],
                 queue_size: int = 1, # by default only read latest msg
-                ros_backend = "ros1"):
+                ros_backend = "ros1",
+                node = None):
 
         self._check_client(client)
 
@@ -34,6 +34,10 @@ class ToRos():
         self._publisher = None
 
         self._ros_backend = ros_backend
+        
+        self._check_backend()
+
+        self._node = node # only used when ros2
 
     def _check_client(self,
                 client: Union[Client, 
@@ -54,7 +58,7 @@ class ToRos():
     def _check_backend(self):
 
         if not (self._ros_backend == "ros1" or \
-                self._ros_backend == "ros1"):
+                self._ros_backend == "ros2"):
             
             exception = f"Unsupported ROS backend. Supported are \"ros1\" and \"ros2\""
 
@@ -79,8 +83,7 @@ class ToRos():
 
             return self._client.read(self._publisher.preallocated_np_array[:, :], 0, 0)
         
-    def run(self,
-            latch: bool = True):
+    def run(self):
 
         if not self._client.isRunning():
                         
@@ -89,6 +92,19 @@ class ToRos():
             self._client.attach()
         
         if self._ros_backend == "ros1":
+            
+            if self._node is not None:
+
+                warn = f"A node argument was provided to constructor!" + \
+                    f"but when using ros2 backend, that's not necessary!"
+
+                Journal.log(self.__class__.__name__,
+                            "run",
+                            warn,
+                            LogType.WARN,
+                            throw_when_excep = True)
+
+            from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros1Publisher
 
             self._publisher = Ros1Publisher(n_rows = self._client.getNRows(), 
                         n_cols = self._client.getNCols(),
@@ -96,18 +112,42 @@ class ToRos():
                         namespace = self._client.getNamespace(),
                         queue_size = self._queue_size,
                         dtype = toNumpyDType(self._client.getScalarType()))
-        
-        elif self._ros_backend == "ros2":
 
-            exception = f"ros2 backend not yet supported!"
+        elif self._ros_backend == "ros2":
+            
+            if self._node is None:
+
+                exception = f"No node argument provided to constructor! " + \
+                    f"When using ros2 backend, you should provide it!"
+
+                Journal.log(self.__class__.__name__,
+                            "run",
+                            exception,
+                            LogType.EXCEP,
+                            throw_when_excep = True)
+                            
+            from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros2_utils import Ros2Publisher
+
+            self._publisher = Ros2Publisher(node=self._node,
+                        n_rows = self._client.getNRows(), 
+                        n_cols = self._client.getNCols(),
+                        basename = self._client.getBasename(),
+                        namespace = self._client.getNamespace(),
+                        queue_size = self._queue_size,
+                        dtype = toNumpyDType(self._client.getScalarType()))
+
+        else:
+            
+            exception = f"backend {self._ros_backend} not supported. Please use either" + \
+                    "\"ros1\" or \"ros2\"!"
 
             Journal.log(self.__class__.__name__,
-                        "_check_client",
+                        "run",
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)
 
-        self._publisher.run(latch=latch) # initialized topics and writes initializations
+        self._publisher.run() # initialized topics and writes initializations
     
     def stop(self):
 

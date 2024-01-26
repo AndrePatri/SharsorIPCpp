@@ -7,7 +7,6 @@ from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 
 from SharsorIPCpp.PySharsorIPC import Journal, VLevel, LogType, dtype
 from SharsorIPCpp.PySharsorIPC import toNumpyDType
-from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros1Subscriber
 
 import numpy as np
 
@@ -63,6 +62,8 @@ class FromRos():
     def _init_subscriber(self):
 
         if self._ros_backend == "ros1":
+            
+            from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros1Subscriber
 
             self._subscriber = Ros1Subscriber(basename = self._basename,
                                 namespace = self._namespace,
@@ -70,14 +71,25 @@ class FromRos():
         
         elif self._ros_backend == "ros2":
 
-            exception = f"ros2 backend not yet supported!"
+            self._subscriber = ROS
+
+            from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros2Subscriber
+
+            self._subscriber = Ros2Subscriber(basename = self._basename,
+                                namespace = self._namespace,
+                                queue_size = self._queue_size)
+
+        else:
+            
+            exception = f"Backend {self._ros_backend} not supported. Please use either" + \
+                    "\"ros1\" or \"ros2\"!"
 
             Journal.log(self.__class__.__name__,
-                        "_check_client",
+                        "_init_subscriber",
                         exception,
                         LogType.EXCEP,
                         throw_when_excep = True)
-            
+
     def _write_to_shared(self,
                     wait: bool = True):
 
