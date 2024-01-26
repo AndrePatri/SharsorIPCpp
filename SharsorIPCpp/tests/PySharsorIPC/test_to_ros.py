@@ -80,7 +80,7 @@ Journal.log("test_to_ros.py",
 
 try:
 
-    set_affinity([1])
+    set_affinity([28])
     
     while True:
         

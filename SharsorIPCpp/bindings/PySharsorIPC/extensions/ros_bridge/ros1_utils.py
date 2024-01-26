@@ -5,6 +5,7 @@ import rospy
 
 from std_msgs.msg import Bool, Int32, Float32, Float64
 from std_msgs.msg import Int32MultiArray, Float32MultiArray, Float64MultiArray
+from rospy.numpy_msg import numpy_msg
 
 from std_msgs.msg import String
 
@@ -53,14 +54,19 @@ class Ros1Publisher(RosPublisher):
                 queue_size=queue_size, # by default only read latest msg
                 dtype=dtype)
 
+        self._use_np_directly = True
+
+        self._to_list_first = True # override default
+
     def _create_publisher(self,
                     name: str, 
                     dtype, 
                     queue_size: int,
                     is_array = False):
 
+        # use numpy msg for efficiency
         publisher = rospy.Publisher(name =name, 
-                        data_class=toRosDType(dtype, is_array), 
+                        data_class=numpy_msg(toRosDType(dtype, is_array)), 
                         queue_size=queue_size,
                         latch=self._latch)
         
@@ -68,11 +74,13 @@ class Ros1Publisher(RosPublisher):
     
     def _prerun(self):
 
-        # pre-allocate stuff
-        self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
-                                    is_array=True)()
+        pass
 
-        self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
+        # pre-allocate stuff
+        # self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
+        #                             is_array=True)()
+
+        # self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
 
     def _close(self):
         
@@ -98,6 +106,8 @@ class Ros1Subscriber(RosSubscriber):
                 namespace=namespace,
                 queue_size=queue_size)
 
+        self._use_np_directly = True
+
     def _create_subscriber(self,
                     name: str, 
                     dtype, 
@@ -105,8 +115,9 @@ class Ros1Subscriber(RosSubscriber):
                     queue_size: int = None,
                     is_array = False):
 
+        # use numpy msg for efficiency
         subscriber = rospy.Subscriber(name =name, 
-                        data_class=toRosDType(dtype, is_array), 
+                        data_class=numpy_msg(toRosDType(dtype, is_array)), 
                         callback=callback,
                         queue_size=queue_size, 
                         tcp_nodelay=self._tcp_nodelay
@@ -117,8 +128,10 @@ class Ros1Subscriber(RosSubscriber):
     def _postrun(self):
         
         # pre-allocate stuff
-        self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
-                                    is_array=True)()
+        # self.preallocated_ros_array = toRosDType(numpy_dtype=self._dtype,
+        #                             is_array=True)()
+
+        pass
 
     def _close(self):
     

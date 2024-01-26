@@ -22,7 +22,7 @@ def set_affinity(cores):
 
 order = 'C'
 
-update_dt = 0.005
+update_dt = 0.001
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
@@ -58,7 +58,7 @@ Journal.log("test_from_ros.py",
 
 try:
 
-    set_affinity([2])
+    set_affinity([29])
 
     while not rospy.is_shutdown():
 

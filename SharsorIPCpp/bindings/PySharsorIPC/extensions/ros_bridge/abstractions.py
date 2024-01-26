@@ -49,6 +49,10 @@ class RosPublisher(ABC):
         self.preallocated_np_array = np.full(shape=(self._n_rows, self._n_cols), fill_value=np.nan, 
                                             dtype=self._dtype)
         
+        self._to_list_first = False
+
+        self._use_np_directly = False
+
         self._terminated = False
 
     def __del__(self):
@@ -140,9 +144,21 @@ class RosPublisher(ABC):
 
         # writes latest value in preallocated_np_array
 
-        self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
+        if not self._use_np_directly:
+
+            if self._to_list_first:
+
+                self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
+            
+            else:
+
+                self.preallocated_ros_array.data = self.preallocated_np_array.flatten()
+
+            self._ros_publishers[0].publish(self.preallocated_ros_array)
         
-        self._ros_publishers[0].publish(self.preallocated_ros_array)
+        else:
+
+            self._ros_publishers[0].publish(self.preallocated_np_array)
 
     def run(self):
         
@@ -447,7 +463,13 @@ class RosSubscriber(ABC):
         self._writing_data = True
 
         # write data (also updated numpy view)
-        self.preallocated_ros_array.data = msg.data
+        if not self._use_np_directly:
+
+            self.preallocated_ros_array.data = msg.data
+
+        else:
+            
+            self.preallocated_np_array[:, :] = msg.data
 
         # "release" data 
         self._writing_data = False

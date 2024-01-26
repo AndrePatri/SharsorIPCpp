@@ -49,7 +49,7 @@ class Ros2Publisher(RosPublisher):
                     history=HistoryPolicy.KEEP_LAST, # KEEP_ALL
                     depth=queue_size,  # Number of samples to keep if KEEP_LAST is used
                     liveliness=LivelinessPolicy.AUTOMATIC,
-                    deadline=1000000000,  # [ns]
+                    # deadline=1000000000,  # [ns]
                     # partition='my_partition' # useful to isolate communications
                     )
 
@@ -59,6 +59,10 @@ class Ros2Publisher(RosPublisher):
                 namespace=namespace,
                 queue_size=queue_size, # by default only read latest msg
                 dtype=dtype)
+
+        self._to_list_first = False # override default
+
+        self._use_np_directly = False
 
     def _create_publisher(self,
                     name: str, 
@@ -80,7 +84,7 @@ class Ros2Publisher(RosPublisher):
         self.preallocated_ros_array = toRosDType(
             numpy_dtype=self._dtype, is_array=True)()
 
-        self.preallocated_ros_array.data = self.preallocated_np_array.flatten().tolist()
+        self.preallocated_ros_array.data = self.preallocated_np_array.flatten()
 
     def _close(self):
 
@@ -104,6 +108,8 @@ class Ros2Subscriber(Node):
                 namespace=namespace,
                 queue_size=queue_size)
 
+        self._use_np_directly = False
+        
     def _create_subscriber(self,
                     name: str, 
                     dtype, 
