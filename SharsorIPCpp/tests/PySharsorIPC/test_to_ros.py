@@ -42,7 +42,7 @@ perf_timer = PerfSleep()
 
 namespace = 'Shared2RosBridge'
 
-ros_backend = "ros2" # ros1, ros2
+ros_backend = "ros1" # ros1, ros2
 node = None
 bridge = None
 

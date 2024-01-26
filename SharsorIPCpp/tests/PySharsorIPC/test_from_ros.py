@@ -34,7 +34,7 @@ perf_timer = PerfSleep()
 namespace = 'Prova'
 basename = "ToRosTest"
 
-ros_backend = "ros2" # ros1, ros2
+ros_backend = "ros1" # ros1, ros2
 node = None
 bridge = None
 
