@@ -20,7 +20,7 @@ def set_affinity(cores):
 
 order = 'C'
 
-update_dt = 0.01
+update_dt = 0.001
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
@@ -34,7 +34,7 @@ perf_timer = PerfSleep()
 namespace = 'Prova'
 basename = "ToRosTest"
 
-ros_backend = "ros1" # ros1, ros2
+ros_backend = "ros2" # ros1, ros2
 node = None
 bridge = None
 
@@ -58,7 +58,7 @@ if ros_backend == "ros2":
 
     rclpy.init()
 
-    node = rclpy.create_node(namespace + "asasasas")
+    node = rclpy.create_node(namespace)
 
     bridge = FromRos(basename = basename, 
             namespace = namespace, 
@@ -80,7 +80,7 @@ Journal.log("test_from_ros.py",
 
 try:
 
-    set_affinity([15])
+    set_affinity([3])
 
     while True:
         
@@ -99,6 +99,10 @@ try:
         start_time = time.perf_counter() 
 
         bridge.update()
+
+        if ros_backend == "ros2":
+
+            rclpy.spin_once(node) # processes callbacks
 
         elapsed_time = time.perf_counter() - start_time
 
