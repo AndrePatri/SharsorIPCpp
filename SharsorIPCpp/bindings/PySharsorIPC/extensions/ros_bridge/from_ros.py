@@ -92,10 +92,10 @@ class FromRos():
 
     def _write_to_shared(self,
                     wait: bool = True):
-
+        
         if wait:
 
-            while not self._server.write(self._subscriber.preallocated_np_array[:, :], 0, 0):
+            while not self._server.write(self._subscriber.np_data[:, :], 0, 0):
                 
                 continue
 
@@ -103,7 +103,7 @@ class FromRos():
         
         else:
 
-            return self._server.write(self._subscriber.preallocated_np_array[:, :], 0, 0)
+            return self._server.write(self._subscriber.np_data[:, :], 0, 0)
         
     def _synch_from_topic(self):
         
@@ -156,6 +156,6 @@ class FromRos():
         
         self._subscriber.acquire_data() # blocking
 
-        # success = self._write_to_shared() # updated publisher np view with shared memory
+        success = self._write_to_shared() # updates shared mem with latest read data on topic
                 
         return True

@@ -160,16 +160,18 @@ class RosPublisher(ABC):
                
     def _write_metadata(self):
         
-        int32_msg = Int32()
-        int32_msg.data = self._n_rows
+        int32_msg_rows = Int32()
+        int32_msg_rows.data = self._n_rows
+        int32_msg_cols = Int32()
+        int32_msg_cols.data = self._n_cols
+        int32_msg_dtype = Int32()
+        int32_msg_dtype.data = self._encode_dtype(self._dtype)
 
-        self._ros_publishers[1].publish(int32_msg)
-    
-        int32_msg.data = self._n_cols
-        self._ros_publishers[2].publish(int32_msg)
+        self._ros_publishers[1].publish(int32_msg_rows)
 
-        int32_msg.data = self._encode_dtype(self._dtype)
-        self._ros_publishers[3].publish(int32_msg)
+        self._ros_publishers[2].publish(int32_msg_cols)
+
+        self._ros_publishers[3].publish(int32_msg_dtype)
         
     def _write_data_init(self):
         
@@ -326,7 +328,6 @@ class RosSubscriber(ABC):
                                                                     self._basename), 
                     dtype=np.int32,
                     callback=self._n_rows_callback, 
-                    callback_args = None,
                     queue_size = self._queue_size,
                     is_array = False)
 
@@ -335,7 +336,6 @@ class RosSubscriber(ABC):
                                                                     self._basename), 
                     dtype=np.int32,
                     callback=self._n_cols_callback, 
-                    callback_args = None,
                     queue_size = self._queue_size,
                     is_array = False)
 
@@ -344,7 +344,6 @@ class RosSubscriber(ABC):
                                                                     self._basename), 
                     dtype=np.int32,
                     callback=self._dtype_callback, 
-                    callback_args = None,
                     queue_size = self._queue_size,
                     is_array = False)
     
@@ -355,7 +354,6 @@ class RosSubscriber(ABC):
                                                                     self._basename), 
                     dtype=self._dtype,
                     callback=self._data_callback, 
-                    callback_args = None,
                     queue_size = self._queue_size,
                     is_array = True)
 
@@ -476,7 +474,8 @@ class RosSubscriber(ABC):
         self._writing_data = True
 
         # write data (also updated numpy view)
-        self.np_data[:, :] = msg.data
+
+        self.np_data[:, :] = np.array(msg.data).reshape((self._n_rows, self._n_cols))
 
         # "release" data 
         self._writing_data = False
