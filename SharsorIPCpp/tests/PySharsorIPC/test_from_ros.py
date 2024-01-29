@@ -69,14 +69,28 @@ if ros_backend == "ros2":
             force_reconnection=True,
             node=node)
 
-bridge.run()
+while not bridge.run():
+
+    if ros_backend == "ros2":
+
+        rclpy.spin_once(node) # processes callbacks
+
+    warning = f"Waiting for metadata..."
+
+    Journal.log("test_from_ros.py",
+                "",
+                warning,
+                LogType.WARN,
+                throw_when_excep = True)
+    
+    perf_timer.clock_sleep(int((0.1) * 1e+9)) 
 
 msg = f"Will try to run the bridge at {1/update_dt} Hz."
 Journal.log("test_from_ros.py",
-            "",
-            msg,
-            LogType.INFO,
-            throw_when_excep = True)
+        "",
+        msg,
+        LogType.INFO,
+        throw_when_excep = True)
 
 try:
 
@@ -84,6 +98,8 @@ try:
 
     while True:
         
+        start_time = time.perf_counter() 
+
         if ros_backend == "ros1":
             
             if rospy.is_shutdown():
@@ -96,13 +112,19 @@ try:
 
                 break
 
-        start_time = time.perf_counter() 
-
-        bridge.update()
-
-        if ros_backend == "ros2":
-
             rclpy.spin_once(node) # processes callbacks
+
+        success= bridge.update()
+
+        if not success:
+
+            warning = f"Unsuccessful bridge update!"
+
+            Journal.log("test_from_ros.py",
+                        "",
+                        warning,
+                        LogType.WARN,
+                        throw_when_excep = True)
 
         elapsed_time = time.perf_counter() - start_time
 
@@ -113,15 +135,13 @@ try:
             warning = f"Could not match desired update dt of {update_dt} s. " + \
                 f"Elapsed time to update {elapsed_time}."
 
-            Journal.log("test_to_ros.py",
+            Journal.log("test_from_ros.py",
                         "",
                         warning,
                         LogType.WARN,
                         throw_when_excep = True)
 
         perf_timer.clock_sleep(time_to_sleep_ns) 
-
-        # loop_rate.sleep()
 
         actual_loop_dt = time.perf_counter() - start_time
 

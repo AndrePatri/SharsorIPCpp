@@ -273,6 +273,7 @@ class RosSubscriber(ABC):
         self._dtype_retrieved = False
 
         self._terminated = False
+        self._is_running = False
 
         self._init_sleep_time = 1e-5 # [s] 
 
@@ -284,6 +285,8 @@ class RosSubscriber(ABC):
         self._writing_data = False
 
         self._reading_data = False
+
+        self._init_metadata_subs()
 
     def __del__(self):
 
@@ -357,6 +360,18 @@ class RosSubscriber(ABC):
     
     def _init_data_subs(self):
         
+        if self._dtype == np.float32 or \
+            self._dtype == np.float64:
+
+            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=np.nan, 
+                                                dtype=self._dtype)
+
+        if self._dtype == np.bool_ or \
+            self._dtype == np.int32:
+
+            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=0, 
+                                                dtype=self._dtype)
+
         self._ros_subscribers[0] = self._create_subscriber(name = self._naming_conv.DataName(
                                                                     self._namespace, 
                                                                     self._basename), 
@@ -498,27 +513,15 @@ class RosSubscriber(ABC):
 
     def run(self):
         
-        self._init_metadata_subs()
+        if not self._is_running:
 
-        while not self._got_metadata():
+            if self._got_metadata():
+                
+                self._init_data_subs()
+
+                self._is_running = True
             
-            # wait for metadata to be read on callbacks
-
-            self._perf_timer.clock_sleep(self._init_sleep_time_ns)
-        
-        if self._dtype == np.float32 or \
-            self._dtype == np.float64:
-
-            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=np.nan, 
-                                                dtype=self._dtype)
-
-        if self._dtype == np.bool_ or \
-            self._dtype == np.int32:
-
-            self.np_data = np.full(shape=(self._n_rows, self._n_cols), fill_value=0, 
-                                                dtype=self._dtype)
-            
-        self._init_data_subs()
+        return self._is_running
 
     def close(self):
 

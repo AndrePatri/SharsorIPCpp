@@ -45,6 +45,8 @@ class FromRos():
 
         self._server = None
 
+        self._is_running = False
+
         self._ros_backend = ros_backend
 
         self._check_backend()
@@ -116,13 +118,11 @@ class FromRos():
                         LogType.EXCEP,
                         throw_when_excep = True)
 
-        self._subscriber.run() # initialized topics and writes initializations
-
     def _write_to_shared(self,
                     wait: bool = True):
         
         if wait:
-
+            
             while not self._server.write(self._subscriber.np_data[:, :], 0, 0):
                 
                 continue
@@ -155,26 +155,34 @@ class FromRos():
         if np_dtype == np.float64:
 
             return dtype.Double 
-                
+    
     def run(self):
-        
-        # first run subcriber
 
-        self._subscriber.run() # blocking, waits for 
-        # subscriber to initialize itself properly
+        if not self._is_running:
 
-        # creating a shared mem server
-        self._server = ServerFactory(n_rows = self._subscriber.n_rows(), 
-                    n_cols = self._subscriber.n_cols(),
-                    basename = self._basename + "AAAAAA",
-                    namespace = self._namespace, 
-                    verbose = self._verbose, 
-                    vlevel = self._vlevel, 
-                    force_reconnection = self._force_reconnection, 
-                    dtype = self._to_sharsor_dtype(self._subscriber.dtype()),
-                    safe = True)
+            sub_success = self._subscriber.run() # tried to get metadata and initialize
+            # data subscription
+
+            if sub_success:
+
+                # also initialize and run shared mem server
+
+                # creating a shared mem server
+                self._server = ServerFactory(n_rows = self._subscriber.n_rows(), 
+                            n_cols = self._subscriber.n_cols(),
+                            basename = self._basename + "AAAAAA",
+                            namespace = self._namespace, 
+                            verbose = self._verbose, 
+                            vlevel = self._vlevel, 
+                            force_reconnection = self._force_reconnection, 
+                            dtype = self._to_sharsor_dtype(self._subscriber.dtype()),
+                            safe = True)
+            
+                self._server.run() # run server
+
+                self._is_running = True # ready
         
-        self._server.run() # run server
+        return sub_success and self._is_running
 
     def stop(self):
 
@@ -182,8 +190,14 @@ class FromRos():
 
     def update(self):
         
-        self._subscriber.acquire_data() # blocking
+        if self._is_running:
 
-        success = self._write_to_shared() # updates shared mem with latest read data on topic
-                
-        return True
+            self._subscriber.acquire_data() # blocking
+
+            # updates shared mem with latest read data on topic
+                    
+            return self._write_to_shared()
+
+        else:
+
+            return False

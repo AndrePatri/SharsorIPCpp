@@ -76,6 +76,16 @@ class Ros2Subscriber(RosSubscriber):
 
         self._node = node
         
+        self._qos_settings = QoSProfile(
+                    reliability=ReliabilityPolicy.RELIABLE, # BEST_EFFORT
+                    durability=DurabilityPolicy.TRANSIENT_LOCAL, # VOLATILE
+                    history=HistoryPolicy.KEEP_LAST, # KEEP_ALL
+                    depth=queue_size,  # Number of samples to keep if KEEP_LAST is used
+                    liveliness=LivelinessPolicy.AUTOMATIC,
+                    # deadline=1000000000,  # [ns]
+                    # partition='my_partition' # useful to isolate communications
+                    )
+
         super().__init__(basename=basename,
                 namespace=namespace,
                 queue_size=queue_size)
@@ -88,13 +98,11 @@ class Ros2Subscriber(RosSubscriber):
                     queue_size: int = None,
                     is_array = False):
 
-        qos_settings = QoSProfile(depth=queue_size)
-
         subscriber = self._node.create_subscription(msg_type = toRosDType(dtype, is_array),
                         topic=name,
                         callback=callback,
-                        qos_profile=qos_settings,
-                        raw=False
+                        qos_profile=self._qos_settings,
+                        # raw=False
                         )
 
     def _close(self):
