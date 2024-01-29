@@ -10,6 +10,8 @@ from perf_sleep.pyperfsleep import PerfSleep
 
 order = 'C'
 
+import os
+
 def set_affinity(cores):
     try:
         os.sched_setaffinity(0, cores)
@@ -17,7 +19,7 @@ def set_affinity(cores):
     except Exception as e:
         print(f"Error setting CPU affinity: {e}")
 
-set_affinity([0])
+set_affinity([8])
 
 server = SharedDataView(namespace = "Prova",
             basename = "ToRosTest",
