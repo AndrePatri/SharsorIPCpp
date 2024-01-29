@@ -177,12 +177,20 @@ class RosPublisher(ABC):
         
         self._ros_publishers[0].publish(self.ros_msg_view)
 
-    def pub_data(self):
+    def pub_data(self,
+        copy = False):
 
         # writes latest value in np_data
         # (ros_msg_view is a view)
 
-        self._ros_publishers[0].publish(self.ros_msg_view)
+        if not copy:
+
+            self._ros_publishers[0].publish(self.ros_msg_view)
+        
+        else:
+            
+            self.ros_msg_view.data[:, :]
+            self._ros_publishers[0].publish(self.ros_msg_view)
 
     def run(self):
         

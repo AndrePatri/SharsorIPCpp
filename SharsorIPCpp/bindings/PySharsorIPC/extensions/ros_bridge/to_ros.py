@@ -77,6 +77,7 @@ class ToRos():
                 
                 continue
 
+
             return True
         
         else:
@@ -161,6 +162,9 @@ class ToRos():
         
         success = self._synch_from_shared_mem() # updated publisher np view with shared memory
 
+        print("IAAAAAAAAAAAAAAAAA")
         self._publisher.pub_data()
-                
+        
+        print("uaaaaaaaaaaaaaaa")
+        
         return success

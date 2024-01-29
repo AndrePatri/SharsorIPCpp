@@ -78,6 +78,7 @@ Journal.log("test_to_ros.py",
             LogType.INFO,
             throw_when_excep = True)
 
+i = 0
 try:
 
     set_affinity([2])
@@ -101,11 +102,16 @@ try:
         # server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
         bridge.update()
+        
+        print("gninginging")
+        # if ros_backend == "ros2":
 
-        if ros_backend == "ros2":
+        #     rclpy.spin_once(node) # processes callbacks
 
-            rclpy.spin_once(node) # processes callbacks
+        print("aijohohnol")
 
+        i += 1
+        print(i)
         elapsed_time = time.perf_counter() - start_time
 
         time_to_sleep_ns = int((update_dt - elapsed_time) * 1e+9) # [ns]

@@ -20,7 +20,7 @@ def set_affinity(cores):
 
 order = 'C'
 
-update_dt = 0.001
+update_dt = 0.01
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
