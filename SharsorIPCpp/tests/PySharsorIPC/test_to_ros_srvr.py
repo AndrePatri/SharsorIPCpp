@@ -22,8 +22,8 @@ set_affinity([0])
 server = SharedDataView(namespace = "Prova",
             basename = "ToRosTest",
             is_server = True, 
-            n_rows = 2, 
-            n_cols = 3, 
+            n_rows = 100, 
+            n_cols = 200, 
             verbose = True, 
             vlevel = VLevel.V3,
             dtype= dtype.Float,
@@ -35,7 +35,7 @@ server.run()
 
 server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
-update_dt = 0.01
+update_dt = 0.001
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
@@ -57,8 +57,6 @@ try:
         server.synch_all(read=False, 
                     wait=True)
         
-        print(server.numpy_view[:, :])
-
         elapsed_time = time.perf_counter() - start_time
 
         time_to_sleep_ns = int((update_dt - elapsed_time) * 1e+9) # [ns]

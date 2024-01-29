@@ -29,7 +29,7 @@ client = SharedDataView(namespace = "Prova",
             safe = False)
 client.run()
 
-update_dt = 0.01
+update_dt = 0.001
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
