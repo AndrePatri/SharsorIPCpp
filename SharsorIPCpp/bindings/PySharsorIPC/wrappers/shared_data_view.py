@@ -74,6 +74,8 @@ class SharedDataView:
                     vlevel = self.vlevel,
                     dtype = self.dtype,
                     safe = self.safe)
+        
+        self._is_running = False
     
     def __del__(self):
 
@@ -132,7 +134,11 @@ class SharedDataView:
                 throw_when_excep = False)
             
             return -1
-            
+    
+    def is_running(self):
+
+        return self._is_running
+    
     def run(self):
     
         if self.is_server:
@@ -176,6 +182,8 @@ class SharedDataView:
                 # we write initialization
                 self.synch_all(read = False, 
                         wait=True)
+        
+        self._is_running = True
                 
     def write(self, 
             data: Union[bool, int, float, 
@@ -544,4 +552,6 @@ class SharedDataView:
 
     def close(self):
 
-        self.shared_mem.close()
+        if self.shared_mem is not None:
+
+            self.shared_mem.close()

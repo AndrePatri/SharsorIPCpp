@@ -29,7 +29,7 @@ client = SharedDataView(namespace = "Prova",
             safe = False)
 client.run()
 
-update_dt = 0.001
+update_dt = 0.005
 start_time = time.perf_counter() 
 start_time = 0.0
 elapsed_time = 0.0
@@ -80,7 +80,7 @@ Journal.log("test_to_ros.py",
 
 try:
 
-    set_affinity([2])
+    set_affinity([9])
     
     while True:
         

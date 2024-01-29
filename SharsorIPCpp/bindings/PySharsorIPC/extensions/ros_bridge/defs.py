@@ -1,5 +1,3 @@
-
-
 class NamingConventions():
 
     def __init__(self):
