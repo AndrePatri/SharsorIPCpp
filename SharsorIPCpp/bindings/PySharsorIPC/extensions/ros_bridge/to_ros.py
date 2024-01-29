@@ -162,9 +162,12 @@ class ToRos():
         
         success = self._synch_from_shared_mem() # updated publisher np view with shared memory
 
-        print("IAAAAAAAAAAAAAAAAA")
-        self._publisher.pub_data()
-        
-        print("uaaaaaaaaaaaaaaa")
-        
+        if self._ros_backend == "ros2":
+            
+            self._publisher.pub_data(copy=True)
+
+        if self._ros_backend == "ros1":
+
+            self._publisher.pub_data()
+       
         return success

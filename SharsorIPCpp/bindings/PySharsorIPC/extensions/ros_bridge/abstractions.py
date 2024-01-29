@@ -189,8 +189,8 @@ class RosPublisher(ABC):
         
         else:
             
-            self.ros_msg_view.data[:, :]
-            self._ros_publishers[0].publish(self.ros_msg_view)
+            self._ros_publishers[0].publish(toRosDType(numpy_dtype=self._dtype, 
+                            is_array=True)(data=self.np_data.reshape(-1)))
 
     def run(self):
         
