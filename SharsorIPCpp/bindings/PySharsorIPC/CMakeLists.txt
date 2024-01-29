@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 add_compile_options(-std=c++17)
 
-option(WITH_ROS_BRIDGE "Compile and install custom ros bridge extensions" FALSE)
+option(WITH_ROS_BRIDGE "Compile and install custom ros bridge extensions" TRUE)
 
 if(${WITH_ROS_BRIDGE})
 
@@ -65,76 +65,80 @@ install(
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE}/${LIBRARY_NAME}/${PyLayerName}/wrappers
 )
 
-if(${WITH_ROS_BRIDGE})
+# if(${WITH_ROS_BRIDGE})
 
-    # compile custom messages
-    find_package(catkin QUIET COMPONENTS
-        std_msgs
-    )
+#     # compile custom messages
+#     find_package(catkin QUIET COMPONENTS
+#         std_msgs
+#     )
 
-    if(catkin_FOUND)
+#     if(catkin_FOUND)
 
-        message(STATUS "Catkin found. Compiling custom messages for ROS1.")
+#         message(STATUS "Catkin found. Compiling custom messages for ROS1.")
 
-        catkin_package(
-            CATKIN_DEPENDS std_msgs
-        )
+#         catkin_package(
+#             CATKIN_DEPENDS std_msgs
+#         )
 
-        file(GLOB_RECURSE ROS1_MESSAGES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros1/ *.msg)
-        foreach(MSG_FILE ${ROS1_MESSAGES})
-            add_message_files(
-                FILES
-                ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros1/${MSG_FILE}
-            )
-        endforeach()
+#         file(GLOB_RECURSE ROS1_MESSAGES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros1/ *.msg)
+#         foreach(MSG_FILE ${ROS1_MESSAGES})
+#             add_message_files(
+#                 FILES
+#                 ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros1/${MSG_FILE}
+#             )
+#         endforeach()
 
-        generate_messages(
-            DEPENDENCIES
-            std_msgs
-        )
+#         generate_messages(
+#             DEPENDENCIES
+#             std_msgs
+#         )
 
-        install(
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros1/
-            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/msg
-            FILES_MATCHING PATTERN "*.msg"
-        )
+#         install(
+#             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros1/
+#             DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/msg
+#             FILES_MATCHING PATTERN "*.msg"
+#         )
 
-        message(STATUS "Custom messages for ROS1 compiled and installed.")
+#         message(STATUS "Custom messages for ROS1 compiled and installed.")
 
-    else()
+#     else()
 
-        message(WARNING "Catkin not found. ROS1 custom messages will not be compiled.")
+#         message(WARNING "Catkin not found. ROS1 custom messages will not be compiled.")
         
-    endif()
+#     endif()
 
-    # Check if ament_cmake is available for ROS2
-    find_package(ament_cmake QUIET)
+#     # Check if ament_cmake is available for ROS2
+#     find_package(ament_cmake QUIET)
 
-    if(ament_cmake_FOUND)
+#     if(ament_cmake_FOUND)
 
-        message(STATUS "Ament CMake found. Compiling custom messages for ROS2.")
+#         message(STATUS "Ament CMake found. Compiling custom messages for ROS2.")
 
-        file(GLOB_RECURSE ROS2_MESSAGES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros2/ *.msg)
+#         file(GLOB_RECURSE ROS2_MESSAGES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros2/ *.msg)
 
-        foreach(MSG_FILE ${ROS2_MESSAGES})
-            rosidl_generate_interfaces(${PyLayerName}
-                "${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros2/${MSG_FILE}"
-            )
-        endforeach()
+#         foreach(MSG_FILE ${ROS2_MESSAGES})
+#             rosidl_generate_interfaces(${PyLayerName}
+#                 "${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros2/${MSG_FILE}"
+#             )
+#         endforeach()
 
-        install(
-            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros2/
-            DESTINATION share/${PyLayerName}/msg
-            FILES_MATCHING PATTERN "*.msg"
-        )
+#         install(
+#             DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extensions/ros_bridge/msgs/ros2/
+#             DESTINATION share/${PyLayerName}/msg
+#             FILES_MATCHING PATTERN "*.msg"
+#         )
 
-        message(STATUS "Custom messages for ROS2 compiled and installed.")
+#         message(STATUS "Custom messages for ROS2 compiled and installed.")
 
-    else()
+#     else()
 
-        message(WARNING "Ament CMake not found. ROS2 custom messages will not be compiled.")
+#         message(WARNING "Ament CMake not found. ROS2 custom messages will not be compiled.")
 
-    endif()
+#     endif()
+
+# endif()
+
+if(${WITH_ROS_BRIDGE})
 
     # install python extensions
     install(
