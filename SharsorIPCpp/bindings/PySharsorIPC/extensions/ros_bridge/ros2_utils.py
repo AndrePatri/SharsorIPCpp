@@ -58,14 +58,16 @@ class Ros2Publisher(RosPublisher):
         
         return publisher
 
-    def _close(self):
-
+     def _close(self):
+        
         # called in the close()
 
-        if self.publisher is not None:
+        for i in range(len(self._ros_publishers)):
 
-            self.publisher.destroy()
+                if self._ros_publishers[i] is not None:
 
+                    self._ros_publishers[i].destroy()
+                    
 class Ros2Subscriber(RosSubscriber):
 
     def __init__(self,
