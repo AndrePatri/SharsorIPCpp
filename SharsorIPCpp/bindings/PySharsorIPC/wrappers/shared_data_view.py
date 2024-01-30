@@ -23,6 +23,7 @@ class SharedDataView:
             verbose: bool = False, 
             vlevel: VLevel = VLevel.V0,
             dtype: sharsor_dtype = sharsor_dtype.Float,
+            with_gpu_mirror: bool = True,
             fill_value = None,
             safe = True,
             force_reconnection = False):
@@ -40,6 +41,9 @@ class SharedDataView:
         self.is_server = is_server 
 
         self.shared_mem = None
+
+        self._with_gpu_mirror = with_gpu_mirror
+        self._gpu_mirror = None 
 
         self.dtype = dtype
 
@@ -117,6 +121,27 @@ class SharedDataView:
         # Check if data1 fits within the bounds of data2
         return end_row_index <= data2.shape[0] and end_col_index <= data2.shape[1]
 
+    def _init_gpu_mirror(self):
+        
+        if self._with_gpu_mirror:
+
+            if torch.cuda.is_available():
+
+                # we copy torch view init. and dtype
+                # (of course the mirror has to be updated manually)
+
+                self._gpu_mirror = self.torch_view.to('cuda')
+
+            else:
+
+                exception = f"GPU mirror cannot be initialized! No cuda device detected"
+
+                Logger.log(self.__class__.__name__,
+                    "_init_gpu_mirror",
+                    exception,
+                    LogType.EXCEP,
+                    throw_when_excep = True)
+
     def get_n_clients(self):
 
         if self.is_server:
@@ -183,6 +208,8 @@ class SharedDataView:
                 self.synch_all(read = False, 
                         wait=True)
         
+        self._init_gpu_mirror() # does nothing if not _with_gpu_mirror
+
         self._is_running = True
                 
     def write(self, 
@@ -549,6 +576,39 @@ class SharedDataView:
 
         # fill in place with unique value
         self.torch_view.fill_(value)
+
+    def gpu_mirror_exists(self):
+
+        return self._gpu_mirror is not None
+    
+    def synch_mirror(self,
+                from_gpu: bool):
+        
+        if self._gpu_mirror is None:
+            
+            exception = f"Cannot be called since no GPU mirror is available!"
+
+            Logger.log(self.__class__.__name__,
+                "synch_mirror",
+                exception,
+                LogType.EXCEP,
+                throw_when_excep = True)
+
+        if from_gpu:
+
+            # synch cpu torch view from latest gpu mirror data 
+            
+            self.torch_view[:, :] = self._gpu_mirror.cpu()
+            
+
+        else:
+
+            # synch gpu torch data from torch view on cpu
+
+            self._gpu_mirror[:, :] = self.torch_view.to('cuda')
+
+        # torch.cuda.synchronize() # this way we ensure that after this the state on GPU
+        # is fully updated
 
     def close(self):
 
