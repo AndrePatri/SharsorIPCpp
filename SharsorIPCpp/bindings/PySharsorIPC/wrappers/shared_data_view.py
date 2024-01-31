@@ -23,7 +23,7 @@ class SharedDataView:
             verbose: bool = False, 
             vlevel: VLevel = VLevel.V0,
             dtype: sharsor_dtype = sharsor_dtype.Float,
-            with_gpu_mirror: bool = True,
+            with_gpu_mirror: bool = False,
             fill_value = None,
             safe = True,
             force_reconnection = False):
