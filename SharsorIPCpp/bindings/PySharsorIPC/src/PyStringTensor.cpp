@@ -48,6 +48,10 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
 
         .def("length", &StringTensor<StrServer>::getLength)
 
+        .def("getNamespace", &StringTensor<StrServer>::getNamespace)
+
+        .def("getBasename", &StringTensor<StrServer>::getBasename)
+
         .def("close", &StringTensor<StrServer>::close)
 
         .def("write_vec",

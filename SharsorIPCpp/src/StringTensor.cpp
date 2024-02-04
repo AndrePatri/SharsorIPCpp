@@ -226,6 +226,20 @@ namespace SharsorIPCpp {
     }
 
     template <typename ShMemType>
+    std::string StringTensor<ShMemType>::getNamespace() const {
+
+        return _sh_mem.getNamespace();
+
+    }
+
+    template <typename ShMemType>
+    std::string StringTensor<ShMemType>::getBasename() const {
+
+        return _sh_mem.getBasename();
+
+    }
+
+    template <typename ShMemType>
     void StringTensor<ShMemType>::close() {
 
         _sh_mem.close();

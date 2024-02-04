@@ -98,6 +98,9 @@ namespace SharsorIPCpp {
 
             int getLength();
 
+            std::string getNamespace() const;
+            std::string getBasename() const;
+            
             Tensor<int> get_raw_buffer(); // gets a COPY of the raw buffer
 
         private:
