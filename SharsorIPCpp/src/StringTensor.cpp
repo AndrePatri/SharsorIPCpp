@@ -233,6 +233,16 @@ namespace SharsorIPCpp {
     }
 
     template <typename ShMemType>
+    Tensor<int> StringTensor<ShMemType>::get_raw_buffer() {
+        
+        // returns a copy (user must not be allowed to modify
+        // the buffer in unintended ways)
+
+        return _buffer;
+
+    }
+
+    template <typename ShMemType>
     bool StringTensor<ShMemType>::_encode_vec(const std::vector<std::string>& vec, int col_index) {
 
         if (!_fits(vec, col_index)) {

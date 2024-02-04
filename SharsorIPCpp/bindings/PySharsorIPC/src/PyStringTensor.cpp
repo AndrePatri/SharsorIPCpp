@@ -97,6 +97,12 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
             
         }, py::arg("index") = 0)
 
+        .def("get_raw_buffer", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self) {
+            
+            return self.get_raw_buffer();
+
+        })
+
         ;
 
 }
@@ -168,6 +174,12 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
             return std::make_tuple(result_str, success);
 
         }, py::arg("index") = 0)
+
+        .def("get_raw_buffer", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self) {
+            
+            return self.get_raw_buffer();
+
+        })
 
         ;
 }

@@ -98,6 +98,8 @@ namespace SharsorIPCpp {
 
             int getLength();
 
+            Tensor<int> get_raw_buffer(); // gets a COPY of the raw buffer
+
         private:
 
             int _length = -1; // string tensor length
