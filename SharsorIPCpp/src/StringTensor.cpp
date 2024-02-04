@@ -27,12 +27,14 @@ namespace SharsorIPCpp {
     StrClient StringTensor<StrClient>::_initClient(std::string basename,
                                                    std::string name_space,
                                                    bool verbose,
-                                                   VLevel vlevel) {
+                                                   VLevel vlevel,
+                                                   bool safe) {
 
         return StrClient(basename,
                   name_space,
                   verbose,
-                  vlevel);
+                  vlevel,
+                  safe);
 
     }
 
@@ -42,14 +44,16 @@ namespace SharsorIPCpp {
                                                    std::string name_space,
                                                    bool verbose,
                                                    VLevel vlevel,
-                                                   bool force_reconnection) {
+                                                   bool force_reconnection,
+                                                   bool safe) {
 
         return StrServer(_n_rows, length,
                         basename,
                         name_space,
                         verbose,
                         vlevel,
-                        force_reconnection);
+                        force_reconnection,
+                        safe);
 
     }
 
@@ -58,9 +62,11 @@ namespace SharsorIPCpp {
     StringTensor<StrClient>::StringTensor(std::string basename,
                                            std::string name_space,
                                            bool verbose,
-                                           VLevel vlevel)
+                                           VLevel vlevel,
+                                           bool safe)
     : _sh_mem(_initClient(basename, name_space,
-                         verbose, vlevel)) {
+                         verbose, vlevel,
+                         safe)) {
 
 
     }
@@ -72,11 +78,13 @@ namespace SharsorIPCpp {
                                            std::string name_space,
                                            bool verbose,
                                            VLevel vlevel,
-                                           bool force_reconnection)
+                                           bool force_reconnection,
+                                           bool safe)
     : _sh_mem(_initServer(length,
                          basename, name_space,
                          verbose, vlevel,
-                         force_reconnection)),
+                         force_reconnection,
+                         safe)),
       _length(length),
       _buffer(Tensor<int>(_n_rows, length)), // we can initialize buffer
       _is_server(true){ 

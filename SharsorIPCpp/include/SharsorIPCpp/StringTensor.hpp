@@ -61,14 +61,16 @@ namespace SharsorIPCpp {
             StringTensor(std::string basename = "MySharedMemory",
                          std::string name_space = "",
                          bool verbose = false,
-                         VLevel vlevel = VLevel::V0); // used when client
+                         VLevel vlevel = VLevel::V0,
+                         bool safe = true); // used when client
 
             StringTensor(int lenght,
                          std::string basename = "MySharedMemory",
                          std::string name_space = "",
                          bool verbose = false,
                          VLevel vlevel = VLevel::V0,
-                         bool force_reconnection = false); // used when server
+                         bool force_reconnection = false,
+                         bool safe = false); // used when server
 
             ~StringTensor();
 
@@ -100,7 +102,7 @@ namespace SharsorIPCpp {
 
             std::string getNamespace() const;
             std::string getBasename() const;
-            
+
             Tensor<int> get_raw_buffer(); // gets a COPY of the raw buffer
 
         private:
@@ -134,12 +136,14 @@ namespace SharsorIPCpp {
                                   std::string name_space,
                                   bool verbose,
                                   VLevel vlevel,
-                                  bool force_reconnection);
+                                  bool force_reconnection,
+                                  bool safe);
 
             ShMemType _initClient(std::string basename,
                                   std::string name_space,
                                   bool verbose,
-                                  VLevel vlevel);
+                                  VLevel vlevel,
+                                  bool safe);
 
             bool _fits(const std::vector<std::string>& vec,
                        int index);

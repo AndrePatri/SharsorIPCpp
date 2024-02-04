@@ -34,13 +34,14 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
 
     py::class_<StringTensor<StrServer>>(m, pyclass_name.c_str())
 
-        .def(py::init<int, std::string, std::string, bool, VLevel, bool>(),
+        .def(py::init<int, std::string, std::string, bool, VLevel, bool, bool>(),
              py::arg("length"),
              py::arg("basename") = "MySharedMemory",
              py::arg("name_space") = "",
              py::arg("verbose") = false,
              py::arg("vlevel") = VLevel::V0,
-             py::arg("force_reconnection") = false)
+             py::arg("force_reconnection") = false,
+             py::arg("safe") = true)
 
         .def("run", &StringTensor<StrServer>::run)
 
@@ -131,11 +132,12 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
 
     py::class_<StringTensor<StrClient>>(m, pyclass_name.c_str())
 
-        .def(py::init<std::string, std::string, bool, VLevel>(),
+        .def(py::init<std::string, std::string, bool, VLevel, bool>(),
              py::arg("basename") = "MySharedMemory",
              py::arg("name_space") = "",
              py::arg("verbose") = false,
-             py::arg("vlevel") = VLevel::V0)
+             py::arg("vlevel") = VLevel::V0,
+             py::arg("safe") = true)
 
         .def("run", &StringTensor<StrClient>::run)
 
