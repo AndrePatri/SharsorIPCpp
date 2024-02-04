@@ -144,6 +144,10 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
 
         .def("length", &StringTensor<StrClient>::getLength)
 
+        .def("getNamespace", &StringTensor<StrClient>::getNamespace)
+
+        .def("getBasename", &StringTensor<StrClient>::getBasename)
+
         .def("close", &StringTensor<StrClient>::close)
 
         .def("write_vec",
