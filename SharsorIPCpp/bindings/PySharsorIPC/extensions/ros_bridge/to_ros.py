@@ -6,7 +6,7 @@ from typing import Union
 from SharsorIPCpp.PySharsor.extensions.ros_bridge.defs import NamingConventions
 
 from SharsorIPCpp.PySharsorIPC import Journal, VLevel, LogType
-from SharsorIPCpp.PySharsorIPC import toNumpyDType
+from SharsorIPCpp.PySharsorIPC import toNumpyDType, dtype
 
 class ToRos():
 
@@ -38,6 +38,14 @@ class ToRos():
         self._check_backend()
 
         self._node = node # only used when ros2
+
+        self._is_string_tensor = False
+        if isinstance(client, StringTensorClient):
+            self._is_string_tensor = True
+
+        self._strigtensor_length = None
+        self._stringtensor_data = None
+        self._stringtensor_raw_buffer = None
 
     def _check_client(self,
                 client: Union[Client, 
@@ -72,18 +80,49 @@ class ToRos():
                     wait: bool = True):
 
         if wait:
+            
+            if not self._is_string_tensor:
 
-            while not self._client.read(self._publisher.np_data[:, :], 0, 0):
-                
-                continue
+                while not self._client.read(self._publisher.np_data[:, :], 0, 0):
+                    
+                    continue
 
+            else:
+
+                while True:
+                    
+                    read = self._client.read_vec(self._stringtensor_data, 0)
+                    
+                    if not read:
+
+                        continue
+                    
+                    else:
+                        
+                        self._publisher.np_data[:, :] = self._client.get_raw_buffer()
+
+                        break
 
             return True
         
         else:
+            
+            if not self._is_string_tensor:
 
-            return self._client.read(self._publisher.np_data[:, :], 0, 0)
-    
+                return self._client.read(self._publisher.np_data[:, :], 0, 0)
+
+            else:
+                
+                read = self._client.read_vec(self._stringtensor_data, 0)
+                
+                if not read:
+
+                    return False
+                
+                else:
+
+                    self._publisher.np_data[:, :] = self._client.get_raw_buffer()
+            
     def _init_publisher(self):
 
         if self._ros_backend == "ros1":
@@ -101,12 +140,30 @@ class ToRos():
 
             from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros1_utils import Ros1Publisher
 
-            self._publisher = Ros1Publisher(n_rows = self._client.getNRows(), 
-                        n_cols = self._client.getNCols(),
-                        basename = self._client.getBasename(),
-                        namespace = self._client.getNamespace(),
-                        queue_size = self._queue_size,
-                        dtype = toNumpyDType(self._client.getScalarType()))
+            if not self._is_string_tensor:
+
+                self._publisher = Ros1Publisher(n_rows = self._client.getNRows(), 
+                            n_cols = self._client.getNCols(),
+                            basename = self._client.getBasename(),
+                            namespace = self._client.getNamespace(),
+                            queue_size = self._queue_size,
+                            dtype = toNumpyDType(self._client.getScalarType()))
+            
+            else:
+                
+                # we publish the encoded string tensor
+
+                self._strigtensor_length = self._client.length()
+                self._stringtensor_data = [""] * self._strigtensor_length
+
+                self._stringtensor_raw_buffer = self._client.get_raw_buffer()
+
+                self._publisher = Ros1Publisher(n_rows = self._stringtensor_raw_buffer.shape[0], 
+                            n_cols = self._stringtensor_raw_buffer.shape[1],
+                            basename = self._client.getBasename(),
+                            namespace = self._client.getNamespace(),
+                            queue_size = self._queue_size,
+                            dtype = toNumpyDType(dtype.Int))
 
         elif self._ros_backend == "ros2":
             
@@ -123,14 +180,33 @@ class ToRos():
                             
             from SharsorIPCpp.PySharsor.extensions.ros_bridge.ros2_utils import Ros2Publisher
 
-            self._publisher = Ros2Publisher(node=self._node,
-                        n_rows = self._client.getNRows(), 
-                        n_cols = self._client.getNCols(),
-                        basename = self._client.getBasename(),
-                        namespace = self._client.getNamespace(),
-                        queue_size = self._queue_size,
-                        dtype = toNumpyDType(self._client.getScalarType()))
+            if not self._is_string_tensor:
 
+                self._publisher = Ros2Publisher(node=self._node,
+                            n_rows = self._client.getNRows(), 
+                            n_cols = self._client.getNCols(),
+                            basename = self._client.getBasename(),
+                            namespace = self._client.getNamespace(),
+                            queue_size = self._queue_size,
+                            dtype = toNumpyDType(self._client.getScalarType()))
+            else:
+                
+                # we publish the encoded string tensor
+                self._strigtensor_length = self._client.length()
+                self._stringtensor_data = [""] * self._strigtensor_length
+
+                string_tensor_raw_buffer = self._client.get_raw_buffer()
+
+                string_tensor_raw_buffer.shape[0]
+
+                self._publisher = Ros2Publisher(node=self._node,
+                            n_rows = string_tensor_raw_buffer.shape[0], 
+                            n_cols = string_tensor_raw_buffer.shape[1],
+                            basename = self._client.getBasename(),
+                            namespace = self._client.getNamespace(),
+                            queue_size = self._queue_size,
+                            dtype = toNumpyDType(dtype.Int))
+                
         else:
             
             exception = f"backend {self._ros_backend} not supported. Please use either" + \
@@ -150,7 +226,7 @@ class ToRos():
                         
             # manually run client if not running
 
-            self._client.attach()
+            self._client.run()
         
         self._init_publisher()
     
