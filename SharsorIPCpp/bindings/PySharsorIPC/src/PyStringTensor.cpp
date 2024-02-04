@@ -19,6 +19,7 @@
 
 #include <Eigen/Dense>
 #include <pybind11/numpy.h>
+#include <pybind11/eigen.h>
 #include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Server.hpp>
 
@@ -103,7 +104,20 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
 
         .def("get_raw_buffer", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self) {
             
-            return self.get_raw_buffer();
+            SharsorIPCpp::Tensor<int> buffer = self.get_raw_buffer();
+
+            // Get the shape of the buffer tensor
+            auto shape = py::array_t<int>({buffer.rows(), buffer.cols()});
+
+            // initialize a pybind array of the right shape
+            py::array_t<int> buffer_copy(shape);
+
+            auto result_ptr = buffer_copy.mutable_data();
+
+            // manually copy data from the buffer to the buffer copy
+            std::memcpy(result_ptr, buffer.data(), buffer.size() * sizeof(int));
+
+            return buffer_copy;
 
         })
 
@@ -181,7 +195,20 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
 
         .def("get_raw_buffer", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self) {
             
-            return self.get_raw_buffer();
+            SharsorIPCpp::Tensor<int> buffer = self.get_raw_buffer();
+
+            // Get the shape of the buffer tensor
+            auto shape = py::array_t<int>({buffer.rows(), buffer.cols()});
+
+            // initialize a pybind array of the right shape
+            py::array_t<int> buffer_copy(shape);
+
+            auto result_ptr = buffer_copy.mutable_data();
+
+            // manually copy data from the buffer to the buffer copy
+            std::memcpy(result_ptr, buffer.data(), buffer.size() * sizeof(int));
+
+            return buffer_copy;
 
         })
 
