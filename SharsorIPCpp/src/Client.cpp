@@ -487,21 +487,22 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::_acquireSemWait(const std::string& sem_path,
-                                     sem_t*& sem)
+                                    sem_t*& sem,
+                                    bool verbose,
+                                    float wait_dt)
     {
         _return_code = _return_code + ReturnCode::RESET;
 
-
         MemUtils::acquireSemWait(sem_path,
-                             sem,
-                             _n_acq_trials,
-                             _n_sem_acq_fail,
-                             _journal,
-                             _return_code,
-                             1.0, // [s]
-                             false,
-                             false, // no verbosity (this is called very frequently)
-                             _vlevel);
+                        sem,
+                        _n_acq_trials,
+                        _n_sem_acq_fail,
+                        _journal,
+                        _return_code,
+                        wait_dt, // [s]
+                        false,
+                        verbose,
+                        _vlevel);
 
         _return_code = _return_code + ReturnCode::RESET;
 
@@ -544,17 +545,18 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::_releaseSem(const std::string& sem_path,
-                                     sem_t*& sem)
+                                    sem_t*& sem,
+                                    bool verbose)
     {
         _return_code = _return_code + ReturnCode::RESET;
 
 
         MemUtils::releaseSem(sem_path,
-                             sem,
-                             _journal,
-                             _return_code,
-                             false, // no verbosity (this is called very frequently)
-                             _vlevel);
+                            sem,
+                            _journal,
+                            _return_code,
+                            verbose,
+                            _vlevel);
 
         _return_code = _return_code + ReturnCode::RESET;
 
@@ -575,7 +577,9 @@ namespace SharsorIPCpp {
         if (blocking) {
 
             _acquireSemWait(_mem_config.mem_path_data_sem,
-                            _data_sem); // this is blocking
+                            _data_sem,
+                            false,  // no verbosity
+                            _sem_acq_dt); // this is blocking
 
             return true;
 
@@ -595,7 +599,9 @@ namespace SharsorIPCpp {
     {
 
         _releaseSem(_mem_config.mem_path_data_sem,
-                    _data_sem);
+                    _data_sem,
+                    false // no verbosity (this is called very frequently)
+                    );
 
     }
 

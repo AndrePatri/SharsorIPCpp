@@ -136,6 +136,8 @@ namespace SharsorIPCpp{
             std::string _this_name = "SharsorIPCpp::Server";
             std::string _basename, _namespace;
 
+            float _sem_acq_dt = 0.0001;
+
             VLevel _vlevel = VLevel::V0; // minimal debug info
 
             SharedMemConfig _mem_config;
@@ -167,11 +169,15 @@ namespace SharsorIPCpp{
             void _initSems();
 
             void _acquireSemWait(const std::string& sem_path,
-                             sem_t*& sem);
+                            sem_t*& sem,
+                            bool verbose = false,
+                            float wait_dt = 0.0001);
+
             bool _acquireSemRt(const std::string& sem_path,
-                             sem_t*& sem);
+                        sem_t*& sem);
             void _releaseSem(const std::string& sem_path,
-                             sem_t*& sem);
+                        sem_t*& sem,
+                        bool verbose = false);
 
             bool _acquireData(bool blocking = false);
             void _releaseData();

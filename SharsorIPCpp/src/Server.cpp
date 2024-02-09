@@ -170,11 +170,14 @@ namespace SharsorIPCpp {
         if (!isRunning()) {
 
             _acquireSemWait(_mem_config.mem_path_server_sem,
-                        _srvr_sem); // blocking
-
+                        _srvr_sem,
+                        _verbose); // blocking. from this point on, 
+            // other servers trying to transition to running state will fail
+            // due to the semaphore being acquired
 
             _releaseSem(_mem_config.mem_path_data_sem,
-                        _data_sem);
+                        _data_sem,
+                        _verbose); // data can now be acquired by clients
 
             // set the running flag to true
             _running = true;
@@ -463,24 +466,24 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     void Server<Scalar, Layout>::_acquireSemWait(const std::string& sem_path,
-                                     sem_t*& sem)
+                                    sem_t*& sem,
+                                    bool verbose,
+                                    float wait_dt)
     {
         _return_code = _return_code + ReturnCode::RESET;
 
-
         MemUtils::acquireSemWait(sem_path,
-                             sem,
-                             _n_acq_trials,
-                             _n_sem_acq_fail,
-                             _journal,
-                             _return_code,
-                             1.0, // [s]
-                             _force_reconnection,
-                             false, // no verbosity (this is called very frequently)
-                             _vlevel);
+                        sem,
+                        _n_acq_trials,
+                        _n_sem_acq_fail,
+                        _journal,
+                        _return_code,
+                        wait_dt, // [s]
+                        _force_reconnection,
+                        verbose,
+                        _vlevel);
 
         _return_code = _return_code + ReturnCode::RESET;
-
 
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
@@ -520,17 +523,18 @@ namespace SharsorIPCpp {
 
     template <typename Scalar, int Layout>
     void Server<Scalar, Layout>::_releaseSem(const std::string& sem_path,
-                                     sem_t*& sem)
+                                    sem_t*& sem,
+                                    bool verbose)
     {
         _return_code = _return_code + ReturnCode::RESET;
 
 
         MemUtils::releaseSem(sem_path,
-                             sem,
-                             _journal,
-                             _return_code,
-                             false, // no verbosity (this is called very frequently)
-                             _vlevel);
+                        sem,
+                        _journal,
+                        _return_code,
+                        verbose, // no verbosity (this is called very frequently)
+                        _vlevel);
 
         _return_code = _return_code + ReturnCode::RESET;
 
@@ -551,7 +555,9 @@ namespace SharsorIPCpp {
         if (blocking) {
 
             _acquireSemWait(_mem_config.mem_path_data_sem,
-                            _data_sem); // this is blocking
+                            _data_sem,
+                            false, // no verbosity (this is called frequently)
+                            _sem_acq_dt); // this is blocking
 
             return true;
 
@@ -570,7 +576,9 @@ namespace SharsorIPCpp {
     {
 
         _releaseSem(_mem_config.mem_path_data_sem,
-                    _data_sem);
+                    _data_sem,
+                    false // no verbosity (called frequently)
+                    );
 
     }
 
