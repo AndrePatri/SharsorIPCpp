@@ -403,7 +403,8 @@ namespace SharsorIPCpp{
                     Journal& journal,
                     ReturnCode& return_code,
                     bool verbose = true,
-                    VLevel vlevel = Journal::VLevel::V0) {
+                    VLevel vlevel = Journal::VLevel::V0,
+                    bool unlink = false) {
 
             shm_fd = shm_open(mem_path.c_str(),
                                O_RDWR,
@@ -430,7 +431,8 @@ namespace SharsorIPCpp{
                          journal,
                          return_code,
                          verbose,
-                         vlevel);
+                         vlevel,
+                         unlink);
 
                 return_code = return_code + ReturnCode::MEMCLEAN;
 

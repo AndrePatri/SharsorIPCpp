@@ -436,6 +436,7 @@ namespace SharsorIPCpp {
 
             }
 
+            
             std::this_thread::sleep_for(std::chrono::milliseconds(1)); // no busy wait
 
             _msg_counter++;

@@ -117,7 +117,8 @@ namespace SharsorIPCpp {
                             _journal,
                             _return_code,
                             _verbose,
-                            _vlevel); // checks if memory was already allocated
+                            _vlevel,
+                            _unlink_data); // checks if memory was already allocated
         // if yes, cleans it up
 
         _return_code = _return_code + ReturnCode::RESET;

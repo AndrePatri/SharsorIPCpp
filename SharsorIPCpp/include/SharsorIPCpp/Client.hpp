@@ -101,7 +101,7 @@ namespace SharsorIPCpp{
         protected:
 
             bool _unlink_data = false; // will never unlink data
-            // when cleaning shared memory
+            // when cleaning shared memory (this is up to the server)
 
             bool _verbose = false;
 
