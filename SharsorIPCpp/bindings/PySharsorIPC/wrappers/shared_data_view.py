@@ -180,9 +180,9 @@ class SharedDataView:
         # we create views as big as the underlying shared memory
         # in case only a portion of it is needed, this is not optimal
         # memory-wise. However, this way we gain in simplicity
-
+                
         if self.fill_value is not None:
-            
+
             self.numpy_view = np.full((self.n_rows, self.n_cols),
                             self.fill_value,
                             dtype=toNumpyDType(self.shared_mem.getScalarType()),
@@ -455,8 +455,8 @@ class SharedDataView:
                 success = self.shared_mem.read(self.numpy_view[row_index:row_index + 1, 
                     col_index:col_index + 1], row_index, col_index)
                 
-                return self.numpy_view[row_index:row_index + 1, 
-                    col_index:col_index + 1], success
+                return self.numpy_view[row_index, 
+                    col_index].item(), success
             
             else:
 
@@ -580,6 +580,21 @@ class SharedDataView:
     def gpu_mirror_exists(self):
 
         return self._gpu_mirror is not None
+    
+    def get_torch_view(self, 
+                gpu: bool = False):
+        
+        if not gpu:
+
+            return self.torch_view
+        
+        else:
+
+            return self._gpu_mirror
+    
+    def get_numpy_view(self):
+
+        return self.numpy_view
     
     def synch_mirror(self,
                 from_gpu: bool):
