@@ -31,7 +31,8 @@ namespace SharsorIPCpp{
                         const std::string& name_space = "")
             : _name(name),
               _namespace(name_space) {
-
+            
+            // original shared mem
             mem_path = "/" + _namespace + _name;
 
             mem_path_nrows = "/" + _namespace + _name + "_" + MemDef::sharedTensorNRowsName();
@@ -49,6 +50,12 @@ namespace SharsorIPCpp{
             mem_path_server_sem = "/" + _namespace + _name + "_" + MemDef::SrvrSemName();
 
             mem_path_data_sem = "/" + _namespace + _name + "_" + MemDef::DataSemName();
+            
+            // conditon variable wrapper
+
+            mem_path_cond_var = "/" + _namespace + _name + "_" + MemDef::DataSemName();
+
+            mem_path_cond_var_mutex = "/" + _namespace + _name + "_" + MemDef::DataSemName();
 
         }
 
@@ -66,6 +73,10 @@ namespace SharsorIPCpp{
         // semaphores
         std::string mem_path_server_sem;
         std::string mem_path_data_sem;
+
+        // cond. var. wrappers
+        std::string mem_path_cond_var;
+        std::string mem_path_cond_var_mutex;
 
     private:
 

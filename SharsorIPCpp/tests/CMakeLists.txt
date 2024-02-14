@@ -18,6 +18,9 @@ create_and_link(consistency_checks_srvr consistency_checks_srvr.cpp)
 create_and_link(server_conn_test server_conn_test.cpp)
 create_and_link(jitter_test rt_jitter_test.cpp)
 
+create_and_link(cond_var_rec test_condition_var_receiver.cpp)
+create_and_link(cond_var_send test_condition_var_sender.cpp)
+
 # Setting aux. variables
 set(CONSISTENCY_CHECKS_CLIENT "consistency_checks_clnt")
 set(CONSISTENCY_CHECKS_SERVER "consistency_checks_srvr")
