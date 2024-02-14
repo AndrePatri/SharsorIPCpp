@@ -625,6 +625,21 @@ class SharedDataView:
         # torch.cuda.synchronize() # this way we ensure that after this the state on GPU
         # is fully updated
 
+    def data_sem_acquire(self,
+                    timeout: float = None):
+
+        if timeout is None:
+
+            self.shared_mem.dataSemAcquire()
+
+        else:
+
+            self.shared_mem.dataSemAcquireDt(timeout)
+
+    def data_sem_release(self):
+
+        self.shared_mem.dataSemRelease()
+        
     def close(self):
 
         if self.shared_mem is not None:

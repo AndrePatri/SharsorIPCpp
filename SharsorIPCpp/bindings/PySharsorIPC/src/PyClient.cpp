@@ -327,6 +327,37 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
 
     });
 
+    cls.def("dataSemAcquire", [](PySharsorIPC::ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& client) {
+
+            return client.attr("dataSemAcquire")();
+
+        });
+
+    });
+
+    cls.def("dataSemAcquireDt", [](PySharsorIPC::ClientWrapper& wrapper,
+                                    float timeout) {
+
+        return wrapper.execute([&](pybind11::object& client) {
+
+            return client.attr("dataSemAcquireDt")(timeout);
+
+        });
+
+    });
+
+    cls.def("dataSemRelease", [](PySharsorIPC::ClientWrapper& wrapper) {
+
+        return wrapper.execute([&](pybind11::object& client) {
+
+            return client.attr("dataSemRelease")();
+
+        });
+
+    });
+
     cls.def("write", [](PySharsorIPC::ClientWrapper& wrapper,
                              pybind11::array& np_array,
                              int row, int col) {
