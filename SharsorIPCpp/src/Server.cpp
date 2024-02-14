@@ -104,7 +104,7 @@ namespace SharsorIPCpp {
                             _n_sem_acq_fail,
                             _journal,
                             _return_code,
-                            0.05, // [s]
+                            1e-4, // [s]
                             _force_reconnection,
                             _verbose,
                             _vlevel); // acquire shared data semaphore
@@ -462,6 +462,18 @@ namespace SharsorIPCpp {
 
         return false;
 
+    }
+
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::dataSemAcquire(float timeout = 1e-3) 
+    {
+
+    }
+
+    template <typename Scalar, int Layout>
+    void Server<Scalar, Layout>::dataSemRelease() 
+    {
+        
     }
 
     template <typename Scalar, int Layout>

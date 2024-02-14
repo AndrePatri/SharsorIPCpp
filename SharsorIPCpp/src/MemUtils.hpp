@@ -460,7 +460,37 @@ namespace SharsorIPCpp{
 
         }
 
-        inline int semWait(sem_t* sem,
+        inline int semBlockingWait(sem_t* sem,
+                        ReturnCode& return_code) {
+            
+            int result = sem_wait(sem);
+
+            if (result == 0) {
+
+                // Successfully acquired the semaphore.
+
+                return_code = return_code + ReturnCode::SEMACQ;
+
+                return 0;
+
+            } else { 
+                
+                if (errno == EINTR) {
+
+                    return_code = return_code + ReturnCode::SEMACQSIGINT;
+
+                } else {
+
+                    return_code = return_code + ReturnCode::UNKNOWN;
+
+                }
+
+                return -1;
+            }
+
+        }
+
+        inline int semTimedWait(sem_t* sem,
                         double timeout_seconds,
                         ReturnCode& return_code) {
 
@@ -470,41 +500,39 @@ namespace SharsorIPCpp{
 
             timeout.tv_sec += timeout_seconds;
 
-            while (true) {
+            int result = sem_timedwait(sem,
+                                &timeout);
 
-                int result = sem_timedwait(sem,
-                                    &timeout);
+            if (result == 0) {
 
-                if (result == 0) {
+                // Successfully acquired the semaphore.
 
-                    // Successfully acquired the semaphore.
+                return_code = return_code + ReturnCode::SEMACQ;
 
-                    return_code = return_code + ReturnCode::SEMACQ;
+                return 0;
 
-                    return 0;
-
-                } else if (result == -1 && errno == ETIMEDOUT) {
-
+            } else { 
+                
+                if (errno == ETIMEDOUT) {
+                    
                     return_code = return_code + ReturnCode::SEMACQTIMEOUT;
 
-                    // Timeout occurred.
+                } else if (errno == EINTR) {
 
-                    return -1;
+                    return_code = return_code + ReturnCode::SEMACQSIGINT;
 
-                } else if (result == -1 && errno != EINTR) {
+                } else {
 
-                    // Other error occurred (excluding interrupt).
-
-                    return_code = return_code + ReturnCode::OTHER;
-
-                    return errno;
+                    return_code = return_code + ReturnCode::UNKNOWN;
 
                 }
 
+                return -1;
             }
 
         }
 
+        inline int semWait
         inline void closeSem(const std::string& sem_path,
                          sem_t *&sem,
                          Journal& journal,
@@ -667,13 +695,58 @@ namespace SharsorIPCpp{
 
         }
 
+        inline void acquireSemBlocking(const std::string& sem_path,
+                        sem_t*& sem,
+                        Journal& journal,
+                        ReturnCode& return_code,
+                        bool force_reconnection = false,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0) {
+            
+            if (verbose &&
+                    vlevel > VLevel::V2) {
+
+                std::string info = std::string("Acquiring semaphore at ") +
+                        sem_path + std::string("(blocking call)");
+
+                journal.log(__FUNCTION__,
+                        info,
+                        LogType::INFO);
+
+            }
+
+            return_code = return_code + ReturnCode::SEMACQRETRY;
+
+            if (semBlockingWait(sem) == -1) {
+                
+                if (verbose &&
+                        vlevel > VLevel::V0) {
+
+                    std::string warn = std::string("Semaphore acquisition at ") +
+                            sem_path +
+                            std::string("failed.");
+
+                    journal.log(__FUNCTION__,
+                                 warn,
+                                 LogType::WARN);
+                    
+                }
+
+                return_code = return_code + ReturnCode::SEMACQFAIL;
+
+            }
+
+            return_code = return_code + ReturnCode::SEMACQ;
+
+        }
+
         inline void acquireSemWait(const std::string& sem_path,
                         sem_t*& sem,
                         int n_trials,
                         int& fail_counter,
                         Journal& journal,
                         ReturnCode& return_code,
-                        float wait_for = 0.2, // [s]
+                        float wait_for = 1e-4, // [s]
                         bool force_reconnection = false,
                         bool verbose = true,
                         VLevel vlevel = Journal::VLevel::V0) {
@@ -692,7 +765,7 @@ namespace SharsorIPCpp{
             }
 
             // Acquire the semaphore
-            if (semWait(sem, wait_for,
+            if (semTimedWait(sem, wait_for,
                         return_code) == -1) {
 
                 fail_counter++;
@@ -765,8 +838,8 @@ namespace SharsorIPCpp{
                     std::string warn = std::string("Done.");
 
                     journal.log(__FUNCTION__,
-                         warn,
-                         LogType::WARN);
+                        warn,
+                        LogType::WARN);
 
                 }
 

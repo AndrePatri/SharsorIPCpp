@@ -409,6 +409,18 @@ namespace SharsorIPCpp {
     } 
 
     template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::dataSemAcquire(float timeout = 1e-3) 
+    {
+
+    }
+
+    template <typename Scalar, int Layout>
+    void Client<Scalar, Layout>::dataSemRelease() 
+    {
+        
+    }
+
+    template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::_waitForServer()
     {
         

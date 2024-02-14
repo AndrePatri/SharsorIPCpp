@@ -97,6 +97,9 @@ namespace SharsorIPCpp{
             std::string getNamespace() const;
             std::string getBasename() const;
 
+            void dataSemAcquire(float timeout = 1e-3); // acquire data sem (blocking)
+            void dataSemRelease(); // acquire data sem (blocking)
+            
         protected:
 
             bool _unlink_data = true; // will also unlink data

@@ -43,14 +43,15 @@ namespace SharsorIPCpp {
         SEMACQ = 1ULL << 16, // semaphore acquired
         SEMACQFAIL = 1ULL << 17, // semaphore acquisition failed
         SEMACQRETRY = 1ULL << 18, // retrying semaphore acquisition
-        SEMOPEN = 1ULL << 19, // semaphore opened
-        SEMOPENFAIL = 1ULL << 20, // failed to open semaphore
-        SEMREL = 1ULL << 21, // reselased semaphore
-        SEMRELFAIL = 1ULL << 22, // failed to release semaphore
-        SEMCLOSE = 1ULL << 23, // close semaphore
-        SEMUNLINK = 1ULL << 24, // unlinked semaphore
-        WRITEFAIL = 1ULL << 25, // failed to write to memory
-        READFAIL = 1ULL << 26, // failed to read from memory
+        SEMACQSIGINT = 1ULL << 19, // retrying semaphore acquisition
+        SEMOPEN = 1ULL << 20, // semaphore opened
+        SEMOPENFAIL = 1ULL << 21, // failed to open semaphore
+        SEMREL = 1ULL << 22, // reselased semaphore
+        SEMRELFAIL = 1ULL << 23, // failed to release semaphore
+        SEMCLOSE = 1ULL << 24, // close semaphore
+        SEMUNLINK = 1ULL << 25, // unlinked semaphore
+        WRITEFAIL = 1ULL << 26, // failed to write to memory
+        READFAIL = 1ULL << 27, // failed to read from memory
         // ... up to 1ULL << 62
         OTHER = 1ULL << 62,
         UNKNOWN = 1ULL << 63,
