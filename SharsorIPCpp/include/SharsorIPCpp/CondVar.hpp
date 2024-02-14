@@ -18,6 +18,8 @@
 #ifndef CONDVAR_HPP
 #define CONDVAR_HPP
 
+#include <chrono>
+#include <thread>
 #include <memory>
 
 #include <boost/interprocess/sync/named_condition.hpp>
@@ -36,22 +38,37 @@ namespace SharsorIPCpp{
         using VLevel = Journal::VLevel;
         using LogType = Journal::LogType;
         
+        using NamedCondition = boost::interprocess::named_condition;
+        using NamedMutex = boost::interprocess::named_mutex;
+        using ScopedLock = boost::interprocess::scoped_lock<NamedMutex>;
+
         public:
 
             typedef std::weak_ptr<ConditionVariable> WeakPtr;
             typedef std::shared_ptr<ConditionVariable> Ptr;
             typedef std::unique_ptr<ConditionVariable> UniquePtr;
 
-            ConditionVariable(std::string basename = "MySharedConditionVariable",
-                   std::string name_space = "",
-                   bool verbose = false,
-                   VLevel vlevel = VLevel::V0);
+            ConditionVariable(bool is_server,
+                    std::string basename,
+                    std::string name_space = "",
+                    bool verbose = false,
+                    VLevel vlevel = VLevel::V0);
 
             ~ConditionVariable();
 
+            void wait();
+
+            void notify_one();
+
+            void notify_all();
+
+            void close();
+            
         private:
 
             bool _verbose = false;
+
+            bool _is_server = false;
 
             std::string _basename, _namespace;
 
@@ -65,6 +82,9 @@ namespace SharsorIPCpp{
             // name
 
             SharedMemConfig _mem_config;
+
+            NamedCondition _named_cond;
+            NamedMutex _named_mutex;
 
     };
 

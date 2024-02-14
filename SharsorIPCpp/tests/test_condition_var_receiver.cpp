@@ -1,27 +1,30 @@
 #include <iostream>
-#include <chrono>
-#include <thread>
-#include <boost/interprocess/sync/named_condition.hpp>
-#include <boost/interprocess/sync/named_mutex.hpp>
+#include <SharsorIPCpp/CondVar.hpp>
+#include <string>
+
+using namespace SharsorIPCpp;
 
 int main() {
-    // Open named condition variable
-    boost::interprocess::named_condition condition(
-        boost::interprocess::open_or_create, "my_named_conditionu"
-    );
 
-    // Open named mutex
-    boost::interprocess::named_mutex mutex(
-        boost::interprocess::open_or_create, "my_named_mutexau"
-    );
+    bool is_server = true;
+    
+    ConditionVariable cond_variable_wait = ConditionVariable(false, 
+                            "ConditonVarTestWait", 
+                            "Pippo",
+                            true);
+
+    ConditionVariable cond_variable_trigger = ConditionVariable(false, 
+                        "ConditonVarTestTrigger", 
+                        "Pippo",
+                        true);
 
     while (true) {
-        std::cout << "Receiver: Waiting for signal" << std::endl;
-        {
-            boost::interprocess::scoped_lock<boost::interprocess::named_mutex> lock(mutex);
-            condition.wait(lock);
-        }
-        std::cout << "Receiver: Received signal, performing some work" << std::endl;
+
+        cond_variable_wait.wait();
+
+        std::cout << "Receiver: Received signal, triggering back" << std::endl;
+
+        cond_variable_trigger.notify_all();
 
         // Sleep for a short duration before the next iteration
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

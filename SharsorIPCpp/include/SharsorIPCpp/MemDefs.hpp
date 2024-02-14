@@ -79,10 +79,10 @@ namespace SharsorIPCpp{
                 return std::string("CondVar");
 
             }
-
+            
             static std::string CondVarMutexName() {
 
-                return std::string("CondVarMutex");
+                return std::string("CondVarMutexName");
 
             }
 

@@ -20,21 +20,68 @@
 namespace SharsorIPCpp {
 
     ConditionVariable::ConditionVariable(
+                   bool is_server,
                    std::string basename,
                    std::string name_space,
                    bool verbose,
                    VLevel vlevel)
         : _mem_config(basename, name_space),
         _basename(basename), _namespace(name_space),
+        _is_server(is_server),
         _verbose(verbose),
         _vlevel(vlevel),
-        _journal(Journal(_getThisName()))
+        _journal(Journal(_getThisName())),
+        _named_cond(boost::interprocess::open_or_create, 
+                _mem_config.mem_path_cond_var.c_str()), // Initialize named_mutex
+        _named_mutex(boost::interprocess::open_or_create,
+                _mem_config.mem_path_cond_var_mutex.c_str())
     {
 
     }
 
-    std::string ConditionVariable::_getThisName()
-    {
+    ConditionVariable::~ConditionVariable(){
+        
+        close();
+    }
+
+    void ConditionVariable::wait() {
+
+        ScopedLock named_lock(_named_mutex);
+
+        _named_cond.wait(named_lock);
+
+    }
+
+    void ConditionVariable::notify_one() {
+
+        _named_cond.notify_one();
+
+    }
+
+    void ConditionVariable::notify_all() {
+
+        _named_cond.notify_all();
+    }
+
+    void ConditionVariable::close() {
+
+        if (_is_server) {
+
+            std::string info = std::string("Cleaning up mutex and cond var");
+
+            _journal.log(__FUNCTION__,
+                info,
+                LogType::INFO);
+
+            // Destroy named mutex and named condition variable
+            NamedMutex::remove(_mem_config.mem_path_cond_var_mutex.c_str());
+            NamedCondition::remove(_mem_config.mem_path_cond_var.c_str());
+
+        }
+    
+    }
+
+    std::string ConditionVariable::_getThisName(){
 
         return _this_name;
     }
