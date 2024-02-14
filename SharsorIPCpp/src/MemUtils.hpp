@@ -532,7 +532,6 @@ namespace SharsorIPCpp{
 
         }
 
-        inline int semWait
         inline void closeSem(const std::string& sem_path,
                          sem_t *&sem,
                          Journal& journal,
@@ -717,7 +716,7 @@ namespace SharsorIPCpp{
 
             return_code = return_code + ReturnCode::SEMACQRETRY;
 
-            if (semBlockingWait(sem) == -1) {
+            if (semBlockingWait(sem,return_code) == -1) {
                 
                 if (verbose &&
                         vlevel > VLevel::V0) {

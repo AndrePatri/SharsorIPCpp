@@ -107,7 +107,23 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
         .def("getNCols", &SharsorIPCpp::Client<Scalar, Layout>::getNCols)
         
         .def("getNamespace", &SharsorIPCpp::Client<Scalar, Layout>::getNamespace)
-        .def("getBasename", &SharsorIPCpp::Client<Scalar, Layout>::getBasename);
+        .def("getBasename", &SharsorIPCpp::Client<Scalar, Layout>::getBasename)
+
+        .def("dataSemAcquire", [](SharsorIPCpp::Client<Scalar, Layout>& self
+                       ) {
+            
+            self.dataSemAcquire();
+
+        })
+
+        .def("dataSemAcquireDt", [](SharsorIPCpp::Client<Scalar, Layout>& self,
+                       float timeout) {
+                        
+            self.dataSemAcquire(timeout);
+
+        })
+
+        .def("dataSemRelease", &SharsorIPCpp::Client<Scalar, Layout>::dataSemRelease);
 }
 
 pybind11::object PySharsorIPC::PyClient::ClientFactory(std::string basename,

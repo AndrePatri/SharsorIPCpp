@@ -108,7 +108,23 @@ void PySharsorIPC::PyServer::bindServerT(pybind11::module &m, const char* name) 
         .def("getNCols", &SharsorIPCpp::Server<Scalar, Layout>::getNCols)
         
         .def("getNamespace", &SharsorIPCpp::Server<Scalar, Layout>::getNamespace)
-        .def("getBasename", &SharsorIPCpp::Server<Scalar, Layout>::getBasename);
+        .def("getBasename", &SharsorIPCpp::Server<Scalar, Layout>::getBasename)
+
+        .def("dataSemAcquire", [](SharsorIPCpp::Server<Scalar, Layout>& self
+                       ) {
+            
+            self.dataSemAcquire();
+
+        })
+
+        .def("dataSemAcquireDt", [](SharsorIPCpp::Server<Scalar, Layout>& self,
+                       float timeout) {
+                        
+            self.dataSemAcquire(timeout);
+
+        })
+
+        .def("dataSemRelease", &SharsorIPCpp::Server<Scalar, Layout>::dataSemRelease);
 }
 
 pybind11::object PySharsorIPC::PyServer::ServerFactory(int n_rows,

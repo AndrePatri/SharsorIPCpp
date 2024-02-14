@@ -98,7 +98,8 @@ namespace SharsorIPCpp{
             std::string getNamespace() const;
             std::string getBasename() const;
 
-            void dataSemAcquire(float timeout = 1e-3); // acquire data sem (blocking)
+            void dataSemAcquire(float timeout); // acquire data sem (with timeout)
+            void dataSemAcquire(); // acquire data sem (blocking)
             void dataSemRelease(); // acquire data sem (blocking)
 
         protected:
@@ -169,9 +170,15 @@ namespace SharsorIPCpp{
             void _acquireSemWait(const std::string& sem_path,
                             sem_t*& sem,
                             bool verbose = false,
-                            float wait_dt = 0.0001);
+                            float wait_dt = 1e-4);
+
             bool _acquireSemRt(const std::string& sem_path,
                              sem_t*& sem);
+            
+            void _acquireSemBlocking(const std::string& sem_path,
+                            sem_t*& sem,
+                            bool verbose = false);
+
             void _releaseSem(const std::string& sem_path,
                         sem_t*& sem,
                         bool verbose = false);
