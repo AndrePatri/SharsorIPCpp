@@ -46,7 +46,10 @@ namespace SharsorIPCpp {
 
     void ConditionVariable::wait() {
 
+        std::cout << "uuuuuu" << std::endl;
+
         ScopedLock named_lock(_named_mutex);
+        std::cout << "iiiiiick" << std::endl;
 
         _named_cond.wait(named_lock);
 
@@ -60,6 +63,7 @@ namespace SharsorIPCpp {
 
     void ConditionVariable::notify_all() {
 
+        ScopedLock named_lock(_named_mutex);
         _named_cond.notify_all();
     }
 

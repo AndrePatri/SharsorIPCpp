@@ -30,6 +30,9 @@ int main() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
+    cond_variable_wait.close();
+    cond_variable_trigger.close();
+
     return 0;
 }
 
