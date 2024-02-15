@@ -31,10 +31,6 @@ namespace PySharsorIPC{
 
     namespace PyConditionVariable {
 
-        using VLevel = SharsorIPCpp::Journal::VLevel;
-        using LogType = SharsorIPCpp::Journal::LogType;
-        using DType = SharsorIPCpp::DType;
-
         void bind_ConditionVariable(pybind11::module& m);
 
     }
