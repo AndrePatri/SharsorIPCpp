@@ -639,7 +639,21 @@ class SharedDataView:
     def data_sem_release(self):
 
         self.shared_mem.dataSemRelease()
+    
+    def to_zero(self):
+
+        if self._gpu_mirror is not None:
+
+            self._gpu_mirror.zero_() # reset gpu view
+            
+            self.synch_mirror(from_gpu=True) # write to cpu
         
+        else:
+
+            self.torch_view.zero_() # reset torch view on CPU
+
+        self.synch_all(read=False, wait=True) # writes to shared mem
+
     def close(self):
 
         if self.shared_mem is not None:
