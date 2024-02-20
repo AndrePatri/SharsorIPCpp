@@ -70,8 +70,8 @@ protected:
     using ScalarType = typename P::type;
     static const int layout = P::layout;
 
-    MemTest() : rows(1000),
-                   cols(1000),
+    MemTest() : rows(10000),
+                   cols(10000),
                    iterations(N_ITERATIONS),
                    server_ptr(new Server<ScalarType, layout>(rows, cols,
                                      "SharsorIPCpp",
@@ -130,10 +130,11 @@ TYPED_TEST_P(MemTest, TestRAMAllocation) {
 
     }
     
-    // Optionally, you can access historical memory usage values in the vector (memoryUsageHistory)
-    for (const auto& usage : memoryUsageHistory) {
-        std::cout << "Memory usage: " << usage << " GB" << std::endl;
-    }
+    double firstElement = memoryUsageHistory.front();
+    double lastElement = memoryUsageHistory.back();
+
+    std::cout << "Starting memory usage: " << firstElement << " GB" << std::endl;
+    std::cout << "Final memory usage: " << lastElement << " GB" << std::endl;
 
 }
 
