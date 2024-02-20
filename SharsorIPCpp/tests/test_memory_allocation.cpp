@@ -38,6 +38,17 @@ static Journal journal("MemTests");
 
 int N_ITERATIONS = 100;
 
+#include <sys/resource.h>
+float get_current_RAM() {
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+
+    // Memory usage in gigabytes
+    float memoryUsageGB = static_cast<float>(usage.ru_maxrss) / (1024 * 1024);
+
+    return memoryUsageGB;
+}
+
 // Define a structure to hold both the scalar type and the memory layout
 template<typename T, int Layout>
 struct TypeWithLayout {
@@ -103,9 +114,9 @@ TYPED_TEST_P(MemTest, TestRAMAllocation) {
     
     float gbytes = ((float)(this->rows * this->cols * 8)) / 1e9;
     
-    std::string msg = std::string("Writing ") + std::to_string(gbytes) + std::string(" GB.");
+    std::string gb = std::string("Writing ") + std::to_string(gbytes) + std::string(" GB.");
 
-    journal.log("MemTest", msg,
+    journal.log("MemTest", gb,
                 Journal::LogType::STAT);
 
     for (int i = 0; i < this->iterations; ++i) {
@@ -118,8 +129,14 @@ TYPED_TEST_P(MemTest, TestRAMAllocation) {
         this->server_ptr->write(myData);
 
     }
+    
+    this->server_ptr->close();
 
-    journal.log("MemTest", "\nrunning post-processing steps...\n",
+    float ram = get_current_RAM();
+    
+    std::string msg = std::string("Final RAM usage ") + std::to_string(ram) + std::string(" GB.");
+
+    journal.log("MemTest", msg,
                 Journal::LogType::STAT);
 
 }
@@ -130,6 +147,14 @@ INSTANTIATE_TYPED_TEST_SUITE_P(MemTests, MemTest, MyTypes);
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
+
+    float ram = get_current_RAM();
+    
+    std::string msg = std::string("Inital RAM usage ") + std::to_string(ram) + std::string(" GB.");
+
+    journal.log("MemTest", msg,
+                Journal::LogType::STAT);
+
     return RUN_ALL_TESTS();
 }
 
