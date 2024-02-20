@@ -36,17 +36,18 @@ static std::string name_space = "MemTests";
 
 static Journal journal("MemTests");
 
-int N_ITERATIONS = 100;
+int N_ITERATIONS = 10000;
 
 #include <sys/resource.h>
-float get_current_RAM() {
-    struct rusage usage;
+
+double getMemoryUsageGB() {
+    rusage usage;
     getrusage(RUSAGE_SELF, &usage);
 
-    // Memory usage in gigabytes
-    float memoryUsageGB = static_cast<float>(usage.ru_maxrss) / (1024 * 1024);
-
-    return memoryUsageGB;
+    // Memory usage is in kilobytes on Linux
+    double usedKB = static_cast<double>(usage.ru_maxrss);
+    double usedGB = usedKB / (1024 * 1024);  // Convert kilobytes to gigabytes
+    return usedGB;
 }
 
 // Define a structure to hold both the scalar type and the memory layout
@@ -69,8 +70,8 @@ protected:
     using ScalarType = typename P::type;
     static const int layout = P::layout;
 
-    MemTest() : rows(10000),
-                   cols(10000),
+    MemTest() : rows(1000),
+                   cols(1000),
                    iterations(N_ITERATIONS),
                    server_ptr(new Server<ScalarType, layout>(rows, cols,
                                      "SharsorIPCpp",
@@ -111,13 +112,10 @@ TYPED_TEST_P(MemTest, TestRAMAllocation) {
 
     journal.log("MemTest", "\nBenchmarking memory...\n",
                 Journal::LogType::STAT);
-    
-    float gbytes = ((float)(this->rows * this->cols * 8)) / 1e9;
-    
-    std::string gb = std::string("Writing ") + std::to_string(gbytes) + std::string(" GB.");
-
-    journal.log("MemTest", gb,
-                Journal::LogType::STAT);
+        
+    double ram = 0.0;
+    std::vector<double> memoryUsageHistory;
+    memoryUsageHistory.reserve(this->iterations);
 
     for (int i = 0; i < this->iterations; ++i) {
 
@@ -128,16 +126,14 @@ TYPED_TEST_P(MemTest, TestRAMAllocation) {
         auto startWrite = std::chrono::high_resolution_clock::now();
         this->server_ptr->write(myData);
 
+        memoryUsageHistory.push_back(getMemoryUsageGB());
+
     }
     
-    this->server_ptr->close();
-
-    float ram = get_current_RAM();
-    
-    std::string msg = std::string("Final RAM usage ") + std::to_string(ram) + std::string(" GB.");
-
-    journal.log("MemTest", msg,
-                Journal::LogType::STAT);
+    // Optionally, you can access historical memory usage values in the vector (memoryUsageHistory)
+    for (const auto& usage : memoryUsageHistory) {
+        std::cout << "Memory usage: " << usage << " GB" << std::endl;
+    }
 
 }
 
@@ -147,13 +143,6 @@ INSTANTIATE_TYPED_TEST_SUITE_P(MemTests, MemTest, MyTypes);
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
-
-    float ram = get_current_RAM();
-    
-    std::string msg = std::string("Inital RAM usage ") + std::to_string(ram) + std::string(" GB.");
-
-    journal.log("MemTest", msg,
-                Journal::LogType::STAT);
 
     return RUN_ALL_TESTS();
 }
