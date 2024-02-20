@@ -21,6 +21,8 @@ create_and_link(jitter_test rt_jitter_test.cpp)
 create_and_link(cond_var_rec test_condition_var_receiver.cpp)
 create_and_link(cond_var_send test_condition_var_sender.cpp)
 
+create_and_link(mem_alloc_test test_memory_allocation.cpp)
+
 # Setting aux. variables
 set(CONSISTENCY_CHECKS_CLIENT "consistency_checks_clnt")
 set(CONSISTENCY_CHECKS_SERVER "consistency_checks_srvr")
