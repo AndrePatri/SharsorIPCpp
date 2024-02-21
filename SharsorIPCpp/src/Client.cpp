@@ -262,7 +262,9 @@ namespace SharsorIPCpp {
                                         false,
                                         _vlevel);
 
-                _releaseData();
+                if (_safe) {
+                    _releaseData();
+                }
 
                 return success_write;
 
@@ -306,7 +308,9 @@ namespace SharsorIPCpp {
                                         false,
                                         _vlevel);
 
-                _releaseData();
+                if (_safe) {
+                    _releaseData();
+                }
 
                 return success_write;
 
@@ -348,7 +352,9 @@ namespace SharsorIPCpp {
                             false,
                             _vlevel);
 
-                _releaseData();
+                if (_safe) {
+                    _releaseData();
+                }
 
                 return success_read;
 
@@ -390,7 +396,9 @@ namespace SharsorIPCpp {
                                        false,
                                        _vlevel);
 
-                _releaseData();
+                if (_safe) {
+                    _releaseData();
+                }
 
                 return success_read;
 
