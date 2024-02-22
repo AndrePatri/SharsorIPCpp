@@ -64,11 +64,13 @@ class SharedTensorDict():
                 
                 self.names = [""] * self.shared_names.length()
 
-                jnt_names_read = self.shared_names.read_vec(self.names, 0)
+                while not self.shared_names.read_vec(self.names, 0):
 
-                if not jnt_names_read:
-
-                    raise Exception("Could not read joint names on shared memory!")
+                    Journal.log(self.__class__.__name__,
+                            "run",
+                            "Could not read names on shared memory. Retrying...",
+                            LogType.WARN,
+                            throw_when_excep = True)
 
         def close(self):
 

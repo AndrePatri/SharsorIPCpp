@@ -192,7 +192,7 @@ namespace SharsorIPCpp {
     {
 
         if (isRunning()) {
-
+            
             _running = false;
             _isrunning_view(0, 0) = 0; // for the clients
 
