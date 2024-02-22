@@ -123,6 +123,16 @@ namespace SharsorIPCpp {
                                        static_cast<unsigned long long>(rhs));
     }
 
+    inline ReturnCode operator-(ReturnCode lhs, ReturnCode rhs) {
+        if (rhs == ReturnCode::RESET || lhs == ReturnCode::RESET) {
+            // If either side has RESET, subtracting does nothing
+            return lhs;
+        }
+
+        // Use bitwise AND NOT operation to remove the specified code
+        return static_cast<ReturnCode>(static_cast<unsigned long long>(lhs) & ~static_cast<unsigned long long>(rhs));
+    }
+
     inline bool isin(ReturnCode subcode,
               ReturnCode code) {
 

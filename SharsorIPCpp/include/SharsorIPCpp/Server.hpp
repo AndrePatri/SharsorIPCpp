@@ -136,7 +136,7 @@ namespace SharsorIPCpp{
             std::string _this_name = "SharsorIPCpp::Server";
             std::string _basename, _namespace;
 
-            float _sem_acq_dt = 0.0001;
+            float _sem_acq_timeout = 0.0001;
 
             struct timespec _sem_timeout;
 

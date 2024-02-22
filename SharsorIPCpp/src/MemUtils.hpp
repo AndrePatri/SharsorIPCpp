@@ -71,15 +71,19 @@ namespace SharsorIPCpp{
         }
 
         inline void failWithCode(ReturnCode fail_code,
-                            Journal journal) {
+                            Journal journal,
+                            std::string calling_fun,
+                            std::string add_info = "") {
 
             std::string error = std::string("Failed with error code: ") +
                     toString(fail_code) + 
                     std::string(", which corresponds to ") +
-                    getDescriptions(fail_code);
+                    getDescriptions(fail_code) + "\n" + 
+                    std::string("Additional info: \n" + 
+                    add_info) + "\n";
         
             // we throw an exception
-            journal.log(__FUNCTION__,
+            journal.log(calling_fun,
                         error,
                         LogType::EXCEP,
                         true);
@@ -800,7 +804,7 @@ namespace SharsorIPCpp{
                              info,
                              LogType::INFO);
 
-            }
+            }   
 
             // Acquire the semaphore
             if (semTimedWait(sem, timeout,
@@ -811,7 +815,8 @@ namespace SharsorIPCpp{
 
                     std::string warn = std::string("Semaphore acquisition at ") +
                             sem_path + std::string(" timed out (") + 
-                            std::to_string(timeout.tv_sec) + std::string(" s).");;
+                            std::to_string(timeout.tv_sec) + std::string(" s, ") +
+                            std::to_string(timeout.tv_nsec) + std::string(" ns).");
 
                     journal.log(__FUNCTION__,
                                  warn,
@@ -820,6 +825,9 @@ namespace SharsorIPCpp{
                 }
 
                 if (force_reconnection) {
+                    
+                    return_code = return_code - ReturnCode::SEMACQFAIL; // removing acquisition fail
+                    return_code = return_code - ReturnCode::SEMACQTIMEOUT;
 
                     releaseSem(sem_path,
                             sem,
@@ -829,9 +837,7 @@ namespace SharsorIPCpp{
                             vlevel); // we try to release it, so that if a previous instance
                     // crashed, we now make the semaphore available for acquisition.
 
-                }
-
-                acquireSemTimeout(sem_path,
+                    acquireSemTimeout(sem_path,
                             sem,
                             journal,
                             return_code,
@@ -839,19 +845,21 @@ namespace SharsorIPCpp{
                             force_reconnection,
                             verbose,
                             vlevel); // recursive call. After releaseSems(), this cannot fail
+                }
 
-            }
+            } else {
 
-            if (verbose &&
+                if (verbose &&
                     vlevel > VLevel::V2) {
 
-                std::string info = std::string("Acquired semaphore at ") +
-                        sem_path;
+                    std::string info = std::string("Acquired semaphore at ") +
+                            sem_path;
 
-                journal.log(__FUNCTION__,
-                             info,
-                             LogType::INFO);
+                    journal.log(__FUNCTION__,
+                                info,
+                                LogType::INFO);
 
+                }
             }
 
         }

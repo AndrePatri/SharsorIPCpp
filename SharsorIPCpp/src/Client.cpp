@@ -67,7 +67,10 @@ namespace SharsorIPCpp {
         static_assert(MemUtils::IsValidDType<Scalar>::value,
                 "Invalid data type provided.");
 
-        _sem_timeout.tv_sec += _sem_acq_dt;
+        // sem acquisition timeout settings
+        long timeoutInNanoseconds = (long)(_sem_acq_timeout * 1e9);
+        _sem_timeout.tv_sec = 0;
+        _sem_timeout.tv_nsec = timeoutInNanoseconds % 1000000000;
 
         _terminated = false; // just in case
 
@@ -558,7 +561,8 @@ namespace SharsorIPCpp {
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal); // throws exception
+                                   _journal,
+                                   __FUNCTION__); // throws exception
 
         }
 
@@ -609,7 +613,8 @@ namespace SharsorIPCpp {
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
@@ -636,7 +641,8 @@ namespace SharsorIPCpp {
         if (isin(ReturnCode::SEMRELFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
@@ -807,7 +813,8 @@ namespace SharsorIPCpp {
         else {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
@@ -894,7 +901,8 @@ namespace SharsorIPCpp {
         else {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
         }
 
     }

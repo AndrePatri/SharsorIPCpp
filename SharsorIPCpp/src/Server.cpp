@@ -96,8 +96,11 @@ namespace SharsorIPCpp {
                 LogType::STAT);
 
         }
-
-        _sem_timeout.tv_sec += _sem_acq_dt;
+        
+        // sem acquisition timeout settings
+        long timeoutInNanoseconds = (long)(_sem_acq_timeout * 1e9);
+        _sem_timeout.tv_sec = 0;
+        _sem_timeout.tv_nsec = timeoutInNanoseconds % 1000000000;
 
         _initSems(); // creates necessary semaphores
 
@@ -506,7 +509,9 @@ namespace SharsorIPCpp {
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__,
+                                   sem_path);
 
         }
 
@@ -558,7 +563,8 @@ namespace SharsorIPCpp {
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
@@ -585,7 +591,8 @@ namespace SharsorIPCpp {
         if (isin(ReturnCode::SEMRELFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
@@ -811,7 +818,8 @@ namespace SharsorIPCpp {
         else {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
@@ -847,7 +855,8 @@ namespace SharsorIPCpp {
         else {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal,
+                                   __FUNCTION__);
 
         }
 
