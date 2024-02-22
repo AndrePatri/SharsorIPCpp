@@ -98,15 +98,9 @@ namespace SharsorIPCpp {
 
         _initSems(); // creates necessary semaphores
 
-        MemUtils::acquireSemTimeout(_mem_config.mem_path_data_sem,
-                            _data_sem,
-                            _journal,
-                            _return_code,
-                            _sem_timeout,
-                            _force_reconnection,
-                            _verbose,
-                            _vlevel); // acquire shared data semaphore
-        // Here to prevent access from any client (at this stage)
+        _acquireSemBlocking(_mem_config.mem_path_data_sem,
+                        _data_sem,
+                        _verbose);
 
         _return_code = _return_code + ReturnCode::RESET; // resets to None
 
@@ -169,7 +163,7 @@ namespace SharsorIPCpp {
 
         if (!isRunning()) {
 
-            _acquireSemTimeout(_mem_config.mem_path_server_sem,
+            _acquireSemBlocking(_mem_config.mem_path_server_sem,
                         _srvr_sem,
                         _verbose); // blocking. from this point on, 
             // other servers trying to transition to running state will fail
