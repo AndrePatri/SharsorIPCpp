@@ -474,7 +474,7 @@ namespace SharsorIPCpp {
     void Server<Scalar, Layout>::dataSemAcquire() 
     {
 
-        _acquireSemTimeout(_mem_config.mem_path_data_sem,
+        _acquireSemBlocking(_mem_config.mem_path_data_sem,
                     _data_sem,
                     _verbose);
 
