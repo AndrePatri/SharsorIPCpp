@@ -188,7 +188,8 @@ namespace SharsorIPCpp{
                         sem_t*& sem,
                         bool verbose = false);
 
-            bool _acquireData(bool blocking = false);
+            bool _acquireData(bool blocking = false,
+                                bool verbose = false);
             void _releaseData();
 
             void _closeSems();

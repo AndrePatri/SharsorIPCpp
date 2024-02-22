@@ -121,7 +121,7 @@ namespace SharsorIPCpp {
 
         // acquire shared data semaphore or waits for it
         // (at this point is actually guaranteed to be free anyway)
-        _acquireData(true); // blocking
+        _acquireData(true, true); // blocking
 
         _checkDType(); // checks data type consistency
 
@@ -149,7 +149,7 @@ namespace SharsorIPCpp {
     {
         if (_attached) {
 
-            _acquireData(); // blocking (probably not necessary, 
+            _acquireData(true, true); // blocking (probably not necessary, 
             // int operations should be atomic on 64 bit machines)
 
             _n_clients_view(0, 0) = _n_clients_view(0, 0) - 1; // increase clients counter
@@ -248,7 +248,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -294,7 +294,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -338,7 +338,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -382,7 +382,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -634,14 +634,15 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::_acquireData(bool blocking)
+    bool Client<Scalar, Layout>::_acquireData(bool blocking,
+                                bool verbose)
     {
 
         if (blocking) {
 
             _acquireSemWait(_mem_config.mem_path_data_sem,
                             _data_sem,
-                            false,  // no verbosity
+                            verbose, 
                             _sem_acq_dt); // this is blocking
 
             return true;
@@ -653,7 +654,6 @@ namespace SharsorIPCpp {
                         _data_sem);
 
         }
-
 
     }
 

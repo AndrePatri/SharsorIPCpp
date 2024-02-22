@@ -256,7 +256,7 @@ namespace SharsorIPCpp {
     template <typename Scalar, int Layout>
     int Server<Scalar, Layout>::getNClients() {
 
-        _acquireData();
+        _acquireData(true, false);
 
         _n_clients = _n_clients_view(0, 0);
 
@@ -305,7 +305,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -350,7 +350,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -394,7 +394,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -438,7 +438,7 @@ namespace SharsorIPCpp {
             if (_safe) {
 
                 // first acquire data semaphore
-                _data_acquired = _acquireData();
+                _data_acquired = _acquireData(false, false);
             }
 
             if(_data_acquired) {
@@ -612,14 +612,15 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    bool Server<Scalar, Layout>::_acquireData(bool blocking)
+    bool Server<Scalar, Layout>::_acquireData(bool blocking,
+                            bool verbose)
     {
 
         if (blocking) {
 
             _acquireSemWait(_mem_config.mem_path_data_sem,
                             _data_sem,
-                            false, // no verbosity (this is called frequently)
+                            verbose,
                             _sem_acq_dt); // this is blocking
 
             return true;
