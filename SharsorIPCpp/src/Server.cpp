@@ -75,7 +75,8 @@ namespace SharsorIPCpp {
                 _verbose &&
                 _vlevel > VLevel::V1)
         {
-            std::string warn = std::string("Server will be initialized with force_reconnection to true. ") +
+            std::string warn = std::string("Server at ") + _mem_config.mem_path + 
+                    std::string("will be initialized with force_reconnection to true. ") +
                     std::string("This can cause destructive behaviour if trying to run two servers concurrently on the ") +
                     std::string("same memory.");
 
