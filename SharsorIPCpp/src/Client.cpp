@@ -67,6 +67,8 @@ namespace SharsorIPCpp {
         static_assert(MemUtils::IsValidDType<Scalar>::value,
                 "Invalid data type provided.");
 
+        _sem_timeout.tv_sec += _sem_acq_dt;
+
         _terminated = false; // just in case
 
     }
@@ -174,7 +176,7 @@ namespace SharsorIPCpp {
             if (_verbose &&
             _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Detached.") +
+                std::string info = std::string("Detached from ") +
                         _mem_config.mem_path;
 
                 _journal.log(__FUNCTION__,
@@ -441,21 +443,10 @@ namespace SharsorIPCpp {
     } 
 
     template <typename Scalar, int Layout>
-    void Client<Scalar, Layout>::dataSemAcquire(float timeout) 
-    {
-
-        _acquireSemWait(_mem_config.mem_path_data_sem,
-                    _data_sem,
-                    _verbose,
-                    timeout);
-
-    }
-
-    template <typename Scalar, int Layout>
     void Client<Scalar, Layout>::dataSemAcquire() 
     {
-
-        _acquireSemBlocking(_mem_config.mem_path_data_sem,
+        
+        _acquireSemTimeout(_mem_config.mem_path_data_sem,
                     _data_sem,
                     _verbose);
 
@@ -549,48 +540,44 @@ namespace SharsorIPCpp {
     }
 
     template <typename Scalar, int Layout>
-    void Client<Scalar, Layout>::_acquireSemWait(const std::string& sem_path,
+    void Client<Scalar, Layout>::_acquireSemTimeout(const std::string& sem_path,
                                     sem_t*& sem,
-                                    bool verbose,
-                                    float wait_dt)
+                                    bool verbose)
     {
         _return_code = _return_code + ReturnCode::RESET;
 
-        MemUtils::acquireSemWait(sem_path,
+        MemUtils::acquireSemTimeout(sem_path,
                         sem,
-                        _n_acq_trials,
-                        _n_sem_acq_fail,
                         _journal,
                         _return_code,
-                        wait_dt, // [s]
+                        _sem_timeout,
                         false,
                         verbose,
                         _vlevel);
 
-        _return_code = _return_code + ReturnCode::RESET;
-
-
         if (isin(ReturnCode::SEMACQFAIL, _return_code)) {
 
             MemUtils::failWithCode(_return_code,
-                                   _journal);
+                                   _journal); // throws exception
 
         }
+
+        _return_code = _return_code + ReturnCode::RESET;
 
     }
 
     template <typename Scalar, int Layout>
-    bool Client<Scalar, Layout>::_acquireSemRt(const std::string& sem_path,
+    bool Client<Scalar, Layout>::_acquireSemOneShot(const std::string& sem_path,
                                      sem_t*& sem)
     {
         _return_code = _return_code + ReturnCode::RESET;
 
-        MemUtils::acquireSemTry(sem_path,
-                             sem,
-                             _journal,
-                             _return_code,
-                             _verbose,
-                             VLevel::V0);
+        MemUtils::acquireSemOneShot(sem_path,
+                        sem,
+                        _journal,
+                        _return_code,
+                        _verbose,
+                        VLevel::V0);
 
         if (isin(ReturnCode::SEMACQFAIL,
                  _return_code)) {
@@ -600,7 +587,6 @@ namespace SharsorIPCpp {
         }
 
         _return_code = _return_code + ReturnCode::RESET;
-
 
         return true;
 
@@ -617,7 +603,6 @@ namespace SharsorIPCpp {
                         sem,
                         _journal,
                         _return_code,
-                        false,
                         verbose,
                         _vlevel);
 
@@ -664,17 +649,16 @@ namespace SharsorIPCpp {
 
         if (blocking) {
 
-            _acquireSemWait(_mem_config.mem_path_data_sem,
+            _acquireSemBlocking(_mem_config.mem_path_data_sem,
                             _data_sem,
-                            verbose, 
-                            _sem_acq_dt); // this is blocking
+                            verbose); // this is blocking
 
             return true;
 
         }
         else {
 
-            return _acquireSemRt(_mem_config.mem_path_data_sem,
+            return _acquireSemOneShot(_mem_config.mem_path_data_sem,
                         _data_sem);
 
         }
@@ -919,7 +903,7 @@ namespace SharsorIPCpp {
     void Client<Scalar, Layout>::_initSems()
     {
 
-        MemUtils::initSem(_mem_config.mem_path_data_sem,
+        MemUtils::semInit(_mem_config.mem_path_data_sem,
                           _data_sem,
                           _journal,
                           _return_code,
@@ -932,7 +916,7 @@ namespace SharsorIPCpp {
     void Client<Scalar, Layout>::_closeSems()
     {
         // closes semaphores but doesn't unlink them
-        MemUtils::closeSem(_mem_config.mem_path_data_sem,
+        MemUtils::semClose(_mem_config.mem_path_data_sem,
                            _data_sem,
                            _journal,
                            _return_code,

@@ -116,13 +116,6 @@ void PySharsorIPC::PyClient::bindClientT(pybind11::module &m, const char* name) 
 
         })
 
-        .def("dataSemAcquireDt", [](SharsorIPCpp::Client<Scalar, Layout>& self,
-                       float timeout) {
-                        
-            self.dataSemAcquire(timeout);
-
-        })
-
         .def("dataSemRelease", &SharsorIPCpp::Client<Scalar, Layout>::dataSemRelease);
 }
 
@@ -332,17 +325,6 @@ void PySharsorIPC::PyClient::bind_ClientWrapper(pybind11::module& m) {
         return wrapper.execute([&](pybind11::object& client) {
 
             return client.attr("dataSemAcquire")();
-
-        });
-
-    });
-
-    cls.def("dataSemAcquireDt", [](PySharsorIPC::ClientWrapper& wrapper,
-                                    float timeout) {
-
-        return wrapper.execute([&](pybind11::object& client) {
-
-            return client.attr("dataSemAcquireDt")(timeout);
 
         });
 

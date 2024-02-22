@@ -42,6 +42,7 @@ namespace SharsorIPCpp {
         SEMACQTIMEOUT = 1ULL << 15, // semaphore acquisition timeout
         SEMACQ = 1ULL << 16, // semaphore acquired
         SEMACQFAIL = 1ULL << 17, // semaphore acquisition failed
+        SEMACQTRY = 1ULL << 18, // trying semaphore acquisition
         SEMACQRETRY = 1ULL << 18, // retrying semaphore acquisition
         SEMACQSIGINT = 1ULL << 19, // retrying semaphore acquisition
         SEMOPEN = 1ULL << 20, // semaphore opened
@@ -81,6 +82,7 @@ namespace SharsorIPCpp {
                 {ReturnCode::SEMACQTIMEOUT, "SEMACQTIMEOUT"},
                 {ReturnCode::SEMACQ, "SEMACQ"},
                 {ReturnCode::SEMACQFAIL, "SEMACQFAIL"},
+                {ReturnCode::SEMACQTRY, "SEMACQTRY"},
                 {ReturnCode::SEMACQRETRY, "SEMACQRETRY"},
                 {ReturnCode::SEMOPEN, "SEMOPEN"},
                 {ReturnCode::SEMOPENFAIL, "SEMOPENFAIL"},

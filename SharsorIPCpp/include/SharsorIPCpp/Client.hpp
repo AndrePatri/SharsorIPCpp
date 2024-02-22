@@ -98,7 +98,6 @@ namespace SharsorIPCpp{
             std::string getNamespace() const;
             std::string getBasename() const;
 
-            void dataSemAcquire(float timeout); // acquire data sem (with timeout)
             void dataSemAcquire(); // acquire data sem (blocking)
             void dataSemRelease(); // acquire data sem (blocking)
 
@@ -131,9 +130,6 @@ namespace SharsorIPCpp{
 
             static const int _mem_layout = Layout;
 
-            int _n_sem_acq_fail = 0;
-            int _n_acq_trials = 100;
-
             int _msg_counter = 0; // aux variable using for periodic logging
             int _msg_sample_interval = 4000; // msg printed every n iterations
 
@@ -142,6 +138,8 @@ namespace SharsorIPCpp{
             std::string _basename, _namespace;
 
             float _sem_acq_dt = 0.0001;
+
+            struct timespec _sem_timeout;
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 
@@ -167,12 +165,11 @@ namespace SharsorIPCpp{
                       _mem_layout_view;
             MMap<bool, Layout> _isrunning_view;
 
-            void _acquireSemWait(const std::string& sem_path,
+            void _acquireSemTimeout(const std::string& sem_path,
                             sem_t*& sem,
-                            bool verbose = false,
-                            float wait_dt = 1e-4);
+                            bool verbose = false);
 
-            bool _acquireSemRt(const std::string& sem_path,
+            bool _acquireSemOneShot(const std::string& sem_path,
                              sem_t*& sem);
             
             void _acquireSemBlocking(const std::string& sem_path,

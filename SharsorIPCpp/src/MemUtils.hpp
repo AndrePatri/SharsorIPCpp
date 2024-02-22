@@ -41,9 +41,10 @@ namespace SharsorIPCpp{
 
         using LogType = Journal::LogType;
 
-        // Define a type trait to check if a given type is a valid DType
         template <typename Scalar>
         struct IsValidDType {
+
+            // Type trait to check if a given type is a valid DType
             static constexpr bool value =
                 std::is_same<Scalar, typename DTypeToCppType<DType::Float>::type>::value ||
                 std::is_same<Scalar, typename DTypeToCppType<DType::Double>::type>::value ||
@@ -69,6 +70,24 @@ namespace SharsorIPCpp{
             }
         }
 
+        inline void failWithCode(ReturnCode fail_code,
+                            Journal journal) {
+
+            std::string error = std::string("Failed with error code: ") +
+                    toString(fail_code) + 
+                    std::string(", which corresponds to ") +
+                    getDescriptions(fail_code);
+        
+            // we throw an exception
+            journal.log(__FUNCTION__,
+                        error,
+                        LogType::EXCEP,
+                        true);
+
+        }
+
+        // shared mem data utilities
+
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
         void initMem(
@@ -81,8 +100,7 @@ namespace SharsorIPCpp{
             ReturnCode& return_code,
             bool verbose = true,
             VLevel vlevel = Journal::VLevel::V0
-            )
-        {
+            ){
 
             // Determine the size based on the Scalar type
             std::size_t data_size = sizeof(Scalar) * n_rows * n_cols;
@@ -185,6 +203,120 @@ namespace SharsorIPCpp{
             }
 
         }
+
+        inline void cleanUpMem(
+                        const std::string& mem_path,
+                        int& shm_fd,
+                        Journal& journal,
+                        ReturnCode& return_code,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0,
+                        bool unlink = false) {
+
+            // Closing the file descriptor (for this process only)
+            ::close(shm_fd);
+
+            return_code = return_code + ReturnCode::MEMFDCLOSED;
+
+            if (verbose
+                    && vlevel > VLevel::V2) {
+
+                std::string info = "Closed file descriptor for " +
+                                    mem_path;
+
+                journal.log(__FUNCTION__,
+                             info,
+                             LogType::INFO);
+            }
+
+            if (unlink) {
+
+                // Unlinking from shared memory data (system-wide)
+                // processed which have access to the memory can
+                // still access it, but no new process can access it
+
+                shm_unlink(mem_path.c_str());
+
+                if (verbose &&
+                        vlevel > VLevel::V2) {
+
+                    std::string info = "Unlinked memory at " +
+                                        mem_path;
+
+                    journal.log(__FUNCTION__,
+                                 info,
+                                 LogType::INFO);
+                }
+
+                return_code = return_code + ReturnCode::MEMUNLINK;
+            }
+
+        }
+
+        inline void checkMem(
+                    const std::string& mem_path,
+                    int& shm_fd,
+                    Journal& journal,
+                    ReturnCode& return_code,
+                    bool verbose = true,
+                    VLevel vlevel = Journal::VLevel::V0,
+                    bool unlink = false) {
+
+            shm_fd = shm_open(mem_path.c_str(),
+                               O_RDWR,
+                               0);
+
+            if (shm_fd != -1) {
+                // Shared memory already exists, so we need to clean it up
+
+                if (verbose &&
+                        vlevel > VLevel::V0) {
+
+                    std::string warn = "Shared memory at " + mem_path +
+                        " already exists. Clearing it up...";
+
+                    journal.log(__FUNCTION__,
+                                 warn,
+                                 LogType::WARN);
+                }
+
+                return_code = return_code + ReturnCode::MEMEXISTS;
+
+                cleanUpMem(mem_path,
+                         shm_fd,
+                         journal,
+                         return_code,
+                         verbose,
+                         vlevel,
+                         unlink);
+
+                return_code = return_code + ReturnCode::MEMCLEAN;
+
+                if (verbose &&
+                        vlevel > VLevel::V0) {
+
+                    std::string warn = "Cleanup Done.";
+
+                    journal.log(__FUNCTION__,
+                                 warn,
+                                 LogType::WARN);
+
+                }
+
+                if (shm_fd != -1) {
+                    // Close the file descriptor opened for checking existence
+
+                    ::close(shm_fd);
+
+                    return_code = return_code + ReturnCode::MEMFDCLOSED;
+
+                }
+
+            }
+
+        }
+
+        // read/write
 
         template <typename Scalar,
                   int Layout = MemLayoutDefault>
@@ -332,207 +464,57 @@ namespace SharsorIPCpp{
 
         }
 
-        inline void failWithCode(ReturnCode fail_code,
-                                 Journal journal) {
+        // semaphore stuff
 
-            std::string error = std::string("Failed with error code: ") +
-                    toString(fail_code) + 
-                    std::string(", which corresponds to ") +
-                    getDescriptions(fail_code);
-        
-            // we throw an exception
-            journal.log(__FUNCTION__,
-                        error,
-                        LogType::EXCEP,
-                        true);
-
-        }
-
-        inline void cleanUpMem(
-                        const std::string& mem_path,
-                        int& shm_fd,
-                        Journal& journal,
-                        ReturnCode& return_code,
-                        bool verbose = true,
-                        VLevel vlevel = Journal::VLevel::V0,
-                        bool unlink = false) {
-
-            // Closing the file descriptor (for this process only)
-            ::close(shm_fd);
-
-            return_code = return_code + ReturnCode::MEMFDCLOSED;
-
-            if (verbose
-                    && vlevel > VLevel::V2) {
-
-                std::string info = "Closed file descriptor for " +
-                                    mem_path;
-
-                journal.log(__FUNCTION__,
-                             info,
-                             LogType::INFO);
-            }
-
-            if (unlink) {
-
-                // Unlinking from shared memory data (system-wide)
-                // processed which have access to the memory can
-                // still access it, but no new process can access it
-
-                shm_unlink(mem_path.c_str());
-
-                if (verbose &&
-                        vlevel > VLevel::V2) {
-
-                    std::string info = "Unlinked memory at " +
-                                        mem_path;
-
-                    journal.log(__FUNCTION__,
-                                 info,
-                                 LogType::INFO);
-                }
-
-                return_code = return_code + ReturnCode::MEMUNLINK;
-            }
-
-        }
-
-        inline void checkMem(
-                    const std::string& mem_path,
-                    int& shm_fd,
+        inline void semInit(const std::string& sem_path,
+                    sem_t*& sem,
                     Journal& journal,
                     ReturnCode& return_code,
                     bool verbose = true,
-                    VLevel vlevel = Journal::VLevel::V0,
-                    bool unlink = false) {
+                    VLevel vlevel = Journal::VLevel::V0) {
 
-            shm_fd = shm_open(mem_path.c_str(),
-                               O_RDWR,
-                               0);
+            sem = sem_open(sem_path.c_str(),
+                                  O_CREAT, S_IRUSR | S_IWUSR,
+                                  1); // initial val to 1 -> binary semaphore
 
-            if (shm_fd != -1) {
-                // Shared memory already exists, so we need to clean it up
+            if (sem == SEM_FAILED) {
+                // Handle semaphore creation error
 
-                if (verbose &&
-                        vlevel > VLevel::V0) {
+                return_code = return_code + ReturnCode::SEMOPENFAIL;
 
-                    std::string warn = "Shared memory at " + mem_path +
-                        " already exists. Clearing it up...";
+                if (verbose) {
 
-                    journal.log(__FUNCTION__,
-                                 warn,
-                                 LogType::WARN);
-                }
-
-                return_code = return_code + ReturnCode::MEMEXISTS;
-
-                cleanUpMem(mem_path,
-                         shm_fd,
-                         journal,
-                         return_code,
-                         verbose,
-                         vlevel,
-                         unlink);
-
-                return_code = return_code + ReturnCode::MEMCLEAN;
-
-                if (verbose &&
-                        vlevel > VLevel::V0) {
-
-                    std::string warn = "Cleanup Done.";
+                    std::string error = std::string("Failed to open semaphore at ") +
+                            sem_path;
 
                     journal.log(__FUNCTION__,
-                                 warn,
-                                 LogType::WARN);
+                        error,
+                        LogType::WARN);
 
                 }
 
-                if (shm_fd != -1) {
-                    // Close the file descriptor opened for checking existence
+                return;
 
-                    ::close(shm_fd);
+            }
+            else {
 
-                    return_code = return_code + ReturnCode::MEMFDCLOSED;
+                return_code = return_code + ReturnCode::SEMOPEN;
 
+                if (verbose &&
+                    vlevel > VLevel::V2) {
+
+                    std::string info = std::string("Opened semaphore at ") +
+                            sem_path;
+
+                    journal.log(__FUNCTION__,
+                        info,
+                        LogType::INFO);
                 }
-
             }
 
         }
 
-        inline int semBlockingWait(sem_t* sem,
-                        ReturnCode& return_code) {
-            
-            int result = sem_wait(sem);
-
-            if (result == 0) {
-
-                // Successfully acquired the semaphore.
-
-                return_code = return_code + ReturnCode::SEMACQ;
-
-                return 0;
-
-            } else { 
-                
-                if (errno == EINTR) {
-
-                    return_code = return_code + ReturnCode::SEMACQSIGINT;
-
-                } else {
-
-                    return_code = return_code + ReturnCode::UNKNOWN;
-
-                }
-
-                return -1;
-            }
-
-        }
-
-        inline int semTimedWait(sem_t* sem,
-                        double timeout_seconds,
-                        ReturnCode& return_code) {
-
-            struct timespec timeout;
-
-            clock_gettime(CLOCK_REALTIME, &timeout);
-
-            timeout.tv_sec += timeout_seconds;
-
-            int result = sem_timedwait(sem,
-                                &timeout);
-
-            if (result == 0) {
-
-                // Successfully acquired the semaphore.
-
-                return_code = return_code + ReturnCode::SEMACQ;
-
-                return 0;
-
-            } else { 
-                
-                if (errno == ETIMEDOUT) {
-                    
-                    return_code = return_code + ReturnCode::SEMACQTIMEOUT;
-
-                } else if (errno == EINTR) {
-
-                    return_code = return_code + ReturnCode::SEMACQSIGINT;
-
-                } else {
-
-                    return_code = return_code + ReturnCode::UNKNOWN;
-
-                }
-
-                return -1;
-            }
-
-        }
-
-        inline void closeSem(const std::string& sem_path,
+        inline void semClose(const std::string& sem_path,
                          sem_t *&sem,
                          Journal& journal,
                          ReturnCode& return_code,
@@ -583,6 +565,9 @@ namespace SharsorIPCpp{
 
         }
 
+        // sem release
+
+        // free sem
         inline void releaseSem(const std::string& sem_path,
                          sem_t *&sem,
                          Journal& journal,
@@ -635,70 +620,131 @@ namespace SharsorIPCpp{
 
         }
 
-        inline void acquireSemTry(const std::string& sem_path,
-                         sem_t*& sem,
-                         Journal& journal,
-                         ReturnCode& return_code,
-                         bool verbose = true,
-                         VLevel vlevel = Journal::VLevel::V0) {
+        // semaphore acquisition
+        inline int semBlockingWait(sem_t* sem,
+                        ReturnCode& return_code) {
+            
+            // this is blocking unless some signal is received
 
-            // this is nonblocking --> suitable for RT systems
+            return_code = return_code + ReturnCode::SEMACQTRY;
 
-            if (verbose &&
-                    vlevel > VLevel::V2) {
+            int result = sem_wait(sem);
 
-                std::string info = std::string("Acquiring semaphore at ") +
-                        sem_path;
+            if (result == 0) {
 
-                journal.log(__FUNCTION__,
-                            info,
-                            LogType::INFO);
+                // Successfully acquired the semaphore.
 
-            }
+                return_code = return_code + ReturnCode::SEMACQ;
 
-            // try to acquire the semaphore
-            if (sem_trywait(sem) == -1) {
+                return 0;
 
-                // failed --> return
+            } else { 
+                
+                if (errno == EINTR) {
 
-                if (verbose) {
+                    return_code = return_code + ReturnCode::SEMACQSIGINT;
 
-                    std::string error = std::string("Failed to acquire semaphore at ") +
-                                    sem_path;
-                    journal.log(__FUNCTION__,
-                                error,
-                                LogType::WARN);
+                } else {
+
+                    return_code = return_code + ReturnCode::UNKNOWN;
 
                 }
 
                 return_code = return_code + ReturnCode::SEMACQFAIL;
 
-                return;
-
-            }
-
-            return_code = return_code + ReturnCode::SEMACQ;
-
-            if (verbose &&
-                    vlevel > VLevel::V2) {
-
-                std::string info = std::string("Acquired semaphore at ") +
-                        sem_path;
-
-                journal.log(__FUNCTION__,
-                            info,
-                            LogType::INFO);
-
-
+                return -1;
             }
 
         }
+
+        inline int semTimedWait(sem_t* sem,
+                        struct timespec timeout,
+                        ReturnCode& return_code) {
+            
+            // blocking wait with timeout
+
+            clock_gettime(CLOCK_REALTIME, &timeout);
+
+            return_code = return_code + ReturnCode::SEMACQTRY;
+
+            int result = sem_timedwait(sem,
+                                &timeout);
+
+            if (result == 0) {
+
+                // Successfully acquired the semaphore.
+
+                return_code = return_code + ReturnCode::SEMACQ;
+
+                return 0;
+
+            } else { 
+                
+                if (errno == ETIMEDOUT) {
+                    
+                    return_code = return_code + ReturnCode::SEMACQTIMEOUT;
+
+                } else if (errno == EINTR) {
+
+                    return_code = return_code + ReturnCode::SEMACQSIGINT;
+
+                } else {
+
+                    return_code = return_code + ReturnCode::UNKNOWN;
+
+                }
+
+                return_code = return_code + ReturnCode::SEMACQFAIL;
+
+                return -1;
+            }
+
+        }
+
+        inline int SemTryWait(sem_t*& sem,
+                         ReturnCode& return_code) {
+
+            // this is nonblocking --> one-shot acquisition 
+
+            // try to acquire the semaphore
+            int result = sem_trywait(sem);
+
+            return_code = return_code + ReturnCode::SEMACQTRY;
+
+            if (result == 0) {
+                
+                // Successfully acquired the semaphore.
+
+                return_code = return_code + ReturnCode::SEMACQ;
+
+                return 0;
+
+            } else {
+
+                if (errno == EINTR) {
+
+                    return_code = return_code + ReturnCode::SEMACQSIGINT;
+            
+                } else {
+
+                    return_code = return_code + ReturnCode::UNKNOWN;
+
+                }
+
+                return_code = return_code + ReturnCode::SEMACQFAIL;
+
+                return -1;
+            
+            }
+
+        }
+
+        // higher level semaphore acquisition wrappers
 
         inline void acquireSemBlocking(const std::string& sem_path,
                         sem_t*& sem,
                         Journal& journal,
                         ReturnCode& return_code,
-                        bool force_reconnection = false,
                         bool verbose = true,
                         VLevel vlevel = Journal::VLevel::V0) {
             
@@ -706,7 +752,7 @@ namespace SharsorIPCpp{
                     vlevel > VLevel::V2) {
 
                 std::string info = std::string("Acquiring semaphore at ") +
-                        sem_path + std::string("(blocking call)");
+                        sem_path;
 
                 journal.log(__FUNCTION__,
                         info,
@@ -714,45 +760,38 @@ namespace SharsorIPCpp{
 
             }
 
-            return_code = return_code + ReturnCode::SEMACQRETRY;
-
             if (semBlockingWait(sem,return_code) == -1) {
                 
                 if (verbose &&
                         vlevel > VLevel::V0) {
 
-                    std::string warn = std::string("Semaphore acquisition at ") +
+                    std::string exception = std::string("Semaphore acquisition at ") +
                             sem_path +
                             std::string("failed.");
 
                     journal.log(__FUNCTION__,
-                                 warn,
-                                 LogType::WARN);
+                                 exception,
+                                 LogType::EXCEP,
+                                 true // throw exception
+                                 );
                     
                 }
 
-                return_code = return_code + ReturnCode::SEMACQFAIL;
-
             }
-
-            return_code = return_code + ReturnCode::SEMACQ;
 
         }
 
-        inline void acquireSemWait(const std::string& sem_path,
+        inline void acquireSemTimeout(const std::string& sem_path,
                         sem_t*& sem,
-                        int n_trials,
-                        int& fail_counter,
                         Journal& journal,
                         ReturnCode& return_code,
-                        float wait_for = 1e-4, // [s]
+                        struct timespec timeout,
                         bool force_reconnection = false,
                         bool verbose = true,
                         VLevel vlevel = Journal::VLevel::V0) {
 
             if (verbose &&
-                    vlevel > VLevel::V2 &&
-                    fail_counter == 0) {
+                    vlevel > VLevel::V2) {
 
                 std::string info = std::string("Acquiring semaphore at ") +
                         sem_path;
@@ -764,41 +803,15 @@ namespace SharsorIPCpp{
             }
 
             // Acquire the semaphore
-            if (semTimedWait(sem, wait_for,
+            if (semTimedWait(sem, timeout,
                         return_code) == -1) {
-
-                fail_counter++;
-
-                return_code = return_code + ReturnCode::SEMACQRETRY;
-
-                if (fail_counter > n_trials)
-                { // we exceeded the number of allowed trials
-
-                    fail_counter = 0; // reset counter
-
-                    if (verbose) {
-
-                        std::string except = std::string("Failed to acquire semaphore at ") +
-                                sem_path;
-
-                        journal.log(__FUNCTION__,
-                                    except,
-                                    LogType::WARN);
-
-                    }
-
-                    return_code = return_code + ReturnCode::SEMACQFAIL;
-
-                    return;
-
-                }
-
+                
                 if (verbose &&
                         vlevel > VLevel::V0) {
 
                     std::string warn = std::string("Semaphore acquisition at ") +
-                            sem_path +
-                            std::string(" failed. Trying to acquire it again...");
+                            sem_path + std::string(" timed out (") + 
+                            std::to_string(timeout.tv_sec) + std::string(" s).");;
 
                     journal.log(__FUNCTION__,
                                  warn,
@@ -816,33 +829,16 @@ namespace SharsorIPCpp{
                             vlevel); // we try to release it, so that if a previous instance
                     // crashed, we now make the semaphore available for acquisition.
 
-                    return_code = return_code + ReturnCode::SEMREL;
                 }
 
-                acquireSemWait(sem_path,
+                acquireSemTimeout(sem_path,
                             sem,
-                            n_trials,
-                            fail_counter,
                             journal,
                             return_code,
-                            wait_for,
+                            timeout,
                             force_reconnection,
                             verbose,
-                            vlevel); // recursive call. After releaseSems(), this should now work
-
-                if (verbose &&
-                    fail_counter > 0 &&
-                    vlevel > VLevel::V0) {
-
-                    std::string warn = std::string("Done.");
-
-                    journal.log(__FUNCTION__,
-                        warn,
-                        LogType::WARN);
-
-                }
-
-                return_code = return_code + ReturnCode::SEMACQ;
+                            vlevel); // recursive call. After releaseSems(), this cannot fail
 
             }
 
@@ -856,60 +852,64 @@ namespace SharsorIPCpp{
                              info,
                              LogType::INFO);
 
-
             }
-
-            fail_counter = 0; // reset counter
 
         }
+        
+        inline void acquireSemOneShot(const std::string& sem_path,
+                        sem_t*& sem,
+                        Journal& journal,
+                        ReturnCode& return_code,
+                        bool verbose = true,
+                        VLevel vlevel = Journal::VLevel::V0) {
 
-        inline void initSem(const std::string& sem_path,
-                         sem_t*& sem,
-                         Journal& journal,
-                         ReturnCode& return_code,
-                         bool verbose = true,
-                         VLevel vlevel = Journal::VLevel::V0) {
-
-            sem = sem_open(sem_path.c_str(),
-                                  O_CREAT, S_IRUSR | S_IWUSR,
-                                  1);
-
-            if (sem == SEM_FAILED) {
-                // Handle semaphore creation error
-
-                return_code = return_code + ReturnCode::SEMOPENFAIL;
-
-                if (verbose) {
-
-                    std::string error = std::string("Failed to open semaphore at ") +
-                            sem_path;
-
-                    journal.log(__FUNCTION__,
-                        error,
-                        LogType::WARN);
-
-                }
-
-                return;
-
-            }
-            else {
-
-                return_code = return_code + ReturnCode::SEMOPEN;
-
-                if (verbose &&
+            if (verbose &&
                     vlevel > VLevel::V2) {
 
-                    std::string info = std::string("Opened semaphore at ") +
-                            sem_path;
+                std::string info = std::string("Acquiring semaphore at ") +
+                        sem_path;
 
-                    journal.log(__FUNCTION__,
-                        info,
-                        LogType::INFO);
-                }
+                journal.log(__FUNCTION__,
+                             info,
+                             LogType::INFO);
+
             }
 
+            // Acquire the semaphore
+            if (SemTryWait(sem,
+                        return_code) == -1) {
+
+                return_code = return_code + ReturnCode::SEMACQFAIL;
+                
+                if (verbose &&
+                        vlevel > VLevel::V0) {
+
+                    std::string warn = std::string("Semaphore acquisition at ") +
+                            sem_path + std::string("failed.");
+
+                    journal.log(__FUNCTION__,
+                                 warn,
+                                 LogType::WARN);
+
+                }
+
+            }
+
+            if (verbose &&
+                    vlevel > VLevel::V2) {
+
+                std::string info = std::string("Acquired semaphore at ") +
+                        sem_path;
+
+                journal.log(__FUNCTION__,
+                             info,
+                             LogType::INFO);
+
+            }
+            
         }
+
+
     }
 
 }
