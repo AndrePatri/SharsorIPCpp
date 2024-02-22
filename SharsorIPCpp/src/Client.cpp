@@ -148,6 +148,18 @@ namespace SharsorIPCpp {
     void Client<Scalar, Layout>::detach()
     {
         if (_attached) {
+            
+            if (_verbose &&
+            _vlevel > VLevel::V1) {
+
+                std::string info = std::string("Detaching from server at ") +
+                        _mem_config.mem_path;
+
+                _journal.log(__FUNCTION__,
+                    info,
+                    LogType::STAT);
+
+            }
 
             _acquireData(true, true); // blocking (probably not necessary, 
             // int operations should be atomic on 64 bit machines)
@@ -158,6 +170,18 @@ namespace SharsorIPCpp {
             _releaseData();
 
             _attached = false;
+
+            if (_verbose &&
+            _vlevel > VLevel::V1) {
+
+                std::string info = std::string("Detached.") +
+                        _mem_config.mem_path;
+
+                _journal.log(__FUNCTION__,
+                    info,
+                    LogType::STAT);
+
+            }
 
         }
     }
