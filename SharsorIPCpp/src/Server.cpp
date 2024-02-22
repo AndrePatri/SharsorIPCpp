@@ -76,7 +76,7 @@ namespace SharsorIPCpp {
                 _vlevel > VLevel::V1)
         {
             std::string warn = std::string("Server at ") + _mem_config.mem_path + 
-                    std::string("will be initialized with force_reconnection to true. ") +
+                    std::string(" will be initialized with force_reconnection to true. ") +
                     std::string("This can cause destructive behaviour if trying to run two servers concurrently on the ") +
                     std::string("same memory.");
 
@@ -96,6 +96,8 @@ namespace SharsorIPCpp {
                 LogType::STAT);
 
         }
+
+        _sem_timeout.tv_sec += _sem_acq_dt;
 
         _initSems(); // creates necessary semaphores
 
@@ -125,8 +127,6 @@ namespace SharsorIPCpp {
         _tensor_copy = Tensor<Scalar, Layout>::Zero(_n_rows,
                                             _n_cols); // used to hold
         // a copy of the shared tensor data
-
-        _sem_timeout.tv_sec += _sem_acq_dt;
 
         _terminated = false; // just in case
 
