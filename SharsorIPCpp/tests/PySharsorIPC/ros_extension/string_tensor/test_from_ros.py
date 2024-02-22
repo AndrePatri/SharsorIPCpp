@@ -83,7 +83,7 @@ while not bridge.run():
                 LogType.WARN,
                 throw_when_excep = True)
     
-    perf_timer.clock_sleep(int((0.1) * 1e+9)) 
+    perf_timer.thread_sleep(int((0.1) * 1e+9)) 
 
 msg = f"Will try to run the bridge at {1/update_dt} Hz."
 Journal.log("test_from_ros.py",
@@ -141,7 +141,7 @@ try:
                         LogType.WARN,
                         throw_when_excep = True)
 
-        perf_timer.clock_sleep(time_to_sleep_ns) 
+        perf_timer.thread_sleep(time_to_sleep_ns) 
 
         actual_loop_dt = time.perf_counter() - start_time
 

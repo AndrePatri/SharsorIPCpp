@@ -489,7 +489,7 @@ class RosSubscriber(ABC):
 
         while self._writing_data:
 
-            self._perf_timer.clock_sleep(self._wait_sleep_time_ns)
+            self._perf_timer.thread_sleep(self._wait_sleep_time_ns)
 
     def _data_callback(self,
                     msg):
