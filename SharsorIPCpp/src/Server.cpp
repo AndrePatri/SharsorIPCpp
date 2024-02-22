@@ -101,7 +101,7 @@ namespace SharsorIPCpp {
 
         _initSems(); // creates necessary semaphores
 
-        _acquireSemBlocking(_mem_config.mem_path_data_sem,
+        _acquireSemTimeout(_mem_config.mem_path_data_sem,
                         _data_sem,
                         _verbose); 
 
@@ -164,7 +164,7 @@ namespace SharsorIPCpp {
 
         if (!isRunning()) {
 
-            _acquireSemBlocking(_mem_config.mem_path_server_sem,
+            _acquireSemTimeout(_mem_config.mem_path_server_sem,
                         _srvr_sem,
                         _verbose); // blocking. from this point on, 
             // other servers trying to transition to running state will fail
