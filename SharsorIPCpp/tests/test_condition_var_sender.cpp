@@ -6,12 +6,12 @@ using namespace SharsorIPCpp;
 
 int main() {
     
-    ConditionVariable cond_variable_trigger = ConditionVariable(true, 
+    ConditionVariable cond_variable_send = ConditionVariable(true, 
                             "ConditonVarTestWait", 
                             "Pippo",
                             true);
 
-    ConditionVariable cond_variable_wait = ConditionVariable(true, 
+    ConditionVariable cond_variable_received = ConditionVariable(true, 
                         "ConditonVarTestTrigger", 
                         "Pippo",
                         true);

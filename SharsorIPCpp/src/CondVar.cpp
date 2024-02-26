@@ -44,13 +44,15 @@ namespace SharsorIPCpp {
         close();
     }
 
-    void ConditionVariable::wait() {
-
-        std::cout << "uuuuuu" << std::endl;
-
+    void ConditionVariable::lock() {
+        // acquire mutex
         ScopedLock named_lock(_named_mutex);
-        std::cout << "iiiiiick" << std::endl;
 
+    }
+
+    void ConditionVariable::wait(ScopedLock named_lock) {
+        
+        // acquire mutex
         _named_cond.wait(named_lock);
 
     }
@@ -63,7 +65,6 @@ namespace SharsorIPCpp {
 
     void ConditionVariable::notify_all() {
 
-        ScopedLock named_lock(_named_mutex);
         _named_cond.notify_all();
     }
 

@@ -56,8 +56,10 @@ namespace SharsorIPCpp{
 
             ~ConditionVariable();
 
-            void wait();
+            void lock();
 
+            void wait(ScopedLock named_lock);
+            
             void notify_one();
 
             void notify_all();
