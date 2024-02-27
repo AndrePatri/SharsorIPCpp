@@ -622,8 +622,8 @@ class SharedDataView:
 
             self._gpu_mirror[:, :] = self.torch_view.to('cuda')
 
-        # torch.cuda.synchronize() # this way we ensure that after this the state on GPU
-        # is fully updated
+        # torch.cuda.synchronize() # ensuring that all the streams on the GPU are completed \
+        # before the CPU continues execution
 
     def data_sem_acquire(self,
                     timeout: float = None):
