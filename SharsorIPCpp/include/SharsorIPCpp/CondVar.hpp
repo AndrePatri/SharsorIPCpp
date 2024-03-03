@@ -38,12 +38,12 @@ namespace SharsorIPCpp{
 
         using VLevel = Journal::VLevel;
         using LogType = Journal::LogType;
-        
-        using NamedCondition = boost::interprocess::named_condition;
-        using NamedMutex = boost::interprocess::named_mutex;
-        using ScopedLock = boost::interprocess::scoped_lock<NamedMutex>;
 
         public:
+
+            using NamedCondition = boost::interprocess::named_condition;
+            using NamedMutex = boost::interprocess::named_mutex;
+            using ScopedLock = boost::interprocess::scoped_lock<NamedMutex>;
 
             typedef std::weak_ptr<ConditionVariable> WeakPtr;
             typedef std::shared_ptr<ConditionVariable> Ptr;
@@ -102,6 +102,8 @@ namespace SharsorIPCpp{
             NamedMutex _named_mutex;
 
             boost::posix_time::ptime _utc_timeout;
+            
+            ScopedLock _lock;
             
 
     };

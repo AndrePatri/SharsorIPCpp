@@ -53,7 +53,8 @@ int main() {
 
     auto lock1 = cond_var1.lock();
 
-    cond_var1.wait_for(lock1, std::bind(check_data, std::ref(shared_var), std::ref(cond_var2)));
+    cond_var1.wait_for(lock1, 
+        std::bind(check_data, std::ref(shared_var), std::ref(cond_var2)));
         
     cond_var1.close();
     cond_var2.close();

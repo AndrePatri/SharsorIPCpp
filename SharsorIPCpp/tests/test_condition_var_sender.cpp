@@ -31,7 +31,7 @@ int main() {
             true);
     shared_var.run();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     
     Tensor<int> shared_data(1, 1);
     shared_data(0, 0) = 0;
