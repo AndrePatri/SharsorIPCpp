@@ -44,16 +44,49 @@ namespace SharsorIPCpp {
         close();
     }
 
-    void ConditionVariable::lock() {
+    ConditionVariable::ScopedLock ConditionVariable::lock() {
         // acquire mutex
         ScopedLock named_lock(_named_mutex);
 
+        return named_lock;
+
     }
 
-    void ConditionVariable::wait(ScopedLock named_lock) {
+    void ConditionVariable::wait(ScopedLock& named_lock) {
         
         // acquire mutex
         _named_cond.wait(named_lock);
+
+    }
+
+    void ConditionVariable::wait_for(ScopedLock& named_lock,
+                    std::function<bool()> pred) {
+        
+        // acquire mutex
+        _named_cond.wait(named_lock, pred);
+
+    }
+
+    void ConditionVariable::timedwait(ScopedLock& named_lock,
+                    unsigned int ms) {
+        
+        _utc_timeout = boost::posix_time::microsec_clock::universal_time() + 
+                boost::posix_time::millisec(ms);
+
+        // acquire mutex
+        _named_cond.timed_wait(named_lock, _utc_timeout);
+
+    }
+
+    void ConditionVariable::timedwait_for(ScopedLock& named_lock,
+                    unsigned int ms,
+                    std::function<bool()> pred) {
+        
+        _utc_timeout = boost::posix_time::microsec_clock::universal_time() + 
+                boost::posix_time::millisec(ms);
+
+        // acquire mutex
+        _named_cond.timed_wait(named_lock, _utc_timeout, pred);
 
     }
 
@@ -70,19 +103,24 @@ namespace SharsorIPCpp {
 
     void ConditionVariable::close() {
 
-        if (_is_server) {
+        if (_is_server && !_closed) {
 
-            std::string info = std::string("Cleaning up mutex and cond var");
+            std::string info = std::string("Cleaning up named mutex at ") + 
+                std::string(_mem_config.mem_path_cond_var_mutex) + 
+                std::string(" and condition variable at ") + 
+                std::string(_mem_config.mem_path_cond_var);
 
             _journal.log(__FUNCTION__,
                 info,
-                LogType::INFO);
+                LogType::STAT);
 
             // Destroy named mutex and named condition variable
             NamedMutex::remove(_mem_config.mem_path_cond_var_mutex.c_str());
             NamedCondition::remove(_mem_config.mem_path_cond_var.c_str());
 
         }
+
+        _closed = true;
     
     }
 

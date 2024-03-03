@@ -1,38 +1,65 @@
 #include <iostream>
 #include <SharsorIPCpp/CondVar.hpp>
 #include <string>
+#include <SharsorIPCpp/Client.hpp>
+#include <SharsorIPCpp/Journal.hpp>
 
 using namespace SharsorIPCpp;
+using LogType = Journal::LogType;
+using VLevel = Journal::VLevel;
+
+static Tensor<int> shared_data(1, 1);
+
+// Pass shared_var as a parameter to the check_data function
+bool check_data(Client<int>& shared_var,
+        ConditionVariable& read_done) {
+    // Move shared_var.read inside the check_data function
+    shared_var.read(shared_data, 0, 0);
+
+    std::cout << "Var changed. Got: " << shared_data << std::endl;
+
+    read_done.notify_all(); // notify if having read
+
+    return shared_data(0, 0) >= 13;
+}
 
 int main() {
 
-    bool is_server = true;
+    static Tensor<int> shared_data(1, 1);
+
+    std::string name_space = "RERERETTEYY";
     
-    ConditionVariable cond_variable_trigger = ConditionVariable(true, 
-                            "ConditonVarTestWait", 
-                            "Pippo",
+    ConditionVariable cond_var1 = ConditionVariable(false, 
+                            "ConVarRead", 
+                            name_space,
                             true);
 
-    ConditionVariable cond_variable_wait = ConditionVariable(true, 
-                        "ConditonVarTestTrigger", 
-                        "Pippo",
-                        true);
+    ConditionVariable cond_var2 = ConditionVariable(false, 
+                            "ConVarWrite", 
+                            name_space,
+                            true);
 
-    while (true) {
+    Client shared_var = Client<int>("VarToBeChecked", 
+            name_space,
+            true,
+            VLevel::V2,
+            true);
+    shared_var.attach();
 
-        cond_variable_trigger.wait();
+    Tensor<int> check(1, 1);
+    check(0, 0) = 13;
+    
+    shared_var.read(shared_data, 0, 0);
 
-        std::cout << "Receiver: Received signal, triggering back" << std::endl;
+    auto lock1 = cond_var1.lock();
 
-        cond_variable_wait.notify_all();
+    cond_var1.wait_for(lock1, std::bind(check_data, std::ref(shared_var), std::ref(cond_var2)));
+        
+    cond_var1.close();
+    cond_var2.close();
 
-        // Sleep for a short duration before the next iteration
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    shared_var.close();
 
-    cond_variable_wait.close();
-    cond_variable_trigger.close();
-    // Clean up (this part is unreachable in an infinite loop)
     return 0;
 }
 

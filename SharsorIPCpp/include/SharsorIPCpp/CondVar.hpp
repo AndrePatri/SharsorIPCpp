@@ -24,6 +24,7 @@
 
 #include <boost/interprocess/sync/named_condition.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 // public headers
 #include <SharsorIPCpp/SharedMemConfig.hpp>
@@ -56,10 +57,20 @@ namespace SharsorIPCpp{
 
             ~ConditionVariable();
 
-            void lock();
+            ScopedLock lock();
 
-            void wait(ScopedLock named_lock);
+            void wait(ScopedLock& named_lock);
+
+            void wait_for(ScopedLock& named_lock, 
+                    std::function<bool()> pred);
+
+            void timedwait(ScopedLock& named_lock,
+                    unsigned int ms);
             
+            void timedwait_for(ScopedLock& named_lock,
+                    unsigned int ms,
+                    std::function<bool()> pred);
+
             void notify_one();
 
             void notify_all();
@@ -71,6 +82,8 @@ namespace SharsorIPCpp{
             bool _verbose = false;
 
             bool _is_server = false;
+            
+            bool _closed = false;
 
             std::string _basename, _namespace;
 
@@ -87,6 +100,9 @@ namespace SharsorIPCpp{
 
             NamedCondition _named_cond;
             NamedMutex _named_mutex;
+
+            boost::posix_time::ptime _utc_timeout;
+            
 
     };
 
