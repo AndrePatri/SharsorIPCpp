@@ -166,7 +166,7 @@ namespace SharsorIPCpp {
     {
 
         if (!isRunning()) {
-
+            
             _acquireSemTimeout(_mem_config.mem_path_server_sem,
                         _srvr_sem,
                         _verbose); // blocking. from this point on, 

@@ -829,14 +829,24 @@ namespace SharsorIPCpp{
                     return_code = return_code - ReturnCode::SEMACQFAIL; // removing acquisition fail
                     return_code = return_code - ReturnCode::SEMACQTIMEOUT;
 
-                    releaseSem(sem_path,
-                            sem,
-                            journal,
-                            return_code,
-                            verbose,
-                            vlevel); // we try to release it, so that if a previous instance
-                    // crashed, we now make the semaphore available for acquisition.
+                    // delete semaphore
+                    semClose(sem_path,
+                        sem, 
+                        journal,
+                        return_code,
+                        verbose,
+                        vlevel,
+                        true 
+                    );
+                    // and recreate it
+                    semInit(sem_path, 
+                        sem, 
+                        journal, 
+                        return_code, 
+                        verbose,
+                        vlevel);
 
+                    // recursive call. This will now work
                     acquireSemTimeout(sem_path,
                             sem,
                             journal,
@@ -844,7 +854,8 @@ namespace SharsorIPCpp{
                             timeout,
                             force_reconnection,
                             verbose,
-                            vlevel); // recursive call. After releaseSems(), this cannot fail
+                            vlevel); 
+                    
                 }
 
             } else {
