@@ -64,10 +64,10 @@ namespace SharsorIPCpp{
             void wait_for(ScopedLock& named_lock, 
                     std::function<bool()> pred);
 
-            void timedwait(ScopedLock& named_lock,
+            bool timedwait(ScopedLock& named_lock,
                     unsigned int ms);
             
-            void timedwait_for(ScopedLock& named_lock,
+            bool timedwait_for(ScopedLock& named_lock,
                     unsigned int ms,
                     std::function<bool()> pred);
 

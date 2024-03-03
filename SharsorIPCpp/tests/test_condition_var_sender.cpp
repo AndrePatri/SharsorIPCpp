@@ -16,7 +16,7 @@ bool check_dones(Server<int>& shared_var,
     // Move shared_var.read inside the check_data function
     shared_var.read(dones_data, 0, 0);
 
-    if (dones_data(0, 0) >= 2) {
+    if (dones_data(0, 0) >= 1) {
 
         shared_var.dataSemAcquire();
 
@@ -35,7 +35,7 @@ bool check_dones(Server<int>& shared_var,
 
 int main() {
     
-    std::string name_space = "dfsrgthyjukyju";
+    std::string name_space = "gthyhgfdghbnvc";
 
     ConditionVariable cond_var1 = ConditionVariable(true, 
                             "ConVarRead", 
@@ -71,22 +71,30 @@ int main() {
 
     auto lock2 = cond_var2.lock();
 
-    for (int i = 0; i < 13; ++i) {
+    bool success = true;
+    for (int i = 0; i < 100000; ++i) {
 
-        // auto lock1 = cond_var1.lock();
+        if (success) {
 
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            // auto lock1 = cond_var1.lock();
 
-        shared_data(0, 0) = shared_data(0, 0) + 1;
+            // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        shared_var.write(shared_data, 0, 0);
-        std::cout << "Wrote " << shared_data << std::endl;
+            shared_data(0, 0) = shared_data(0, 0) + 1;
 
-        cond_var1.notify_all();
+            shared_var.write(shared_data, 0, 0);
+            std::cout << "Wrote " << shared_data << std::endl;
 
-        cond_var2.wait_for(lock2, 
-                std::bind(check_dones, std::ref(dones_var), std::ref(cond_var2)));
+            cond_var1.notify_all();
 
+            success = cond_var2.timedwait_for(lock2, 
+                    5000,
+                    std::bind(check_dones, std::ref(dones_var), std::ref(cond_var2)));
+
+            if (!success) {
+                std::cout << "Timeout reached  " << std::endl;
+            }
+        }
     }
 
     cond_var1.close();

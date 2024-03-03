@@ -67,18 +67,18 @@ namespace SharsorIPCpp {
 
     }
 
-    void ConditionVariable::timedwait(ScopedLock& named_lock,
+    bool ConditionVariable::timedwait(ScopedLock& named_lock,
                     unsigned int ms) {
         
         _utc_timeout = boost::posix_time::microsec_clock::universal_time() + 
                 boost::posix_time::millisec(ms);
 
         // acquire mutex
-        _named_cond.timed_wait(named_lock, _utc_timeout);
+        return _named_cond.timed_wait(named_lock, _utc_timeout);
 
     }
 
-    void ConditionVariable::timedwait_for(ScopedLock& named_lock,
+    bool ConditionVariable::timedwait_for(ScopedLock& named_lock,
                     unsigned int ms,
                     std::function<bool()> pred) {
         
@@ -86,7 +86,7 @@ namespace SharsorIPCpp {
                 boost::posix_time::millisec(ms);
 
         // acquire mutex
-        _named_cond.timed_wait(named_lock, _utc_timeout, pred);
+        return _named_cond.timed_wait(named_lock, _utc_timeout, pred);
 
     }
 

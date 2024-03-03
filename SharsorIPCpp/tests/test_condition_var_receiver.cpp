@@ -30,14 +30,14 @@ bool check_data(Client<int>& shared_var,
     
     read_done.notify_one(); // notify if having read
 
-    return shared_data(0, 0) >= 13;
+    return shared_data(0, 0) >= 10000;
 }
 
 int main() {
 
     static Tensor<int> shared_data(1, 1);
 
-    std::string name_space = "dfsrgthyjukyju";
+    std::string name_space = "gthyhgfdghbnvc";
     
     ConditionVariable cond_var1 = ConditionVariable(false, 
                             "ConVarRead", 
@@ -69,11 +69,16 @@ int main() {
     shared_var.read(shared_data, 0, 0);
 
     auto lock1 = cond_var1.lock();
-    cond_var1.wait_for(lock1, 
+    bool success = cond_var1.timedwait_for(lock1, 
+        5000,
         std::bind(check_data, std::ref(shared_var), 
                                 std::ref(cond_var2),
                                 std::ref(dones_var)));
-        
+    
+    if (!success) {
+        std::cout << "Timeout reached " << std::endl;
+    }
+
     cond_var1.close();
     cond_var2.close();
 
