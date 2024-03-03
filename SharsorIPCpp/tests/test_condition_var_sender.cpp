@@ -8,9 +8,34 @@ using namespace SharsorIPCpp;
 using LogType = Journal::LogType;
 using VLevel = Journal::VLevel;
 
+Tensor<int> shared_data(1, 1);
+Tensor<int> dones_data(1, 1);
+
+bool check_dones(Server<int>& shared_var,
+        ConditionVariable& all_done) {
+    // Move shared_var.read inside the check_data function
+    shared_var.read(dones_data, 0, 0);
+
+    if (dones_data(0, 0) >= 2) {
+
+        shared_var.dataSemAcquire();
+
+        dones_data(0, 0) = 0; // resets counter
+        shared_var.write(dones_data, 0, 0);
+
+        shared_var.dataSemRelease();
+
+        return true;
+
+    } else {
+
+        return false;
+    }
+}
+
 int main() {
     
-    std::string name_space = "RERERETTEYY";
+    std::string name_space = "dfsrgthyjukyju";
 
     ConditionVariable cond_var1 = ConditionVariable(true, 
                             "ConVarRead", 
@@ -31,9 +56,17 @@ int main() {
             true);
     shared_var.run();
 
+    Server dones_var = Server<int>(1, 1,
+            "DonesVar", 
+            name_space,
+            true,
+            VLevel::V2,
+            true, 
+            false);
+    dones_var.run();
+    
     // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     
-    Tensor<int> shared_data(1, 1);
     shared_data(0, 0) = 0;
 
     auto lock2 = cond_var2.lock();
@@ -51,7 +84,8 @@ int main() {
 
         cond_var1.notify_all();
 
-        cond_var2.wait(lock2);
+        cond_var2.wait_for(lock2, 
+                std::bind(check_dones, std::ref(dones_var), std::ref(cond_var2)));
 
     }
 
