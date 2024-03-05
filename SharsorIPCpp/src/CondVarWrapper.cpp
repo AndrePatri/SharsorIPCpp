@@ -64,7 +64,7 @@ namespace SharsorIPCpp {
 
         bool success = pred(); // call custom function
 
-        ConditionVariable::unlock(data_lock); // release mutex
+        // ConditionVariable::unlock(data_lock); // release mutex
 
         if (success && notify_all) {
             
@@ -110,7 +110,7 @@ namespace SharsorIPCpp {
             // verified will be false only if the timeout was reached
         }
 
-        ConditionVariable::unlock(data_lock); // release mutex
+        // ConditionVariable::unlock(data_lock); // release mutex
 
         if (!verified) {
 
