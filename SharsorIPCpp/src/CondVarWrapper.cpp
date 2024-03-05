@@ -112,19 +112,22 @@ namespace SharsorIPCpp {
 
         ConditionVariable::unlock(data_lock); // release mutex
 
-        if (_verbose &&
+        if (!verified) {
+
+            if (_verbose &&
                 _vlevel > VLevel::V0)
-        {
-            std::string warn = std::string("[") + _cond_variable.cond_var_path() + std::string("] ") +
-                std::string("Condition was not verified within the timeout of ") + 
-                std::to_string(ms) + 
-                std::string(" ms");
+            {
+                std::string warn = std::string("Condition at ") + _cond_variable.cond_var_path() +
+                    std::string(" not verified within the timeout of ") + 
+                    std::to_string(ms) + 
+                    std::string(" ms");
 
-            _journal.log(__FUNCTION__,
-                warn,
-                LogType::WARN);
+                _journal.log(__FUNCTION__,
+                    warn,
+                    LogType::WARN);
+            }
         }
-
+        
         return verified;
 
     }
