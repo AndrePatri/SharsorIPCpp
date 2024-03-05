@@ -132,4 +132,21 @@ namespace SharsorIPCpp {
 
     }
 
+    void ConditionWrapper::wait(std::function<bool()> pred){
+
+        ScopedLock data_lock = _cond_variable.lock(); // locks condition mutex
+
+        bool verified = pred(); // check condition in case it was already verified
+
+        if (!verified) {
+
+            // wait until the condition is verified
+            _cond_variable.wait_for(data_lock, 
+                                pred); // locks back the mutex atomically when returning
+        }
+
+        ConditionVariable::unlock(data_lock); // release mutex
+        
+    }
+
 }

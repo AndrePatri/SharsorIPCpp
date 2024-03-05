@@ -96,9 +96,8 @@ int main() {
         bool signal_ok = condition_write.notify(std::bind(send_signal, flag_ptr),
                                         true);
 
-        bool ack_ok = condition_read.wait(std::bind(check_acknowledgment, 
-                                    ack_ptr, flag_ptr), 
-                                    10);
+        condition_read.wait(std::bind(check_acknowledgment, 
+                                    ack_ptr, flag_ptr));
                                         
     }
 

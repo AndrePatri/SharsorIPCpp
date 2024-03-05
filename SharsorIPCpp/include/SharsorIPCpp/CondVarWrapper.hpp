@@ -61,7 +61,9 @@ namespace SharsorIPCpp{
                 bool notify_all = true);
             
             bool wait(std::function<bool()> pred, 
-                unsigned int ms = 1000);
+                unsigned int ms);
+
+            void wait(std::function<bool()> pred);
 
             void close();
 

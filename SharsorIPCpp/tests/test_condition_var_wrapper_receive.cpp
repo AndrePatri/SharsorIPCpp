@@ -82,14 +82,10 @@ int main() {
 
     for (int i = 0; i < 1; ++i) {
 
-        bool signal_received = condition_write.wait(std::bind(check_signal, flag_ptr), 
-                                    10);
+        condition_write.wait(std::bind(check_signal, flag_ptr));
 
-        if (signal_received) {
-
-            bool success = condition_write.notify(std::bind(acknowledge, ack_ptr),
-                                        true);
-        }
+        bool success = condition_write.notify(std::bind(acknowledge, ack_ptr),
+                                    true);
         
     }
     
