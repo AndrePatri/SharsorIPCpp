@@ -7,81 +7,53 @@
 using namespace SharsorIPCpp;
 using LogType = Journal::LogType;
 using VLevel = Journal::VLevel;
+using NamedMutex = ConditionVariable::NamedMutex;
+using ScopedLock = ConditionVariable::ScopedLock;
 
-static Tensor<int> shared_data(1, 1);
+static Tensor<bool> shared_data(1, 1);
 Tensor<int> dones_data(1, 1);
+std::string name_space = "WEWEW";
 
-// Pass shared_var as a parameter to the check_data function
-bool check_data(Client<int>& shared_var,
-        ConditionVariable& read_done, 
-        Client<int>& shared_dones) {
-    // Move shared_var.read inside the check_data function
-    shared_var.read(shared_data, 0, 0);
+int n_reads = 1000000;
 
-    std::cout << "Var changed. Got: " << shared_data << std::endl;
 
-    shared_dones.dataSemAcquire();
-    shared_dones.read(dones_data, 0, 0);
-    dones_data(0, 0) = dones_data(0, 0) + 1;
+bool check_condition() {
 
-    std::cout << "writing  " << dones_data<< std::endl;
-    shared_dones.write(dones_data, 0, 0);
-    shared_dones.dataSemRelease();
-    
-    read_done.notify_one(); // notify if having read
+    std::cout << "Received signal!!" << std::endl;
 
-    return shared_data(0, 0) >= 10000;
+    return true;
 }
 
 int main() {
 
-    static Tensor<int> shared_data(1, 1);
+    Client shared_var = Client<bool>("VarToBeChecked", 
+                name_space,
+                true,
+                VLevel::V2,
+                true);
 
-    std::string name_space = "gthyhgfdghbnvc";
-    
-    ConditionVariable cond_var1 = ConditionVariable(false, 
+    shared_var.attach();
+    shared_var.read(shared_data, 0, 0);
+
+    ConditionVariable written_condition = ConditionVariable(false, 
                             "ConVarRead", 
                             name_space,
                             true);
 
-    ConditionVariable cond_var2 = ConditionVariable(false, 
-                            "ConVarWrite", 
-                            name_space,
-                            true);
+    ScopedLock data_lock = written_condition.lock(); // locks data mutex
 
-    Client shared_var = Client<int>("VarToBeChecked", 
-            name_space,
-            true,
-            VLevel::V2,
-            true);
-    shared_var.attach();
+    if (!check_condition()) {
+        
+        written_condition.timedwait_for(data_lock, 
+            1000, 
+            check_condition); // atomically reselases the mutex
+            // and acquires it again before exiting
 
-    Client dones_var = Client<int>("DonesVar", 
-            name_space,
-            true,
-            VLevel::V2,
-            false);
-    dones_var.attach();
-
-    Tensor<int> check(1, 1);
-    check(0, 0) = 13;
-    
-    shared_var.read(shared_data, 0, 0);
-
-    auto lock1 = cond_var1.lock();
-    bool success = cond_var1.timedwait_for(lock1, 
-        5000,
-        std::bind(check_data, std::ref(shared_var), 
-                                std::ref(cond_var2),
-                                std::ref(dones_var)));
-    
-    if (!success) {
-        std::cout << "Timeout reached " << std::endl;
+        ConditionVariable::unlock(data_lock); // release data
     }
 
-    cond_var1.close();
-    cond_var2.close();
-
+    written_condition.close();
+//     received_condition.close();
     shared_var.close();
 
     return 0;

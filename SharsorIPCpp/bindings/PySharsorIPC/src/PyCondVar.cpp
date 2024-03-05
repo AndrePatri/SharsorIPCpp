@@ -5,7 +5,6 @@ void PySharsorIPC::PyConditionVariable::bind_ConditionVariable(pybind11::module&
         pybind11::class_<SharsorIPCpp::ConditionVariable> cls(m, "ConditionVariable");
         
         cls.def(pybind11::init<bool, std::string, std::string, bool, SharsorIPCpp::Journal::VLevel>());
-        cls.def("lock", &SharsorIPCpp::ConditionVariable::lock);
         cls.def("wait", &SharsorIPCpp::ConditionVariable::wait);
         cls.def("wait_for", &SharsorIPCpp::ConditionVariable::wait_for);
         cls.def("timedwait", &SharsorIPCpp::ConditionVariable::timedwait);

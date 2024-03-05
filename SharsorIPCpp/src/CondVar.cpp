@@ -30,12 +30,17 @@ namespace SharsorIPCpp {
         _is_server(is_server),
         _verbose(verbose),
         _vlevel(vlevel),
-        _journal(Journal(_getThisName())),
-        _named_cond(boost::interprocess::open_or_create, 
-                _mem_config.mem_path_cond_var.c_str()), // Initialize named_mutex
-        _named_mutex(boost::interprocess::open_or_create,
-                _mem_config.mem_path_cond_var_mutex.c_str())
+        _journal(Journal(_getThisName()))
+        
     {
+
+        _cond_ptr = std::make_unique<NamedCondition>(
+                            boost::interprocess::open_or_create, 
+                            _mem_config.mem_path_cond_var.c_str());
+                            
+        _mutex_ptr = std::make_unique<NamedMutex>(
+                            boost::interprocess::open_or_create,
+                            _mem_config.mem_path_cond_var_mutex.c_str());
 
     }
 
@@ -44,18 +49,47 @@ namespace SharsorIPCpp {
         close();
     }
 
-    ConditionVariable::ScopedLock ConditionVariable::lock() {
-        // acquire mutex
-        ScopedLock named_lock(_named_mutex);
+    std::string ConditionVariable::cond_var_path() {
+
+        return _mem_config.mem_path_cond_var;
+    }
+
+    std::string ConditionVariable::mutex_path() {
+
+        return _mem_config.mem_path_cond_var_mutex;
+    }
+
+    ConditionVariable::NamedMutex ConditionVariable::create_named_mutex(std::string at) {
+        
+        return NamedMutex(boost::interprocess::open_or_create,
+                at.c_str());
+    }
+
+    ConditionVariable::ScopedLock ConditionVariable::lock(NamedMutex& mutex) {
+        
+        // acquires mutex
+        ScopedLock named_lock(mutex);
 
         return named_lock;
+
+    }
+
+    ConditionVariable::ScopedLock ConditionVariable::lock() {
+
+        return ScopedLock(*_mutex_ptr);
+
+    }
+
+    void ConditionVariable::unlock(ScopedLock& locked_lock) {
+        
+        locked_lock.unlock();
 
     }
 
     void ConditionVariable::wait(ScopedLock& named_lock) {
         
         // acquire mutex
-        _named_cond.wait(named_lock);
+        _cond_ptr->wait(named_lock);
 
     }
 
@@ -63,7 +97,7 @@ namespace SharsorIPCpp {
                     std::function<bool()> pred) {
         
         // acquire mutex
-        _named_cond.wait(named_lock, pred);
+        _cond_ptr->wait(named_lock, pred);
 
     }
 
@@ -74,7 +108,7 @@ namespace SharsorIPCpp {
                 boost::posix_time::millisec(ms);
 
         // acquire mutex
-        return _named_cond.timed_wait(named_lock, _utc_timeout);
+        return _cond_ptr->timed_wait(named_lock, _utc_timeout);
 
     }
 
@@ -86,19 +120,19 @@ namespace SharsorIPCpp {
                 boost::posix_time::millisec(ms);
 
         // acquire mutex
-        return _named_cond.timed_wait(named_lock, _utc_timeout, pred);
+        return _cond_ptr->timed_wait(named_lock, _utc_timeout, pred);
 
     }
 
     void ConditionVariable::notify_one() {
 
-        _named_cond.notify_one();
+        _cond_ptr->notify_one();
 
     }
 
     void ConditionVariable::notify_all() {
 
-        _named_cond.notify_all();
+        _cond_ptr->notify_all();
     }
 
     void ConditionVariable::close() {

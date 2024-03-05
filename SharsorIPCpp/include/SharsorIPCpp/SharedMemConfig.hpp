@@ -53,9 +53,9 @@ namespace SharsorIPCpp{
             
             // conditon variable wrapper
 
-            mem_path_cond_var = "/" + _namespace + _name + "_" + MemDef::CondVarName();
+            mem_path_cond_var = _namespace + _name + MemDef::CondVarName();
 
-            mem_path_cond_var_mutex = "/" + _namespace + _name + "_" + MemDef::CondVarMutexName();
+            mem_path_cond_var_mutex = _namespace + _name + MemDef::CondVarMutexName();
 
         }
 

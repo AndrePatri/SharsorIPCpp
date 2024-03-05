@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with SharsorIPCpp.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CONDVAR_HPP
-#define CONDVAR_HPP
+#ifndef CONDVARWRAPPER_HPP
+#define CONDVARWRAPPER_HPP
 
 #include <chrono>
 #include <thread>
@@ -32,58 +32,38 @@
 #include <SharsorIPCpp/DTypes.hpp>
 #include <SharsorIPCpp/ReturnCodes.hpp>
 
+#include <SharsorIPCpp/CondVar.hpp>
+
 namespace SharsorIPCpp{
 
-    class ConditionVariable{
+    class ConditionWrapper{
 
         using VLevel = Journal::VLevel;
         using LogType = Journal::LogType;
+        using ConditionVariable = SharsorIPCpp::ConditionVariable;
+        using ScopedLock = ConditionVariable::ScopedLock;
 
         public:
 
-            using NamedCondition = boost::interprocess::named_condition;
-            using NamedMutex = boost::interprocess::named_mutex;
-            using ScopedLock = boost::interprocess::scoped_lock<NamedMutex>;
+            typedef std::weak_ptr<ConditionWrapper> WeakPtr;
+            typedef std::shared_ptr<ConditionWrapper> Ptr;
+            typedef std::unique_ptr<ConditionWrapper> UniquePtr;
 
-            typedef std::weak_ptr<ConditionVariable> WeakPtr;
-            typedef std::shared_ptr<ConditionVariable> Ptr;
-            typedef std::unique_ptr<ConditionVariable> UniquePtr;
-
-            ConditionVariable(bool is_server,
+            ConditionWrapper(bool is_server,
                     std::string basename,
                     std::string name_space = "",
                     bool verbose = false,
                     VLevel vlevel = VLevel::V0);
 
-            ~ConditionVariable();
-
-            static ScopedLock lock(NamedMutex& mutex);
-            ScopedLock lock();
-
-            static void unlock(ScopedLock& locked_lock);
+            ~ConditionWrapper();
             
-            static NamedMutex create_named_mutex(std::string at);
-
-            void wait(ScopedLock& named_lock);
-
-            void wait_for(ScopedLock& named_lock, 
-                    std::function<bool()> pred);
-
-            bool timedwait(ScopedLock& named_lock,
-                    unsigned int ms);
+            bool notify(std::function<bool()> pred,
+                bool notify_all = true);
             
-            bool timedwait_for(ScopedLock& named_lock,
-                    unsigned int ms,
-                    std::function<bool()> pred);
-
-            void notify_one();
-
-            void notify_all();
+            bool wait(std::function<bool()> pred, 
+                unsigned int ms = 1000);
 
             void close();
-            
-            std::string mutex_path();
-            std::string cond_var_path();
 
         private:
 
@@ -92,10 +72,8 @@ namespace SharsorIPCpp{
             bool _is_server = false;
             
             bool _closed = false;
-
-            std::string _basename, _namespace;
             
-            std::string _this_name = "SharsorIPCpp::ConditionVariable";
+            std::string _this_name = "SharsorIPCpp::ConditionWrapper";
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 
@@ -104,18 +82,10 @@ namespace SharsorIPCpp{
             std::string _getThisName(); // used to get this class
             // name
 
-            SharedMemConfig _mem_config;
-
-            std::unique_ptr<NamedCondition> _cond_ptr;
-            std::unique_ptr<NamedMutex> _mutex_ptr;
-
-            boost::posix_time::ptime _utc_timeout;
-            
-            ScopedLock _lock;
-            
+            ConditionVariable _cond_variable;
 
     };
 
 }
 
-#endif // CLIENT_HPP
+#endif // CONDVARWRAPPER_HPP
