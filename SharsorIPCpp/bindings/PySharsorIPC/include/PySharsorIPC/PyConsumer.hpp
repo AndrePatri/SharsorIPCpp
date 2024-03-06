@@ -15,27 +15,30 @@
 // You should have received a copy of the GNU General Public License
 // along with SharsorIPCpp.  If not, see <http://www.gnu.org/licenses/>.
 // 
-#ifndef PYCONDVAR_HPP
-#define PYCONDVAR_HPP
+#ifndef PYCONSUMER_HPP
+#define PYCONSUMER_HPP
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/stl.h>
 
-#include <SharsorIPCpp/CondVar.hpp>
+#include <SharsorIPCpp/Consumer.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
-#include <SharsorIPCpp/Journal.hpp>
 
 namespace PySharsorIPC{
 
-    namespace PyConditionVariable {
+    namespace PyConsumer {  
 
-        void bind_ConditionVariable(pybind11::module& m);
-
+        using namespace SharsorIPCpp;
+        
+        using VLevel = Journal::VLevel;
+        using LogType = Journal::LogType;
+        
+        void bind_Consumer(pybind11::module& m);
 
     }
 
 }
 
-#endif // PYCONDVAR_HPP
+#endif // PYCONSUMER_HPP

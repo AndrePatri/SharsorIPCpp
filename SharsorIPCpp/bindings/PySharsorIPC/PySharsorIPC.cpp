@@ -22,7 +22,8 @@
 #include <PySharsorIPC/PyStringTensor.hpp>
 #include <PySharsorIPC/PyServer.hpp>
 #include <PySharsorIPC/PyClient.hpp>
-#include <PySharsorIPC/PyCondVar.hpp>
+#include <PySharsorIPC/PyProducer.hpp>
+#include <PySharsorIPC/PyConsumer.hpp>
 
 using namespace SharsorIPCpp;
 using namespace PySharsorIPC;
@@ -130,7 +131,8 @@ PYBIND11_MODULE(PySharsorIPC, m) {
 
     // Cond. var. bindings 
 
-    PyConditionVariable::bind_ConditionVariable(m);
+    PyConditionVariable::bind_Consumer(m);
+    PyConditionVariable::bind_Producer(m);
 
 }
 
