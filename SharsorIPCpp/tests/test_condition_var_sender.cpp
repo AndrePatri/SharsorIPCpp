@@ -12,8 +12,6 @@ using LogType = Journal::LogType;
 using VLevel = Journal::VLevel;
 using Producer = SharsorIPCpp::Producer;
 
-int n_writes = 1000000;
-int n_consumers = 2;
 bool terminated = false;
 unsigned int timeout = 10000;
 
@@ -25,13 +23,16 @@ void interruptHandler(int signal) {
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <namespace>" << std::endl;
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <namespace, n_consumers>" << std::endl;
         return 1;
         
     }
     
     std::string name_space = argv[1];
+
+    std::string n_consumers_arg = argv[2];
+    int n_consumers = std::stoi(n_consumers_arg);
 
     std::signal(SIGINT, interruptHandler);
 

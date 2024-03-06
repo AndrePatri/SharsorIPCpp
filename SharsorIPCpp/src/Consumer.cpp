@@ -176,8 +176,6 @@ namespace SharsorIPCpp {
             
         }
 
-        std::cout << "Ack counter" << _ack_counter << std::endl;
-
         _ack_cond.notify_one();
 
         return _fail_count == 0;
@@ -188,9 +186,6 @@ namespace SharsorIPCpp {
 
         _trigger_counter_clnt.read(_trigger_counter, 0, 0); // reads current value
         // of trigger counter (only written by Producer)
-
-        std::cout << "Trigger counter " << _trigger_counter(0, 0) << std::endl;
-        std::cout << "Prev counter " << _internal_trigger_counter << std::endl;
 
         _trigger_counter_increment = _trigger_counter(0, 0) - _internal_trigger_counter;
 

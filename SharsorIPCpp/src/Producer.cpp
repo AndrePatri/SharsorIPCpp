@@ -166,9 +166,6 @@ namespace SharsorIPCpp {
                 true); // throw exception
         }
 
-        std::cout << "Triggers"<< std::endl;
-        std::cout << _trigger_counter << std::endl;
-
     }
 
     bool Producer::_check_ack_counter(int n_consumers) {
@@ -180,10 +177,6 @@ namespace SharsorIPCpp {
                 LogType::EXCEP, 
                 true); // throw exception
         }
-
-        std::cout << "ACks"<< std::endl;
-        std::cout << _ack_counter(0, 0) << std::endl;
-        std::cout << _acks_before<< std::endl;
 
         if ((_ack_counter(0, 0) - _acks_before) == n_consumers) {
             
