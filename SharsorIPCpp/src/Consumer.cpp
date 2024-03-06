@@ -217,18 +217,18 @@ namespace SharsorIPCpp {
 
     }
     
-    bool Consumer::_wait(ScopedLock& ack_lock, 
+    bool Consumer::_wait(ScopedLock& lock, 
                 unsigned int ms_timeout) {
 
         if (ms_timeout > 0) {
 
-            _timeout = !(_ack_cond.timedwait(ack_lock, ms_timeout)); // wait with timeout
+            _timeout = !(_trigger_cond.timedwait(lock, ms_timeout)); // wait with timeout
             
             return !_timeout;
 
         } else {
 
-            _ack_cond.wait(ack_lock); // blocking
+            _trigger_cond.wait(lock); // blocking
 
             return true;
         }

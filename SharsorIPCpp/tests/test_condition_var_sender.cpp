@@ -13,7 +13,7 @@ using VLevel = Journal::VLevel;
 using Producer = SharsorIPCpp::Producer;
 
 int n_writes = 1000000;
-int n_consumers = 1;
+int n_consumers = 2;
 bool terminated = false;
 unsigned int timeout = 10000;
 
