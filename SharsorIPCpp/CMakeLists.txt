@@ -65,7 +65,8 @@ add_library(${LIBRARY_NAME} STATIC
     src/MemUtils.hpp
     src/SharedMemConfig.hpp
     src/CondVar.cpp
-    src/CondVarWrapper.cpp
+    src/Producer.cpp
+    src/Consumer.cpp
     include/${LIBRARY_NAME}/Journal.hpp
     include/${LIBRARY_NAME}/Helpers.hpp
     include/${LIBRARY_NAME}/ReturnCodes.hpp

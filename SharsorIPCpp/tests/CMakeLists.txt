@@ -18,10 +18,8 @@ create_and_link(consistency_checks_srvr consistency_checks_srvr.cpp)
 create_and_link(server_conn_test server_conn_test.cpp)
 create_and_link(jitter_test rt_jitter_test.cpp)
 
-create_and_link(cond_var_rec test_condition_var_receiver.cpp)
-create_and_link(cond_var_send test_condition_var_sender.cpp)
-create_and_link(cond_var_wrapper_rec test_condition_var_wrapper_receive.cpp)
-create_and_link(cond_var_wrapper_send test_condition_var_wrapper_send.cpp)
+create_and_link(consumer_test test_condition_var_receiver.cpp)
+create_and_link(producer_test test_condition_var_sender.cpp)
 
 create_and_link(mem_alloc_test test_memory_allocation.cpp)
 

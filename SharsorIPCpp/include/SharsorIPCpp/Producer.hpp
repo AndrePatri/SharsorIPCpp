@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with SharsorIPCpp.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef CONDVARWRAPPER_HPP
-#define CONDVARWRAPPER_HPP
+#ifndef PRODUCER_HPP
+#define PRODUCER_HPP
 
 #include <chrono>
 #include <thread>
@@ -31,63 +31,90 @@
 #include <SharsorIPCpp/Journal.hpp>
 #include <SharsorIPCpp/DTypes.hpp>
 #include <SharsorIPCpp/ReturnCodes.hpp>
-
 #include <SharsorIPCpp/CondVar.hpp>
+#include <SharsorIPCpp/Server.hpp>
 
 namespace SharsorIPCpp{
 
-    class ConditionWrapper{
+    class Producer{
 
         using VLevel = Journal::VLevel;
         using LogType = Journal::LogType;
         using ConditionVariable = SharsorIPCpp::ConditionVariable;
         using ScopedLock = ConditionVariable::ScopedLock;
+        using SharedCounter = SharsorIPCpp::Server<int>;
+        using CounterView = SharsorIPCpp::Tensor<int>;
 
         public:
 
-            typedef std::weak_ptr<ConditionWrapper> WeakPtr;
-            typedef std::shared_ptr<ConditionWrapper> Ptr;
-            typedef std::unique_ptr<ConditionWrapper> UniquePtr;
+            typedef std::weak_ptr<Producer> WeakPtr;
+            typedef std::shared_ptr<Producer> Ptr;
+            typedef std::unique_ptr<Producer> UniquePtr;
 
-            ConditionWrapper(bool is_server,
-                    std::string basename,
+            Producer(std::string basename,
                     std::string name_space = "",
                     bool verbose = false,
-                    VLevel vlevel = VLevel::V0);
+                    VLevel vlevel = VLevel::V0,
+                    bool force_reconnection = false);
 
-            ~ConditionWrapper();
+            ~Producer();
+
+            void run();
             
-            bool notify(std::function<bool()> pred,
-                bool notify_all = true);
-            
-            bool wait(std::function<bool()> pred, 
-                unsigned int ms);
-
-            void wait(std::function<bool()> pred);
-
             void close();
+            
+            void trigger();
+
+            bool wait_ack_from(int n_consumers,
+                        unsigned int ms_timeout = -1);
 
         private:
 
             bool _verbose = false;
-
-            bool _is_server = false;
             
             bool _closed = false;
+            bool _is_running = false;
+
+            bool _ack_completed = false;
+
+            bool _timeout = false;
+
+            std::string _this_name = "SharsorIPCpp::Producer";
             
-            std::string _this_name = "SharsorIPCpp::ConditionWrapper";
+            std::string _trigger_cond_name = "TriggerCond";
+            std::string _ack_cond_name = "AckCond";
+
+            std::string _trigger_basename = "Trigger";
+            std::string _ack_basename = "TriggerCond";
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 
             Journal _journal; // for rt-friendly logging
 
+            ConditionVariable _trigger_cond;
+            ConditionVariable _ack_cond;
+
+            SharedCounter _trigger_counter_srvr;
+            CounterView _trigger_counter;
+
+            SharedCounter _ack_counter_srvr;
+            CounterView _ack_counter; 
+
             std::string _getThisName(); // used to get this class
             // name
 
-            ConditionVariable _cond_variable;
+            void _check_running(std::string calling_method);
+
+            void _init_counters();
+
+            void _increment_trigger();
+
+            bool _check_ack_counter(int n_consumers);
+
+            bool _wait(ScopedLock& ack_lock, unsigned int ms_timeout = -1);
 
     };
 
 }
 
-#endif // CONDVARWRAPPER_HPP
+#endif // PRODUCER_HPP
