@@ -43,7 +43,8 @@ add_library("${PyBindName}Libs" STATIC src/PyStringTensor.cpp
                                        src/PyServer.cpp
                                        src/PyClient.cpp
                                        src/PyProducer.cpp
-                                       src/PyConsumer.cpp)
+                                       src/PyConsumer.cpp
+                                       )
 target_link_libraries("${PyBindName}Libs" PUBLIC SharsorIPCpp PRIVATE pybind11::module)
 # set_target_properties("${PyBindName}Libs" PROPERTIES
 #     LIBRARY_OUTPUT_DIRECTORY ${BINDINGS_BINARY_DIR}

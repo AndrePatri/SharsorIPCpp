@@ -9,8 +9,6 @@ void PySharsorIPC::PyConsumer::bind_Consumer(pybind11::module& m) {
              pybind11::arg("namespace"),
              pybind11::arg("verbose"), 
              pybind11::arg("vlevel") = VLevel::V0);
-
-        cls.def(pybind11::init<>());
         cls.def("run", &SharsorIPCpp::Consumer::run);
         cls.def("close", &SharsorIPCpp::Consumer::close);
         cls.def("wait", [](SharsorIPCpp::Consumer& self, 
