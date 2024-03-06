@@ -131,7 +131,7 @@ PYBIND11_MODULE(PySharsorIPC, m) {
 
     // Cond. var. bindings 
 
-    // PyConsumer::bind_Consumer(m);
+    PyConsumer::bind_Consumer(m);
     PyProducer::bind_Producer(m);
 
 }

@@ -1,7 +1,7 @@
 #include <iostream>
-#include <SharsorIPCpp/Producer.hpp>
+#include <SharsorIPCpp/Consumer.hpp>
 #include <string>
-#include <SharsorIPCpp/Server.hpp>
+#include <SharsorIPCpp/Client.hpp>
 #include <SharsorIPCpp/Journal.hpp>
 
 #include <csignal>
@@ -10,8 +10,12 @@
 using namespace SharsorIPCpp;
 using LogType = Journal::LogType;
 using VLevel = Journal::VLevel;
-using Producer = SharsorIPCpp::Producer;
+using Consumer = SharsorIPCpp::Consumer;
 
+std::string name_space = "rthytrtkjdhsxdhn";
+
+int counter = 0;
+int listener_idx = 0;
 bool terminated = false;
 unsigned int timeout = 10000;
 
@@ -23,41 +27,43 @@ void interruptHandler(int signal) {
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <namespace, n_consumers>" << std::endl;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <namespace>" << std::endl;
         return 1;
         
     }
-    
+    // Get the command line argument for idx
     std::string name_space = argv[1];
-
-    std::string n_consumers_arg = argv[2];
-    int n_consumers = std::stoi(n_consumers_arg);
 
     std::signal(SIGINT, interruptHandler);
 
-    Producer producer = Producer("ProducerConsumerTests", 
+    Consumer consumer = Consumer("ProducerConsumerTests", 
                             name_space,
                             true,
-                            VLevel::V2,
-                            false);
+                            VLevel::V2);
+    consumer.run();
 
-    producer.run();
-    
     while(!terminated) {
 
-        producer.trigger();
+        if (!consumer.wait(timeout)) {
 
-        if (!producer.wait_ack_from(n_consumers, timeout)) {
-            
             std::cout << "Wait failed" << std::endl;
+
+            break;
+        }
+
+        std::cout << "Doing stuff..." << std::endl;
+
+        if (!consumer.ack()) {
+
+            std::cout << "Acknowledgement failed!!" << std::endl;
 
             break;
         }
 
     }
 
-    producer.close();
+    consumer.close();
 
     return 0;
 }
