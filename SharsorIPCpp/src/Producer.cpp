@@ -75,6 +75,8 @@ namespace SharsorIPCpp {
 
             _is_running = true;
             _closed = false;
+
+            _acks_before = 0;
         }
 
     }
@@ -156,19 +158,20 @@ namespace SharsorIPCpp {
 
     void Producer::_increment_trigger() {
 
-        _ack_counter.array() += 1; // increment counter 
-        if (!_ack_counter_srvr.write(_ack_counter, 0, 0)) {
+        _trigger_counter.array() += 1; // increment counter 
+        if (!_trigger_counter_srvr.write(_trigger_counter, 0, 0)) {
             _journal.log(__FUNCTION__,
-                "Could not increment acknowledge counter!",
+                "Could not increment trigger counter!",
                 LogType::EXCEP, 
                 true); // throw exception
         }
 
+        std::cout << "Triggers"<< std::endl;
+        std::cout << _trigger_counter << std::endl;
+
     }
 
     bool Producer::_check_ack_counter(int n_consumers) {
-
-        int _acks_before = _ack_counter(0, 0);
 
         if (!_ack_counter_srvr.read(_ack_counter, 0, 0)) {
 
@@ -177,9 +180,15 @@ namespace SharsorIPCpp {
                 LogType::EXCEP, 
                 true); // throw exception
         }
-        
-        if ((_ack_counter(0, 0) - _acks_before) == n_consumers) {
 
+        std::cout << "ACks"<< std::endl;
+        std::cout << _ack_counter(0, 0) << std::endl;
+        std::cout << _acks_before<< std::endl;
+
+        if ((_ack_counter(0, 0) - _acks_before) == n_consumers) {
+            
+            _acks_before = _ack_counter(0, 0);
+            
             return true;
 
         } else {

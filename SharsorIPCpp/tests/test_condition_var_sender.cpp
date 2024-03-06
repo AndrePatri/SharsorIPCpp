@@ -13,8 +13,9 @@ using VLevel = Journal::VLevel;
 using Producer = SharsorIPCpp::Producer;
 
 int n_writes = 1000000;
-int n_consumers = 2;
+int n_consumers = 1;
 bool terminated = false;
+unsigned int timeout = 10000;
 
 // Signal handler function
 void interruptHandler(int signal) {
@@ -46,7 +47,12 @@ int main(int argc, char *argv[]) {
 
         producer.trigger();
 
-        producer.wait_ack_from(n_consumers);
+        if (!producer.wait_ack_from(n_consumers, timeout)) {
+            
+            std::cout << "Wait failed" << std::endl;
+
+            break;
+        }
 
     }
 

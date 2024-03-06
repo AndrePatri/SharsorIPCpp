@@ -79,6 +79,8 @@ namespace SharsorIPCpp{
 
             bool _timeout = false;
 
+            int _acks_before = 0;
+            
             std::string _this_name = "SharsorIPCpp::Producer";
             
             std::string _trigger_cond_name = "TriggerCond";

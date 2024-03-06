@@ -69,13 +69,7 @@ namespace SharsorIPCpp {
             _is_running = true;
             _closed = false;
 
-            ScopedLock trigger_lock = _trigger_cond.lock();
-            if (!_trigger_counter_clnt.read(_trigger_counter, 0, 0)) {
-            _journal.log(__FUNCTION__,
-                "Could not read trigger counter!",
-                LogType::EXCEP, 
-                true); // throw exception
-            }   
+            _internal_trigger_counter = 0;
         }
     }
 
@@ -103,7 +97,7 @@ namespace SharsorIPCpp {
             _trigger_received = _check_trigger_received();
 
             if (!_trigger_received) {
-
+                
                 // wait (unlock and lock mutex atomically when
                 // returning)
                 if(!_wait(trigger_lock, ms_timeout)) {
@@ -182,16 +176,21 @@ namespace SharsorIPCpp {
             
         }
 
+        std::cout << "Ack counter" << _ack_counter << std::endl;
+
+        _ack_cond.notify_one();
+
         return _fail_count == 0;
         
     }
 
     bool Consumer::_check_trigger_received() {
 
-        _internal_trigger_counter = _trigger_counter(0, 0);
-
         _trigger_counter_clnt.read(_trigger_counter, 0, 0); // reads current value
         // of trigger counter (only written by Producer)
+
+        std::cout << "Trigger counter " << _trigger_counter(0, 0) << std::endl;
+        std::cout << "Prev counter " << _internal_trigger_counter << std::endl;
 
         _trigger_counter_increment = _trigger_counter(0, 0) - _internal_trigger_counter;
 
@@ -206,6 +205,8 @@ namespace SharsorIPCpp {
         }
 
         if (_trigger_counter_increment == 1) {
+            
+            _internal_trigger_counter = _trigger_counter(0, 0);
 
             return true;
 
