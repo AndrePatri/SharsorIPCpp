@@ -62,9 +62,9 @@ namespace SharsorIPCpp{
 
             void close();
 
-            bool wait(unsigned int ms_timeout = -1);
+            bool wait(int ms_timeout = -1);
             bool wait_and_ack(std::function<bool()> pre_ack,
-                    unsigned int ms_timeout = -1);
+                    int ms_timeout = -1);
 
             bool ack();
 
@@ -112,7 +112,7 @@ namespace SharsorIPCpp{
 
             bool _check_trigger_received();
 
-            bool _wait(ScopedLock& ack_lock, unsigned int ms_timeout = -1);
+            bool _wait(ScopedLock& ack_lock, int ms_timeout = -1);
 
             bool _acknowledge();
 

@@ -66,7 +66,7 @@ namespace SharsorIPCpp{
             void trigger();
 
             bool wait_ack_from(int n_consumers,
-                        unsigned int ms_timeout = -1);
+                        int ms_timeout = -1);
 
         private:
 
@@ -113,7 +113,7 @@ namespace SharsorIPCpp{
 
             bool _check_ack_counter(int n_consumers);
 
-            bool _wait(ScopedLock& ack_lock, unsigned int ms_timeout = -1);
+            bool _wait(ScopedLock& ack_lock, int ms_timeout = -1);
 
     };
 

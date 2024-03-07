@@ -106,7 +106,7 @@ namespace SharsorIPCpp {
     }
 
     bool Producer::wait_ack_from(int n_consumers,
-                            unsigned int ms_timeout) {
+                            int ms_timeout) {
         
         _check_running(std::string(__FUNCTION__));
 
@@ -192,7 +192,7 @@ namespace SharsorIPCpp {
     }
 
     bool Producer::_wait(ScopedLock& ack_lock, 
-                unsigned int ms_timeout) {
+                int ms_timeout) {
 
         if (ms_timeout > 0) {
 

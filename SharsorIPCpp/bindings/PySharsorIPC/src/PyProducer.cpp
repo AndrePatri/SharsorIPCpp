@@ -16,7 +16,7 @@ void PySharsorIPC::PyProducer::bind_Producer(pybind11::module& m) {
         cls.def("trigger", &SharsorIPCpp::Producer::trigger);
         cls.def("wait_ack_from", [](SharsorIPCpp::Producer& self, 
                         int n_consumers,
-                        unsigned int ms_timeout) {
+                        int ms_timeout) {
             
             return self.wait_ack_from(n_consumers, ms_timeout);
 

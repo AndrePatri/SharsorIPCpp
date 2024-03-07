@@ -12,7 +12,7 @@ void PySharsorIPC::PyConsumer::bind_Consumer(pybind11::module& m) {
         cls.def("run", &SharsorIPCpp::Consumer::run);
         cls.def("close", &SharsorIPCpp::Consumer::close);
         cls.def("wait", [](SharsorIPCpp::Consumer& self, 
-                        unsigned int ms_timeout) {
+                        int ms_timeout) {
             
             return self.wait(ms_timeout);
 

@@ -84,7 +84,7 @@ namespace SharsorIPCpp {
         }
     }
 
-    bool Consumer::wait(unsigned int ms_timeout) {
+    bool Consumer::wait(int ms_timeout) {
 
         _check_running(std::string(__FUNCTION__));
 
@@ -112,7 +112,7 @@ namespace SharsorIPCpp {
     }
 
     bool Consumer::wait_and_ack(std::function<bool()> pre_ack,
-                    unsigned int ms_timeout) {
+                    int ms_timeout) {
 
         _fail_count = 0;
         
@@ -213,7 +213,7 @@ namespace SharsorIPCpp {
     }
     
     bool Consumer::_wait(ScopedLock& lock, 
-                unsigned int ms_timeout) {
+                int ms_timeout) {
 
         if (ms_timeout > 0) {
 
