@@ -275,13 +275,8 @@ class RosSubscriber(ABC):
         self._terminated = False
         self._is_running = False
 
-        self._init_sleep_time = 1e-5 # [s] 
-
-        self._init_sleep_time_ns = int((self._init_sleep_time) * 1e+9)
-        self._wait_sleep_time_ns = int((1e-6) * 1e+9)
+        self._wait_sleep_time_ns =  1000
     
-        self._perf_timer = PerfSleep()
-
         self._writing_data = False
 
         self._reading_data = False
@@ -489,7 +484,7 @@ class RosSubscriber(ABC):
 
         while self._writing_data:
 
-            self._perf_timer.thread_sleep(self._wait_sleep_time_ns)
+            PerfSleep.thread_sleep(self._wait_sleep_time_ns)
 
     def _data_callback(self,
                     msg):
