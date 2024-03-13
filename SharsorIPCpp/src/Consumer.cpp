@@ -191,9 +191,11 @@ namespace SharsorIPCpp {
 
         if (_trigger_counter_increment > 1 || 
             _trigger_counter_increment < 0) {
-
+            
+            std::string excep = std::string("Found trigger increment < 0 or > 1. Got ") + 
+                std::to_string(_trigger_counter_increment);
             _journal.log(__FUNCTION__,
-                "Found trigger increment < 0 or > 1.",
+                excep,
                 LogType::EXCEP, 
                 true); // throw exception
 
