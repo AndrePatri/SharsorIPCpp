@@ -910,7 +910,7 @@ namespace SharsorIPCpp {
     std::string Server<Scalar, Layout>::_getThisName()
     {
 
-        return _this_name;
+        return THISNAME;
     }
 
     // explicit instantiations for specific supported types

@@ -84,13 +84,13 @@ namespace SharsorIPCpp{
 
             int _fail_count = 0;
 
-            std::string _this_name = "SharsorIPCpp::Consumer";
+            std::string THISNAME = "SharsorIPCpp::Consumer";
             
-            std::string _trigger_cond_name = "TriggerCond";
-            std::string _ack_cond_name = "AckCond";
+            std::string TRIGGER_COND_NAME = "TriggerCond";
+            std::string ACK_COND_NAME = "AckCond";
 
-            std::string _trigger_basename = "Trigger";
-            std::string _ack_basename = "TriggerCond";
+            std::string TRIGGER_BASENAME = "Trigger";
+            std::string ACK_BASENAME = "Ack";
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 

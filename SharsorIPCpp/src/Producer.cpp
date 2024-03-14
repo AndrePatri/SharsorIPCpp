@@ -29,17 +29,17 @@ namespace SharsorIPCpp {
         _vlevel(vlevel),
         _journal(Journal(_getThisName())),
         _trigger_cond(true,
-                basename + _trigger_cond_name,
+                basename + TRIGGER_COND_NAME,
                 name_space,
                 verbose,
                 vlevel),
         _ack_cond(true,
-                basename + _ack_cond_name,
+                basename + ACK_COND_NAME,
                 name_space,
                 verbose,
                 vlevel),
         _trigger_counter_srvr(1, 1,
-            basename + _trigger_basename, 
+            basename + TRIGGER_BASENAME, 
             name_space,
             verbose,
             vlevel,
@@ -47,7 +47,7 @@ namespace SharsorIPCpp {
             false),
         _trigger_counter(1, 1),
         _ack_counter_srvr(1, 1,
-            basename + _ack_basename, 
+            basename + ACK_BASENAME, 
             name_space,
             verbose,
             vlevel,
@@ -211,7 +211,7 @@ namespace SharsorIPCpp {
     
     std::string Producer::_getThisName(){
 
-        return _this_name;
+        return THISNAME;
     }
 
     void Producer::_check_running(std::string calling_method) {

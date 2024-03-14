@@ -938,7 +938,7 @@ namespace SharsorIPCpp {
     std::string Client<Scalar, Layout>::_getThisName()
     {
 
-        return _this_name;
+        return THISNAME;
     }
 
     // explicit instantiations for specific supported types

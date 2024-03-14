@@ -95,7 +95,7 @@ namespace SharsorIPCpp{
 
             std::string _basename, _namespace;
             
-            std::string _this_name = "SharsorIPCpp::ConditionVariable";
+            std::string THISNAME = "SharsorIPCpp::ConditionVariable";
 
             VLevel _vlevel = VLevel::V0; // minimal debug info
 

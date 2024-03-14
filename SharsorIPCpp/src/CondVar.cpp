@@ -160,7 +160,7 @@ namespace SharsorIPCpp {
 
     std::string ConditionVariable::_getThisName(){
 
-        return _this_name;
+        return THISNAME;
     }
 
 }

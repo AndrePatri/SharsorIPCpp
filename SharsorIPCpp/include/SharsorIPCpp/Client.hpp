@@ -133,7 +133,7 @@ namespace SharsorIPCpp{
             int _msg_counter = 0; // aux variable using for periodic logging
             int _msg_sample_interval = 4000; // msg printed every n iterations
 
-            std::string _this_name = "SharsorIPCpp::Client";
+            std::string THISNAME = "SharsorIPCpp::Client";
 
             std::string _basename, _namespace;
 

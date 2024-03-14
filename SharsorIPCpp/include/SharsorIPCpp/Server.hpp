@@ -133,7 +133,7 @@ namespace SharsorIPCpp{
 
             static const int _mem_layout = Layout;
 
-            std::string _this_name = "SharsorIPCpp::Server";
+            std::string THISNAME = "SharsorIPCpp::Server";
             std::string _basename, _namespace;
 
             float _sem_acq_timeout = 0.0001;

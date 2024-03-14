@@ -28,22 +28,22 @@ namespace SharsorIPCpp {
         _vlevel(vlevel),
         _journal(Journal(_getThisName())),
         _trigger_cond(false,
-                basename + _trigger_cond_name,
+                basename + TRIGGER_COND_NAME,
                 name_space,
                 verbose,
                 vlevel),
         _ack_cond(false,
-                basename + _ack_cond_name,
+                basename + ACK_COND_NAME,
                 name_space,
                 verbose,
                 vlevel),
-        _trigger_counter_clnt(basename + _trigger_basename, 
+        _trigger_counter_clnt(basename + TRIGGER_BASENAME, 
             name_space,
             verbose,
             vlevel,
             false),
         _trigger_counter(1, 1),
-        _ack_counter_clnt(basename + _ack_basename, 
+        _ack_counter_clnt(basename + ACK_BASENAME, 
             name_space,
             verbose,
             vlevel,
@@ -234,7 +234,7 @@ namespace SharsorIPCpp {
 
     std::string Consumer::_getThisName(){
 
-        return _this_name;
+        return THISNAME;
     }
 
     void Consumer::_check_running(std::string calling_method) {
