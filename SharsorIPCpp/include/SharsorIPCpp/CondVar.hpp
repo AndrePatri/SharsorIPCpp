@@ -53,7 +53,8 @@ namespace SharsorIPCpp{
                     std::string basename,
                     std::string name_space = "",
                     bool verbose = false,
-                    VLevel vlevel = VLevel::V0);
+                    VLevel vlevel = VLevel::V0,
+                   bool force_reconnection = false);
 
             ~ConditionVariable();
 
@@ -92,6 +93,8 @@ namespace SharsorIPCpp{
             bool _is_server = false;
             
             bool _closed = false;
+            
+            bool _force_reconnection = false;
 
             std::string _basename, _namespace;
             
@@ -112,6 +115,8 @@ namespace SharsorIPCpp{
             boost::posix_time::ptime _utc_timeout;
             
             ScopedLock _lock;
+
+            void _cleanup_mem();
             
 
     };

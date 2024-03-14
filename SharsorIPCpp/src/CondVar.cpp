@@ -24,16 +24,32 @@ namespace SharsorIPCpp {
                    std::string basename,
                    std::string name_space,
                    bool verbose,
-                   VLevel vlevel)
+                   VLevel vlevel,
+                   bool force_reconnection)
         : _mem_config(basename, name_space),
         _basename(basename), _namespace(name_space),
         _is_server(is_server),
         _verbose(verbose),
         _vlevel(vlevel),
-        _journal(Journal(_getThisName()))
-        
+        _journal(Journal(_getThisName())),
+        _force_reconnection(force_reconnection)
     {
 
+        if (_force_reconnection && _is_server) {
+
+            if (_verbose &&
+                _vlevel > VLevel::V0) {
+            std::string warn = _basename + std::string("-") + _namespace + std::string(". About to preemptively ") + 
+                std::string(" delete mutex and cond var, since force_reconnection was set to true!");
+            _journal.log(__FUNCTION__,
+                warn,
+                LogType::WARN);
+            }
+
+            _cleanup_mem();
+
+        }
+        
         _cond_ptr = std::make_unique<NamedCondition>(
                             boost::interprocess::open_or_create, 
                             _mem_config.mem_path_cond_var.c_str());
@@ -139,18 +155,7 @@ namespace SharsorIPCpp {
 
         if (_is_server && !_closed) {
 
-            std::string info = std::string("Cleaning up named mutex at ") + 
-                std::string(_mem_config.mem_path_cond_var_mutex) + 
-                std::string(" and condition variable at ") + 
-                std::string(_mem_config.mem_path_cond_var);
-
-            _journal.log(__FUNCTION__,
-                info,
-                LogType::STAT);
-
-            // Destroy named mutex and named condition variable
-            NamedMutex::remove(_mem_config.mem_path_cond_var_mutex.c_str());
-            NamedCondition::remove(_mem_config.mem_path_cond_var.c_str());
+            _cleanup_mem(); // clean mutex and condition var
 
         }
 
@@ -161,6 +166,27 @@ namespace SharsorIPCpp {
     std::string ConditionVariable::_getThisName(){
 
         return THISNAME;
+    }
+
+    void ConditionVariable::_cleanup_mem(){
+
+        if (_verbose &&
+                _vlevel > VLevel::V1) {
+
+            std::string info = std::string("Cleaning up named mutex at ") + 
+            std::string(_mem_config.mem_path_cond_var_mutex) + 
+            std::string(" and condition variable at ") + 
+            std::string(_mem_config.mem_path_cond_var);
+
+            _journal.log(__FUNCTION__,
+                info,
+                LogType::STAT);
+
+        }
+
+        // Destroy named mutex and named condition variable
+        NamedMutex::remove(_mem_config.mem_path_cond_var_mutex.c_str());
+        NamedCondition::remove(_mem_config.mem_path_cond_var.c_str());
     }
 
 }
