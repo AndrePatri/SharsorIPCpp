@@ -84,6 +84,8 @@ namespace SharsorIPCpp{
 
             int _fail_count = 0;
 
+            std::string _basename, _namespace;
+            
             std::string THISNAME = "SharsorIPCpp::Consumer";
             
             std::string TRIGGER_COND_NAME = "TriggerCond";

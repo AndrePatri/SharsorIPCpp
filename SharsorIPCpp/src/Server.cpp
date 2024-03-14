@@ -196,12 +196,12 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-            std::string info = std::string("Server at ") +
-                    _mem_config.mem_path + std::string(" transitioned to running state.");
+                std::string info = std::string("Server at ") +
+                        _mem_config.mem_path + std::string(" transitioned to running state.");
 
-            _journal.log(__FUNCTION__,
-                info,
-                LogType::STAT);
+                _journal.log(__FUNCTION__,
+                    info,
+                    LogType::STAT);
 
             }
 

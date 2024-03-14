@@ -49,7 +49,9 @@ namespace SharsorIPCpp {
             vlevel,
             false),
         _ack_counter(1, 1),
-        _closed(true)
+        _closed(true),
+        _basename(basename),
+        _namespace(name_space)
     {
 
     }
@@ -70,6 +72,18 @@ namespace SharsorIPCpp {
             _closed = false;
 
             _internal_trigger_counter = 0;
+
+            if (_verbose &&
+                _vlevel > VLevel::V1) {
+
+                std::string info = std::string("Consumer ")+_basename+std::string("-")+_namespace
+                    + std::string(" transitioned to running state.");
+
+                _journal.log(__FUNCTION__,
+                    info,
+                    LogType::STAT);
+
+            }
         }
     }
 

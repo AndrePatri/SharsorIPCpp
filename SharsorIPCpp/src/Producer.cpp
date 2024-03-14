@@ -54,7 +54,9 @@ namespace SharsorIPCpp {
             force_reconnection, 
             false),
         _ack_counter(1, 1),
-        _closed(true)
+        _closed(true),
+        _basename(basename),
+        _namespace(name_space)
     {
 
     }
@@ -67,7 +69,7 @@ namespace SharsorIPCpp {
     void Producer::run() {
 
         if (!_is_running) {
-            
+
             _trigger_counter_srvr.run();
             _ack_counter_srvr.run();
 
@@ -77,6 +79,18 @@ namespace SharsorIPCpp {
             _closed = false;
 
             _acks_before = 0;
+
+            if (_verbose &&
+                _vlevel > VLevel::V1) {
+
+                std::string info = std::string("Producer ")+_basename+std::string("-")+_namespace  
+                    + std::string(" transitioned to running state.");
+
+                _journal.log(__FUNCTION__,
+                    info,
+                    LogType::STAT);
+
+            }
         }
 
     }

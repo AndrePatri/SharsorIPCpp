@@ -81,6 +81,8 @@ namespace SharsorIPCpp{
 
             int _acks_before = 0;
             
+            std::string _basename, _namespace;
+            
             std::string THISNAME = "SharsorIPCpp::Producer";
             
             std::string TRIGGER_COND_NAME = "TriggerCond";
