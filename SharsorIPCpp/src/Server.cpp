@@ -133,6 +133,18 @@ namespace SharsorIPCpp {
 
         _terminated = false; // just in case
 
+        if (_verbose &&
+            _vlevel > VLevel::V1) {
+
+            std::string info = std::string("Server at ") +
+                    _mem_config.mem_path + std::string(" initialized. Ready to run");
+
+            _journal.log(__FUNCTION__,
+                info,
+                LogType::STAT);
+
+        }
+
     }
 
     template <typename Scalar, int Layout>
@@ -180,6 +192,18 @@ namespace SharsorIPCpp {
             // set the running flag to true
             _running = true;
             _isrunning_view(0, 0) = 1; // for the clients
+
+            if (_verbose &&
+                _vlevel > VLevel::V1) {
+
+            std::string info = std::string("Server at ") +
+                    _mem_config.mem_path + std::string(" transitioned to running state.");
+
+            _journal.log(__FUNCTION__,
+                info,
+                LogType::STAT);
+
+            }
 
         }
 

@@ -109,7 +109,7 @@ namespace SharsorIPCpp {
         if (_verbose &&
             _vlevel > VLevel::V1) {
 
-            std::string info = std::string("Initializing Client at ") +
+            std::string info = std::string("Initializing and attaching Client at ") +
                     _mem_config.mem_path;
 
             _journal.log(__FUNCTION__,
@@ -147,6 +147,18 @@ namespace SharsorIPCpp {
         _releaseData();
 
         _attached = true;
+
+        if (_verbose &&
+            _vlevel > VLevel::V1) {
+
+            std::string info = std::string("Client at ") +
+                    _mem_config.mem_path + std::string(" initialized and attached.");
+
+            _journal.log(__FUNCTION__,
+                 info,
+                 LogType::STAT);
+
+        }
     }
 
     template <typename Scalar, int Layout>
