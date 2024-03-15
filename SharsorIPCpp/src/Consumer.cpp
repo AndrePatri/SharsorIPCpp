@@ -27,16 +27,6 @@ namespace SharsorIPCpp {
         : _verbose(verbose),
         _vlevel(vlevel),
         _journal(Journal(_getThisName())),
-        _trigger_cond(false,
-                basename + TRIGGER_COND_NAME,
-                name_space,
-                verbose,
-                vlevel),
-        _ack_cond(false,
-                basename + ACK_COND_NAME,
-                name_space,
-                verbose,
-                vlevel),
         _trigger_counter_clnt(basename + TRIGGER_BASENAME, 
             name_space,
             verbose,
@@ -68,6 +58,10 @@ namespace SharsorIPCpp {
             _trigger_counter_clnt.attach();
             _ack_counter_clnt.attach();
             
+            _open_cond_vars(); // we open the condition variables
+            // only after client attachment has succeded (this guarantees mutexes
+            // and cond. vars where created by the producer)
+
             _is_running = true;
             _closed = false;
 
@@ -102,7 +96,7 @@ namespace SharsorIPCpp {
 
         _check_running(std::string(__FUNCTION__));
 
-        ScopedLock trigger_lock = _trigger_cond.lock();
+        ScopedLock trigger_lock = _trigger_cond_ptr->lock();
 
         _trigger_received = false;
 
@@ -156,7 +150,7 @@ namespace SharsorIPCpp {
 
         _check_running(std::string(__FUNCTION__));
 
-        ScopedLock ack_lock = _ack_cond.lock();
+        ScopedLock ack_lock = _ack_cond_ptr->lock();
 
         return _acknowledge();
 
@@ -190,10 +184,26 @@ namespace SharsorIPCpp {
             
         }
 
-        _ack_cond.notify_one();
+        _ack_cond_ptr->notify_one();
 
         return _fail_count == 0;
         
+    }
+
+    void Consumer::_open_cond_vars() {
+        
+        bool is_server = false; // this is a consumer
+        _trigger_cond_ptr = std::make_unique<ConditionVariable>(is_server,
+                _basename + TRIGGER_COND_NAME,
+                _namespace,
+                _verbose,
+                _vlevel);
+        _ack_cond_ptr = std::make_unique<ConditionVariable>(is_server,
+                _basename + ACK_COND_NAME,
+                _namespace,
+                _verbose,
+                _vlevel);
+
     }
 
     bool Consumer::_check_trigger_received() {
@@ -233,13 +243,13 @@ namespace SharsorIPCpp {
 
         if (ms_timeout > 0) {
 
-            _timeout = !(_trigger_cond.timedwait(lock, ms_timeout)); // wait with timeout
+            _timeout = !(_trigger_cond_ptr->timedwait(lock, ms_timeout)); // wait with timeout
             
             return !_timeout;
 
         } else {
 
-            _trigger_cond.wait(lock); // blocking
+            _trigger_cond_ptr->wait(lock); // blocking
 
             return true;
         }

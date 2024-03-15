@@ -71,7 +71,9 @@ namespace SharsorIPCpp{
         private:
 
             bool _verbose = false;
-            
+
+            bool _force_reconnection = false;
+
             bool _closed = false;
             bool _is_running = false;
 
@@ -95,8 +97,8 @@ namespace SharsorIPCpp{
 
             Journal _journal; // for rt-friendly logging
 
-            ConditionVariable _trigger_cond;
-            ConditionVariable _ack_cond;
+            ConditionVariable::UniquePtr _trigger_cond_ptr;
+            ConditionVariable::UniquePtr _ack_cond_ptr;
 
             SharedCounter _trigger_counter_srvr;
             CounterView _trigger_counter;
@@ -106,6 +108,8 @@ namespace SharsorIPCpp{
 
             std::string _getThisName(); // used to get this class
             // name
+
+            void _create_cond_vars();
 
             void _check_running(std::string calling_method);
 

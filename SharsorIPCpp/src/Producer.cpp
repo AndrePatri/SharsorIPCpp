@@ -28,18 +28,6 @@ namespace SharsorIPCpp {
         : _verbose(verbose),
         _vlevel(vlevel),
         _journal(Journal(_getThisName())),
-        _trigger_cond(true,
-                basename + TRIGGER_COND_NAME,
-                name_space,
-                verbose,
-                vlevel,
-                false),
-        _ack_cond(true,
-                basename + ACK_COND_NAME,
-                name_space,
-                verbose,
-                vlevel,
-                false),
         _trigger_counter_srvr(1, 1,
             basename + TRIGGER_BASENAME, 
             name_space,
@@ -58,7 +46,8 @@ namespace SharsorIPCpp {
         _ack_counter(1, 1),
         _closed(true),
         _basename(basename),
-        _namespace(name_space)
+        _namespace(name_space),
+        _force_reconnection(force_reconnection)
     {
 
     }
@@ -71,6 +60,8 @@ namespace SharsorIPCpp {
     void Producer::run() {
 
         if (!_is_running) {
+
+            _create_cond_vars(); // we first create the condition variables
 
             _trigger_counter_srvr.run();
             _ack_counter_srvr.run();
@@ -114,11 +105,11 @@ namespace SharsorIPCpp {
 
         _check_running(std::string(__FUNCTION__));
 
-        ScopedLock trigger_lock = _trigger_cond.lock();
+        ScopedLock trigger_lock = _trigger_cond_ptr->lock();
         
         _increment_trigger();
 
-        _trigger_cond.notify_all();
+        _trigger_cond_ptr->notify_all();
     }
 
     bool Producer::wait_ack_from(int n_consumers,
@@ -126,7 +117,7 @@ namespace SharsorIPCpp {
         
         _check_running(std::string(__FUNCTION__));
 
-        ScopedLock ack_lock = _ack_cond.lock();
+        ScopedLock ack_lock = _ack_cond_ptr->lock();
         
         _ack_completed = false;
 
@@ -150,9 +141,29 @@ namespace SharsorIPCpp {
         
     }
     
+    void Producer::_create_cond_vars() {
+
+        bool is_server = true; // this is a consumer
+
+        _trigger_cond_ptr = std::make_unique<ConditionVariable>(is_server,
+                            _basename + TRIGGER_COND_NAME,
+                            _namespace,
+                            _verbose,
+                            _vlevel,
+                            _force_reconnection);
+
+        _ack_cond_ptr = std::make_unique<ConditionVariable>(is_server,
+                _basename + ACK_COND_NAME,
+                _namespace,
+                _verbose,
+                _vlevel,
+                _force_reconnection);
+
+    }
+
     void Producer::_init_counters() {
 
-        ScopedLock trigger_lock = _trigger_cond.lock();
+        ScopedLock trigger_lock = _trigger_cond_ptr->lock();
         _trigger_counter(0, 0) = 0; // initialize shared counter to 0
         if (!_trigger_counter_srvr.write(_trigger_counter, 0, 0)) {
             _journal.log(__FUNCTION__,
@@ -161,7 +172,7 @@ namespace SharsorIPCpp {
                 true); // throw exception
         }
 
-        ScopedLock ack_lock = _ack_cond.lock();
+        ScopedLock ack_lock = _ack_cond_ptr->lock();
         _ack_counter(0, 0) = 0; // initialize shared counter to 0
         if (!_ack_counter_srvr.write(_ack_counter, 0, 0)) {
             _journal.log(__FUNCTION__,
@@ -212,13 +223,13 @@ namespace SharsorIPCpp {
 
         if (ms_timeout > 0) {
 
-            _timeout = !(_ack_cond.timedwait(ack_lock, ms_timeout)); // wait with timeout
+            _timeout = !(_ack_cond_ptr->timedwait(ack_lock, ms_timeout)); // wait with timeout
             
             return !_timeout;
 
         } else {
 
-            _ack_cond.wait(ack_lock); // blocking
+            _ack_cond_ptr->wait(ack_lock); // blocking
 
             return true;
         }
