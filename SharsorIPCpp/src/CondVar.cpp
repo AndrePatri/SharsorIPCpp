@@ -50,34 +50,33 @@ namespace SharsorIPCpp {
 
                 if (!_cleanup_mem()) {
                     if (_verbose) {
-                        std::string exception = _basename + std::string("-") + _namespace + std::string(". Could not ") + 
+                        std::string warn = _basename + std::string("-") + _namespace + std::string(". Could not ") + 
                             std::string(" delete mutex and cond var!");
                         _journal.log(__FUNCTION__,
-                            exception,
-                            LogType::EXCEP), 
+                            warn,
+                            LogType::WARN), 
                             true;
                     }
                 }
+            }
 
-                _cond_ptr = std::make_unique<NamedCondition>(
+            _cond_ptr = std::make_unique<NamedCondition>(
                             boost::interprocess::create_only, 
                             _mem_config.mem_path_cond_var.c_str());
                             
-                _mutex_ptr = std::make_unique<NamedMutex>(
-                                    boost::interprocess::create_only,
-                                    _mem_config.mem_path_cond_var_mutex.c_str());
-
-            }
+            _mutex_ptr = std::make_unique<NamedMutex>(
+                                boost::interprocess::create_only,
+                                _mem_config.mem_path_cond_var_mutex.c_str());
 
         } else {
 
-                _cond_ptr = std::make_unique<NamedCondition>(
-                            boost::interprocess::open_only, 
-                            _mem_config.mem_path_cond_var.c_str());
-                            
-                _mutex_ptr = std::make_unique<NamedMutex>(
-                                    boost::interprocess::open_only,
-                                    _mem_config.mem_path_cond_var_mutex.c_str());
+            _cond_ptr = std::make_unique<NamedCondition>(
+                        boost::interprocess::open_only, 
+                        _mem_config.mem_path_cond_var.c_str());
+                        
+            _mutex_ptr = std::make_unique<NamedMutex>(
+                                boost::interprocess::open_only,
+                                _mem_config.mem_path_cond_var_mutex.c_str());
         }
 
     }
