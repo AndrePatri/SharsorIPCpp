@@ -35,28 +35,50 @@ namespace SharsorIPCpp {
         _force_reconnection(force_reconnection)
     {
 
-        if (_force_reconnection && _is_server) {
+        if (_is_server) {
 
-            if (_verbose &&
-                _vlevel > VLevel::V0) {
-            std::string warn = _basename + std::string("-") + _namespace + std::string(". About to preemptively ") + 
-                std::string(" delete mutex and cond var, since force_reconnection was set to true!");
-            _journal.log(__FUNCTION__,
-                warn,
-                LogType::WARN);
-            }
+            if (_force_reconnection) {
 
-            _cleanup_mem();
+                if (_verbose &&
+                    _vlevel > VLevel::V0) {
+                    std::string warn = _basename + std::string("-") + _namespace + std::string(". About to preemptively ") + 
+                        std::string(" delete mutex and cond var, since force_reconnection was set to true!");
+                    _journal.log(__FUNCTION__,
+                        warn,
+                        LogType::WARN);
+                }
 
-        }
-        
-        _cond_ptr = std::make_unique<NamedCondition>(
-                            boost::interprocess::open_or_create, 
+                if (!_cleanup_mem()) {
+                    if (_verbose) {
+                        std::string exception = _basename + std::string("-") + _namespace + std::string(". Could not ") + 
+                            std::string(" delete mutex and cond var!");
+                        _journal.log(__FUNCTION__,
+                            exception,
+                            LogType::EXCEP), 
+                            true;
+                    }
+                }
+
+                _cond_ptr = std::make_unique<NamedCondition>(
+                            boost::interprocess::create_only, 
                             _mem_config.mem_path_cond_var.c_str());
                             
-        _mutex_ptr = std::make_unique<NamedMutex>(
-                            boost::interprocess::open_or_create,
-                            _mem_config.mem_path_cond_var_mutex.c_str());
+                _mutex_ptr = std::make_unique<NamedMutex>(
+                                    boost::interprocess::create_only,
+                                    _mem_config.mem_path_cond_var_mutex.c_str());
+
+            }
+
+        } else {
+
+                _cond_ptr = std::make_unique<NamedCondition>(
+                            boost::interprocess::open_only, 
+                            _mem_config.mem_path_cond_var.c_str());
+                            
+                _mutex_ptr = std::make_unique<NamedMutex>(
+                                    boost::interprocess::open_only,
+                                    _mem_config.mem_path_cond_var_mutex.c_str());
+        }
 
     }
 
@@ -155,8 +177,17 @@ namespace SharsorIPCpp {
 
         if (_is_server && !_closed) {
 
-            _cleanup_mem(); // clean mutex and condition var
+            if (!_cleanup_mem()) { // clean mutex and condition var
 
+                if (_verbose) {
+                    std::string exception = _basename + std::string("-") + _namespace + std::string(". Could not ") + 
+                        std::string(" delete mutex and cond var!");
+                    _journal.log(__FUNCTION__,
+                        exception,
+                        LogType::EXCEP), 
+                        true;
+                }
+            } 
         }
 
         _closed = true;
@@ -168,7 +199,7 @@ namespace SharsorIPCpp {
         return THISNAME;
     }
 
-    void ConditionVariable::_cleanup_mem(){
+    bool ConditionVariable::_cleanup_mem(){
 
         if (_verbose &&
                 _vlevel > VLevel::V1) {
@@ -185,8 +216,10 @@ namespace SharsorIPCpp {
         }
 
         // Destroy named mutex and named condition variable
-        NamedMutex::remove(_mem_config.mem_path_cond_var_mutex.c_str());
-        NamedCondition::remove(_mem_config.mem_path_cond_var.c_str());
+        bool named_mutex_rm_ok = NamedMutex::remove(_mem_config.mem_path_cond_var_mutex.c_str());
+        bool named_cond_rm_ok = NamedCondition::remove(_mem_config.mem_path_cond_var.c_str());
+
+        return named_mutex_rm_ok && named_cond_rm_ok;
     }
 
 }

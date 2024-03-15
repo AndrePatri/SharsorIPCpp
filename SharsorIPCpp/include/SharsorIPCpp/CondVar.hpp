@@ -80,7 +80,7 @@ namespace SharsorIPCpp{
             void notify_one();
 
             void notify_all();
-
+            
             void close();
             
             std::string mutex_path();
@@ -116,7 +116,7 @@ namespace SharsorIPCpp{
             
             ScopedLock _lock;
 
-            void _cleanup_mem();
+            bool _cleanup_mem();
             
 
     };
