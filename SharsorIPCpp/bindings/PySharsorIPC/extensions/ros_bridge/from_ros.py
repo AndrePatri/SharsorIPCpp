@@ -119,9 +119,9 @@ class FromRos():
                         throw_when_excep = True)
 
     def _write_to_shared(self,
-                    wait: bool = True):
+                    retry: bool = True):
         
-        if wait:
+        if retry:
             
             while not self._server.write(self._subscriber.np_data[:, :], 0, 0):
                 

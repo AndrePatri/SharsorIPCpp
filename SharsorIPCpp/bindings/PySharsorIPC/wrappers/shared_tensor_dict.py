@@ -1,4 +1,4 @@
-from SharsorIPCpp.PySharsor.wrappers.shared_data_view import SharedDataView
+from SharsorIPCpp.PySharsor.wrappers.shared_data_view import SharedTWrapper
 from SharsorIPCpp.PySharsorIPC import VLevel
 from SharsorIPCpp.PySharsorIPC import dtype as sharsor_dtype, toNumpyDType
 
@@ -76,7 +76,7 @@ class SharedTensorDict():
 
             self.shared_names.close()
             
-    class DataDims(SharedDataView):
+    class DataDims(SharedTWrapper):
         
         def __init__(self,
             dims: List[int] = None,
@@ -131,20 +131,20 @@ class SharedTensorDict():
 
                 dims = np.array(self.dims, dtype=toNumpyDType(self.shared_mem.getScalarType())).reshape((len(self.dims), 1))
 
-                self.write_wait(data = dims, row_index= 0,
+                self.write_retry(data = dims, row_index= 0,
                         col_index=0)
             
             else:
 
                 # updates shared dims
-                self.synch_all(read=True, wait=True)
+                self.synch_all(read=True, retry=True)
                 
-                self.dims = self.numpy_view[:, :].copy()
+                self.dims = self.get_numpy_view()[:, :].copy()
 
                 self.n_dims = self.n_rows
                 self.n_nodes = self.n_cols
                 
-    class Data(SharedDataView):
+    class Data(SharedTWrapper):
         
         def __init__(self,
             namespace = "",
@@ -238,7 +238,7 @@ class SharedTensorDict():
             self.names = self.shared_names.names
             
             # updates shared dims
-            self.shared_dims.synch_all(read=True, wait=True)
+            self.shared_dims.synch_all(read=True, retry=True)
 
             self.dimensions = self.shared_dims.dims.flatten().tolist()
 
@@ -248,7 +248,7 @@ class SharedTensorDict():
     def write(self,
         data: np.ndarray,
         name: str,
-        wait = True):
+        retry = True):
 
         # we assume names does not contain
         # duplicates
@@ -265,9 +265,9 @@ class SharedTensorDict():
 
         data_2D = np.atleast_2d(data)
 
-        if wait: 
+        if retry: 
 
-            self.data.write_wait(np.atleast_2d(data_2D), starting_idx, 0) # blocking
+            self.data.write_retry(np.atleast_2d(data_2D), starting_idx, 0) # blocking
             
             return True
         
@@ -276,7 +276,7 @@ class SharedTensorDict():
             return self.data.write(np.atleast_2d(data_2D), starting_idx, 0) # non-blocking
 
     def synch(self,
-            wait = True):
+            retry = True):
 
         # to be called before using get() on one or more data 
         # blocks
@@ -299,7 +299,7 @@ class SharedTensorDict():
 
             starting_idx += self.dimensions[index]
 
-        view = self.data.numpy_view[starting_idx:starting_idx + self.dimensions[index], :]
+        view = self.data.get_numpy_view()[starting_idx:starting_idx + self.dimensions[index], :]
 
         view_copy = view.copy()
 

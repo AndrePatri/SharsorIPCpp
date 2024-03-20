@@ -77,9 +77,9 @@ class ToRos():
                         throw_when_excep = True)
     
     def _synch_from_shared_mem(self,
-                    wait: bool = True):
+                    retry: bool = True):
 
-        if wait:
+        if retry:
             
             if not self._is_string_tensor:
 

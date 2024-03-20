@@ -20,7 +20,7 @@ def set_affinity(cores):
 
 order = 'C'
 
-client = SharedDataView(namespace = "Prova",
+client = SharedTWrapper(namespace = "Prova",
             basename = "ToRosTest",
             is_server = False, 
             verbose = True, 
@@ -98,7 +98,7 @@ try:
 
         start_time = time.perf_counter() 
 
-        # server.numpy_view[:, :] = np.random.rand(server.n_rows, server.n_cols)
+        # server.get_numpy_view()[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
         bridge.update()
         

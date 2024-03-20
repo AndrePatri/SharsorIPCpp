@@ -1,5 +1,3 @@
-import torch
-
 import numpy as np
 
 from SharsorIPCpp.PySharsorIPC import ServerFactory, ClientFactory
@@ -9,10 +7,8 @@ from SharsorIPCpp.PySharsorIPC import toNumpyDType
 from SharsorIPCpp.PySharsorIPC import dtype as sharsor_dtype 
 from SharsorIPCpp.PySharsorIPC import Journal as Logger
 from SharsorIPCpp.PySharsorIPC import LogType
-
-from typing import List, Union
     
-class SharedDataView:
+class SharedTWrapper:
 
     def __init__(self, 
             namespace = "",
@@ -23,6 +19,7 @@ class SharedDataView:
             verbose: bool = False, 
             vlevel: VLevel = VLevel.V0,
             dtype: sharsor_dtype = sharsor_dtype.Float,
+            with_torch_view: bool = False,
             with_gpu_mirror: bool = False,
             fill_value = None,
             safe = True,
@@ -41,8 +38,14 @@ class SharedDataView:
         self.is_server = is_server 
 
         self.shared_mem = None
+        self._numpy_view = None
+        self._torch_view = None
 
+        self._with_torch_view = with_torch_view
         self._with_gpu_mirror = with_gpu_mirror
+        if not self._with_torch_view: # no torch view -> cannot use gpu mirror
+            self._with_gpu_mirror = False
+
         self._gpu_mirror = None 
 
         self.dtype = dtype
@@ -57,7 +60,6 @@ class SharedDataView:
             self.order = 'F' # 'F'
 
         if self.is_server:
-            
             self.shared_mem = ServerFactory(n_rows = n_rows, 
                     n_cols = n_cols,
                     basename = self.basename,
@@ -68,9 +70,7 @@ class SharedDataView:
                     dtype = self.dtype,
                     layout = self.layout,
                     safe = self.safe)
-
         else:
-            
             self.shared_mem = ClientFactory(
                     basename = self.basename,
                     namespace = self.namespace, 
@@ -86,28 +86,16 @@ class SharedDataView:
         self.close()
 
     def _ensure2D(self, 
-                data: Union[np.ndarray, 
-                            torch.Tensor]):
-
-        if isinstance(data, np.ndarray):
-
-            if data.ndim != 2:
-
-                return False
+                data):
         
-        elif isinstance(data, torch.Tensor):
-            
-            if data.ndim != 2:
-
-                return False
-            
-        return True
+        if data.ndim == 2:
+            return True
+        else:
+            return False
 
     def _fits_into(self, 
-                data1: Union[np.ndarray, 
-                torch.Tensor], 
-                data2: Union[np.ndarray, 
-                torch.Tensor], 
+                data1, 
+                data2, 
                 row_index: int, 
                 col_index: int):
 
@@ -124,18 +112,14 @@ class SharedDataView:
     def _init_gpu_mirror(self):
         
         if self._with_gpu_mirror:
-
+            
+            import torch
             if torch.cuda.is_available():
-
                 # we copy torch view init. and dtype
                 # (of course the mirror has to be updated manually)
-
-                self._gpu_mirror = self.torch_view.to('cuda')
-
+                self._gpu_mirror = self._torch_view.to('cuda')
             else:
-
                 exception = f"GPU mirror cannot be initialized! No cuda device detected"
-
                 Logger.log(self.__class__.__name__,
                     "_init_gpu_mirror",
                     exception,
@@ -145,19 +129,14 @@ class SharedDataView:
     def get_n_clients(self):
 
         if self.is_server:
-
             return self.shared_mem.getNClients()
-        
         else:
-
             message = "Number of clients can be retrieved only if is_server = True!!"
-
             Logger.log(self.__class__.__name__,
                 "get_n_clients",
                 message,
                 LogType.EXCEP,
-                throw_when_excep = False)
-            
+                throw_when_excep = True)
             return -1
     
     def is_running(self):
@@ -182,163 +161,98 @@ class SharedDataView:
         # memory-wise. However, this way we gain in simplicity
                 
         if self.fill_value is not None:
-
-            self.numpy_view = np.full((self.n_rows, self.n_cols),
+            self._numpy_view = np.full((self.n_rows, self.n_cols),
                             self.fill_value,
                             dtype=toNumpyDType(self.shared_mem.getScalarType()),
                             order=self.order
                             )
-
         else:
-            
-            self.numpy_view = np.zeros((self.n_rows, self.n_cols),
+            self._numpy_view = np.zeros((self.n_rows, self.n_cols),
                                 dtype=toNumpyDType(self.shared_mem.getScalarType()),
                                 order=self.order 
                                 )
         
-        self.torch_view = torch.from_numpy(self.numpy_view) # changes in either the 
+        if self._with_torch_view:
+            import torch
+            self._torch_view = torch.from_numpy(self._numpy_view) # changes in either the 
         # numpy or torch view will be reflected into the other one
 
         # also write fill value to shared memory
 
         if self.fill_value is not None and self.is_server:
-                
-                # view is initialized with NaN -> 
-                # we write initialization
-                self.synch_all(read = False, 
-                        wait=True)
+            # view is initialized with NaN -> 
+            # we write initialization
+            self.synch_all(read = False, 
+                    retry=True)
         
         self._init_gpu_mirror() # does nothing if not _with_gpu_mirror
 
         self._is_running = True
                 
     def write(self, 
-            data: Union[bool, int, float, 
-                        np.float32, np.float64,
-                        np.ndarray, 
-                        torch.Tensor], 
+            data, 
             row_index: int, 
             col_index: int):
         
         if not self.shared_mem.isRunning():
-
             message = "You can only call write() if the run() method was previously called!"
-
             Logger.log(self.__class__.__name__,
                 "write",
                 message,
                 LogType.EXCEP,
-                throw_when_excep = False)
-            
+                throw_when_excep = True)
+        
         if isinstance(data, (int, float, bool,
                             np.float32, np.float64)):  
-
-            # write scalar into numpy view
-            self.numpy_view[row_index, col_index] = data
             
+            # write scalar into numpy view
+            self._numpy_view[row_index, col_index] = data
             # write to shared memory
-            return self.shared_mem.write(self.numpy_view[row_index:row_index + 1, 
+            return self.shared_mem.write(self._numpy_view[row_index:row_index + 1, 
                                                         col_index:col_index + 1], 
                                         row_index, col_index)
-
-        if isinstance(data, torch.Tensor):  
-            
-            if not self._ensure2D(data):
-                
-                message = "Provided data should be 2D!!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-                
-                return False
-            
-            if not self._fits_into(data, self.torch_view, 
-                                row_index, col_index):
-
-                message = "Provided data does not fit in torch view!!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-
-                return False
-            
-            input_rows, input_cols = data.shape
-
-            # insert data into part of torch view
-            self.torch_view[row_index:row_index + input_rows, 
-                    col_index:col_index + input_cols] = data
-            
-            # write corresponding part of numpy view to memory
-            return self.shared_mem.write(self.numpy_view[row_index:row_index + input_rows, 
-                        col_index:col_index + input_cols], row_index, col_index)
         
-        elif isinstance(data, np.ndarray):  # Check if data is a numpy array
-            
+        if isinstance(data, np.ndarray):  # Check if data is a numpy array
             if not self._ensure2D(data):
-                
                 message = "Provided data should be 2D!!"
-
                 Logger.log(self.__class__.__name__,
                     "write",
                     message,
                     LogType.EXCEP,
-                    throw_when_excep = False)
-                
-                return False
-            
-            if not self._fits_into(data, self.torch_view, 
+                    throw_when_excep = True)
+            if not self._fits_into(data, self._numpy_view, 
                                 row_index, col_index):
-
                 message = "Provided data does not fit in numpy view!!"
-
                 Logger.log(self.__class__.__name__,
                     "write",
                     message,
                     LogType.EXCEP,
-                    throw_when_excep = False)
-                                
-                return False
+                    throw_when_excep = True)
             
             input_rows, input_cols = data.shape
-
             # insert data into part of numpy view
-            self.numpy_view[row_index:row_index + input_rows, 
+            self._numpy_view[row_index:row_index + input_rows, 
                     col_index:col_index + input_cols] = data
-            
             # write corresponding part of numpy view to memory
-            return self.shared_mem.write(self.numpy_view[row_index:row_index + input_rows, 
-                        col_index:col_index + input_cols], row_index, col_index)
+            return self.shared_mem.write(self._numpy_view[row_index:row_index + input_rows, 
+                        col_index:col_index + input_cols], row_index, col_index)                
 
-        else:
+        # here reached only if not got one of the valid dtypes
+        message = "Unsupported data type provided. " + \
+            "Supported types are: bool, int, float, double, " + \
+            "numpy.ndarray"
+        Logger.log(self.__class__.__name__,
+            "write",
+            message,
+            LogType.EXCEP,
+            throw_when_excep = True)
 
-            message = "Unsupported data type provided. " + \
-                "Supported types are: bool, int, float, double, " + \
-                "torch.Tensor, numpy.ndarray"
-
-            Logger.log(self.__class__.__name__,
-                "write",
-                message,
-                LogType.EXCEP,
-                throw_when_excep = False)
-
-            return False
-
-    def write_wait(self,
-            data: Union[bool, int, float, 
-                        np.float32, np.float64,
-                        np.ndarray, 
-                        torch.Tensor], 
+    def write_retry(self,
+            data, 
             row_index: int, 
             col_index: int):
 
         # tries writing until success
-
         while not self.write(data=data,
                     row_index=row_index,
                     col_index=col_index):
@@ -348,154 +262,81 @@ class SharedDataView:
     def read(self, 
             row_index: int, 
             col_index: int, 
-            data: Union[np.ndarray, 
-                        torch.Tensor] = None):
+            data = None):
         
         if not self.shared_mem.isRunning():
-
             message = "You can only call read() if the run() method was previously called!"
-
             Logger.log(self.__class__.__name__,
                 "write",
                 message,
                 LogType.EXCEP,
-                throw_when_excep = False)
+                throw_when_excep = True)
             
-        if isinstance(data, torch.Tensor):  
-            
-            if not self._ensure2D(data):
-                
-                message = "Provided data should be 2D!!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-                
-                return None, False
-            
-            if not self._fits_into(data, self.torch_view, 
-                                row_index, col_index):
-
-                message = "Provided data does not fit in torch view!!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-
-                return None, False
-            
-            input_rows, input_cols = data.shape
-
-            # update block of numpy view from shared memory
-            success = self.shared_mem.read(self.numpy_view[row_index:row_index + input_rows, 
-                    col_index:col_index + input_cols], row_index, col_index)
-            
-            if not success:
-
-                return None, False
-            
-            # copy data into part of torch view
-            data[:, :] = self.torch_view[row_index:row_index + input_rows, 
-                    col_index:col_index + input_cols]
-            
-            return None, True
+        if data is None:
+            # we return a scalar reading of the underlying shared memory
+            success = self.shared_mem.read(self._numpy_view[row_index:row_index + 1, 
+                col_index:col_index + 1], row_index, col_index)
+            return self._numpy_view[row_index, 
+                col_index].item(), success
         
-        elif isinstance(data, np.ndarray):  
-            
-            if not self._ensure2D(data):
-                
-                message = "Provided data should be 2D!!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-                
-                return None, False
-            
-            if not self._fits_into(data, self.torch_view, 
-                                row_index, col_index):
-
-                message = "Provided data does not fit in torch view!!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-
-                return None, False
-            
-            input_rows, input_cols = data.shape
-
-            # update block of numpy view from shared memory
-            success = self.shared_mem.read(self.numpy_view[row_index:row_index + input_rows, 
-                    col_index:col_index + input_cols], row_index, col_index)
-            
-            if not success:
-
-                return None, False
-            
-            # copy data into part of numpy view
-            data[:, :] = self.numpy_view[row_index:row_index + input_rows, 
-                    col_index:col_index + input_cols]
-            
-            return None, True
-
         else:
-
-            if data is None:
-
-                # we return a scalar reading of the underlying shared memory
-                success = self.shared_mem.read(self.numpy_view[row_index:row_index + 1, 
-                    col_index:col_index + 1], row_index, col_index)
-                
-                return self.numpy_view[row_index, 
-                    col_index].item(), success
             
-            else:
+            if isinstance(data, np.ndarray):  
+                if not self._ensure2D(data):
+                    message = "Provided data should be 2D!!"
+                    Logger.log(self.__class__.__name__,
+                        "write",
+                        message,
+                        LogType.EXCEP,
+                        throw_when_excep = True)
+                if not self._fits_into(data, self._torch_view, 
+                                    row_index, col_index):
+                    message = "Provided data does not fit in data view!!"
+                    Logger.log(self.__class__.__name__,
+                        "write",
+                        message,
+                        LogType.EXCEP,
+                        throw_when_excep = True)
+                
+                input_rows, input_cols = data.shape
 
-                # data is provided, but it's neither a ndarray nor a tensor
+                # update block of numpy view from shared memory
+                success = self.shared_mem.read(self._numpy_view[row_index:row_index + input_rows, 
+                        col_index:col_index + input_cols], row_index, col_index)
+                if not success:
+                    return None, False
+                
+                # copy data into part of numpy view
+                data[:, :] = self._numpy_view[row_index:row_index + input_rows, 
+                        col_index:col_index + input_cols]
+                
+                return None, True
+        
+            # data is provided, but it's neither a ndarray nor a tensor nor None -> throw exception
+            message = "Provided data has to be either " + \
+            f"numpy.ndarray or None! Got {type(data)}"
+            Logger.log(self.__class__.__name__,
+                "write",
+                message,
+                LogType.EXCEP,
+                throw_when_excep = True)
+            return None, False
 
-                message = "Provided data has to be either " + \
-                "torch.Tensor, numpy.ndarray or None!"
-
-                Logger.log(self.__class__.__name__,
-                    "write",
-                    message,
-                    LogType.EXCEP,
-                    throw_when_excep = False)
-
-                return None, False
-
-    def read_wait(self, 
+    def read_retry(self, 
             row_index: int, 
             col_index: int, 
-            data: Union[np.ndarray, 
-                        torch.Tensor] = None):
+            data = None):
         
         # tries reading until success
-
         read_done = False
-
         while not read_done: 
-            
             data_read, read_done = self.read(
                                 row_index=row_index,
                                 col_index=col_index,
                                 data=data)
-            
             if read_done:
-
                 return data_read, read_done
-            
             else:
-
                 continue
 
     def synch(self, 
@@ -512,70 +353,55 @@ class SharedDataView:
         end_row_index = row_index + n_rows
         end_col_index = col_index + n_cols
 
-        # Check it's possible to sin fits within the bounds 
-
-        fits = (end_row_index <= self.numpy_view.shape[0] \
-            and end_col_index <= self.numpy_view.shape[1])
-        
+        # Check if we are withing bounds
+        fits = (end_row_index <= self._numpy_view.shape[0] \
+            and end_col_index <= self._numpy_view.shape[1])
         if not fits:
-
             return False
         
         if read:
-            
-            success = self.shared_mem.read(self.numpy_view[row_index:row_index + n_rows, 
+            success = self.shared_mem.read(self._numpy_view[row_index:row_index + n_rows, 
                     col_index:col_index + n_cols], row_index, col_index)
             
             return success
-            
         else:
-            
-            success = self.shared_mem.write(self.numpy_view[row_index:row_index + n_rows, 
+            success = self.shared_mem.write(self._numpy_view[row_index:row_index + n_rows, 
                     col_index:col_index + n_cols], row_index, col_index)
             
             return success
     
-    def synch_wait(self, 
+    def synch_retry(self, 
         row_index: int, 
         col_index: int, 
         n_rows: int,
         n_cols: int,
         read: bool = True):
 
+        # tries synching until success
         while not self.synch(row_index=row_index,
                         col_index=col_index,
                         n_rows=n_rows,
                         n_cols=n_cols,
                         read=read):
-            
             continue
         
     def synch_all(self, 
             read: bool = True, 
-            wait = False):
+            retry = False):
         
         # synch whole view from shared memory
+        if retry:
 
-        if wait:
-            
-            self.synch_wait(row_index=0, col_index=0, 
+            self.synch_retry(row_index=0, col_index=0, 
                         n_rows=self.n_rows, n_cols=self.n_cols, 
                         read=read)
-            
             return True
 
         else:
-
+            
             return self.synch(row_index=0, col_index=0, 
                         n_rows=self.n_rows, n_cols=self.n_cols, 
                         read=read)
-
-    def fill_with(self, 
-            value: Union[bool, int, float, 
-                        np.float32, np.float64]):
-
-        # fill in place with unique value
-        self.torch_view.fill_(value)
 
     def gpu_mirror_exists(self):
 
@@ -584,25 +410,33 @@ class SharedDataView:
     def get_torch_view(self, 
                 gpu: bool = False):
         
-        if not gpu:
+        if self._with_torch_view:
 
-            return self.torch_view
+            if not gpu:
+                return self._torch_view
         
+            else:
+                return self._gpu_mirror
+            
         else:
-
-            return self._gpu_mirror
-    
+            exception = f"Torch view is not available!"+\
+                "Did you set the with_torch_view flag in the constructor?"
+            Logger.log(self.__class__.__name__,
+                "get_torch_view",
+                exception,
+                LogType.EXCEP,
+                throw_when_excep = True)
+            
     def get_numpy_view(self):
 
-        return self.numpy_view
+        return self._numpy_view
     
     def synch_mirror(self,
                 from_gpu: bool):
         
         if self._gpu_mirror is None:
-            
-            exception = f"Cannot be called since no GPU mirror is available!"
-
+            exception = f"Cannot be called since no GPU mirror is available! " + \
+                "Did you set the with_gpu_mirror in the contructor to True?"
             Logger.log(self.__class__.__name__,
                 "synch_mirror",
                 exception,
@@ -610,17 +444,11 @@ class SharedDataView:
                 throw_when_excep = True)
 
         if from_gpu:
-
-            # synch cpu torch view from latest gpu mirror data 
-            
-            self.torch_view[:, :] = self._gpu_mirror.cpu()
-            
-
+            # synch cpu torch view from latest gpu mirror data (GPU -> CPU)
+            self._torch_view[:, :] = self._gpu_mirror.cpu()
         else:
-
-            # synch gpu torch data from torch view on cpu
-
-            self._gpu_mirror[:, :] = self.torch_view.to('cuda')
+            # synch gpu torch data from torch view on cpu (CPU -> GPU)
+            self._gpu_mirror[:, :] = self._torch_view.to('cuda')
 
         # torch.cuda.synchronize() # ensuring that all the streams on the GPU are completed \
         # before the CPU continues execution
@@ -629,11 +457,8 @@ class SharedDataView:
                     timeout: float = None):
 
         if timeout is None:
-
             self.shared_mem.dataSemAcquire()
-
         else:
-
             self.shared_mem.dataSemAcquireDt(timeout)
 
     def data_sem_release(self):
@@ -643,16 +468,10 @@ class SharedDataView:
     def to_zero(self):
 
         if self._gpu_mirror is not None:
-
             self._gpu_mirror.zero_() # reset gpu view
             
-            self.synch_mirror(from_gpu=True) # write to cpu
-        
-        else:
-
-            self.torch_view.zero_() # reset torch view on CPU
-
-        self.synch_all(read=False, wait=True) # writes to shared mem
+        self._numpy_view.zero_() # reset numpy view on CPU            
+        self.synch_all(read=False, retry=True) # writes to shared mem
 
     def close(self):
 
