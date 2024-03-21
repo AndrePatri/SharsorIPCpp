@@ -469,8 +469,7 @@ class SharedTWrapper:
 
         if self._gpu_mirror is not None:
             self._gpu_mirror.zero_() # reset gpu view
-            
-        self._numpy_view.zero_() # reset numpy view on CPU            
+        self._numpy_view[:, :] = 0  # reset numpy view on CPU            
         self.synch_all(read=False, retry=True) # writes to shared mem
 
     def close(self):
