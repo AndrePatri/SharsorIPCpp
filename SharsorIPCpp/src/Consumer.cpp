@@ -41,7 +41,8 @@ namespace SharsorIPCpp {
         _ack_counter(1, 1),
         _closed(true),
         _basename(basename),
-        _namespace(name_space)
+        _namespace(name_space),
+        _unique_id(std::string("->")+ basename+std::string("-")+name_space)
     {
 
     }
@@ -70,11 +71,8 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Consumer ")+_basename+std::string("-")+_namespace
-                    + std::string(" transitioned to running state.");
-
-                _journal.log(__FUNCTION__,
-                    info,
+                _journal.log(__FUNCTION__+_unique_id,
+                    "Transitioned to running state.",
                     LogType::STAT);
 
             }
@@ -162,7 +160,7 @@ namespace SharsorIPCpp {
 
         if (!_ack_counter_clnt.read(_ack_counter, 0, 0)) {
 
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 "Could not read acknowledge counter!",
                 LogType::EXCEP, 
                 false); // throw exception
@@ -175,7 +173,7 @@ namespace SharsorIPCpp {
         
         if (!_ack_counter_clnt.write(_ack_counter, 0, 0)) {
 
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 "Could not write acknowledge counter!",
                 LogType::EXCEP, 
                 false); // throw exception
@@ -218,7 +216,7 @@ namespace SharsorIPCpp {
             
             std::string excep = std::string("Found trigger increment < 0 or > 1. Got ") + 
                 std::to_string(_trigger_counter_increment);
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 excep,
                 LogType::EXCEP, 
                 true); // throw exception
@@ -265,7 +263,7 @@ namespace SharsorIPCpp {
 
         if (!_is_running) {
 
-            _journal.log(calling_method,
+            _journal.log(calling_method+_unique_id,
                 "Not running. Did you call the run() method?",
                 LogType::EXCEP, 
                 true); // throw exception

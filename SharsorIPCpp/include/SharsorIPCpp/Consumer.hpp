@@ -84,7 +84,7 @@ namespace SharsorIPCpp{
 
             int _fail_count = 0;
 
-            std::string _basename, _namespace;
+            std::string _basename, _namespace, _unique_id;
             
             std::string THISNAME = "SharsorIPCpp::Consumer";
             

@@ -47,6 +47,7 @@ namespace SharsorIPCpp {
         _closed(true),
         _basename(basename),
         _namespace(name_space),
+        _unique_id(std::string("->")+ basename+std::string("-")+name_space),
         _force_reconnection(force_reconnection)
     {
 
@@ -76,11 +77,8 @@ namespace SharsorIPCpp {
             if (_verbose &&
                 _vlevel > VLevel::V1) {
 
-                std::string info = std::string("Producer ")+_basename+std::string("-")+_namespace  
-                    + std::string(" transitioned to running state.");
-
-                _journal.log(__FUNCTION__,
-                    info,
+                _journal.log(__FUNCTION__+_unique_id,
+                    "Transitioned to running state.",
                     LogType::STAT);
 
             }
@@ -166,7 +164,7 @@ namespace SharsorIPCpp {
         ScopedLock trigger_lock = _trigger_cond_ptr->lock();
         _trigger_counter(0, 0) = 0; // initialize shared counter to 0
         if (!_trigger_counter_srvr.write(_trigger_counter, 0, 0)) {
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 "Could not initialize trigger counter!",
                 LogType::EXCEP, 
                 true); // throw exception
@@ -175,7 +173,7 @@ namespace SharsorIPCpp {
         ScopedLock ack_lock = _ack_cond_ptr->lock();
         _ack_counter(0, 0) = 0; // initialize shared counter to 0
         if (!_ack_counter_srvr.write(_ack_counter, 0, 0)) {
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 "Could not initialize acknowledge counter!",
                 LogType::EXCEP, 
                 true); // throw exception
@@ -187,7 +185,7 @@ namespace SharsorIPCpp {
 
         _trigger_counter.array() += 1; // increment counter 
         if (!_trigger_counter_srvr.write(_trigger_counter, 0, 0)) {
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 "Could not increment trigger counter!",
                 LogType::EXCEP, 
                 true); // throw exception
@@ -199,7 +197,7 @@ namespace SharsorIPCpp {
 
         if (!_ack_counter_srvr.read(_ack_counter, 0, 0)) {
 
-            _journal.log(__FUNCTION__,
+            _journal.log(__FUNCTION__+_unique_id,
                 "Could not read acknowledge counter!",
                 LogType::EXCEP, 
                 true); // throw exception
@@ -245,7 +243,7 @@ namespace SharsorIPCpp {
 
         if (!_is_running) {
 
-            _journal.log(calling_method,
+            _journal.log(calling_method+_unique_id,
                 "Not running. Did you call the run() method?",
                 LogType::EXCEP, 
                 true); // throw exception

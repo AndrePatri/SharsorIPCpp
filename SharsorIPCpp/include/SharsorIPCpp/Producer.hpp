@@ -83,7 +83,7 @@ namespace SharsorIPCpp{
 
             int _acks_before = 0;
             
-            std::string _basename, _namespace;
+            std::string _basename, _namespace, _unique_id;
             
             std::string THISNAME = "SharsorIPCpp::Producer";
             
