@@ -282,7 +282,7 @@ class SharedTensorDict():
         # blocks
 
         # updates the whole view with shared data
-        return self.data.synch_all(read = True, wait = wait)
+        return self.data.synch_all(read = True, retry = retry)
 
     def get(self,
         name: str):
