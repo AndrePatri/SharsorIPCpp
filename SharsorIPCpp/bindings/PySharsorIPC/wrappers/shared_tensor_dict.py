@@ -13,7 +13,7 @@ from typing import List
 class SharedTensorDict():
 
     # A basic implementation of a shared dictionary. 
-    # key - numpy.ndarray
+    # key -> numpy.ndarray
 
     class Names():
         
