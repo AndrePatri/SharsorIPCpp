@@ -9,11 +9,12 @@ Rt-friendly 2D **shared tensors** built on top of **POSIX IPC** standards and [*
 
 ### 1. Features:
 - SharsorIPCpp leverages *POSIX* *shared memory* and *semaphores* primitives in conjunction with Eigen's matrix API to create shared views of tensors over **multiple processes**, which can then be safely accessed and manipulated in a **rt-compatible** way.
-- SharsorIPCpp exposes to the user a convenient `Client/Server` API to create, read, write and manage shared tensors from separate processes (on the same machine) with **minimum latency**, and **internally takes care of** avoiding **race conditions** on the data. Note that while only one instance of a server is allowed, an arbitrary number of clients can be created.
+- SharsorIPCpp exposes to the user a convenient `Client/Server` API to create, read, write and manage shared tensors from separate processes (on the same machine) with **minimum latency**, and **internally takes care of** avoiding **race conditions** on the data. Note that while only one instance of a server is allowed, an arbitrary number of clients can be created. To make also non-atomic operations on the shared data safe, the SharsorIPCpp also exposes methods for manually handling data acquisition and release.
 - SharsorIPCpp is templatized so as to support the creation of shared tensors with
   - different datatypes (`bool`, `int`, `float` and `double`).
   - `ColMajor` (column-major) and `RowMajor` (row-major) layouts.
 - Additionally, a `StringTensor` wrapper object designed for sharing arrays of UTF8 encoded-strings is also provided.
+- Producer/Consumer wrappers built on top of [boost::interprocess](https://www.boost.org/doc/libs/1_46_0/doc/html/interprocess/synchronization_mechanisms.html)'s named condition variables and mutex + SharsorIPCpp's client/server for system-wide single producer - multiple consumers triggering
 
 The library is also **fully binded** in Python, codename `PySharsorIPC`, and allows for seamless integration with the popular NumPy library.
 
@@ -48,6 +49,7 @@ Importing and linking against the library is super easy: have a look at an examp
 
 ### 6. External dependencies: 
 - [Eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) - *required*: a C++ template library for linear algebra. On Linux, install it with ```sudo apt-get install libeigen3-dev```. Tensors on SharsorIPCpp are exposed, at the Cpp level, as either Eigen matrices or Eigen Maps of the underlying memory.
+- [boost::interprocess](https://www.boost.org/doc/libs/1_46_0/doc/html/interprocess/synchronization_mechanisms.html) - *required*: used by the Producer/Consumer classes.
 - [GoogleTest](https://github.com/google/googletest) - *optional*: a C++ testing framework. On Linux, install it with ```sudo apt-get install libgtest-dev```.
 <!-- - **Real-time library** (rt) - *required*: ```sudo apt-get install librt-dev```
 - **pthread** - *required*: the POSIX Threads library. On Linux, install it with ```sudo apt-get install libpthread-stubs0-dev``` -->
@@ -73,13 +75,4 @@ If employed properly, the C++ version of the library can be employed in a rt-saf
 - As of now, the logging utility `Journal` is not guaranteed to be rt-friendly. It is very useful for debugging purposes but, if working with rt-code, it is strongly recommended to set the verbosity level to `VLevel::V0` (which prints only exceptions) or to disable logging altogether with `verbose = false`.
 
 ### 8. Roadmap:
-- [ ] clean StringTensor bindings with and remove pythonic read and write methods
-- [ ] make read and write methods of string tensor more efficient
-- [ ] start to add documentation
-  - [x] doc page initialization
-  - [ ] fill with simple Cpp examples and also reference tests
-  - [ ] Python interface examples
-- [ ] generalize StringTensor to support actual 2D Tensors of strings (stack along columns)
-- [x] setup to be used from external package
-- [x] deploy on Anaconda 
-- [x] automatic deployment of main branch on Anaconda from GitHub actions (only if tests passing)
+- [ ] write some documentation!!
