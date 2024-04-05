@@ -52,7 +52,7 @@ if ros_backend == "ros1":
 
     node = rospy.init_node(namespace)
 
-    bridge = ToRos(client=client.shared_mem,
+    bridge = ToRos(client=client.get_shared_mem(),
         queue_size = 1,
         ros_backend = ros_backend)
 
@@ -64,7 +64,7 @@ if ros_backend == "ros2":
 
     node = rclpy.create_node(namespace)
 
-    bridge = ToRos(client=client.shared_mem,
+    bridge = ToRos(client=client.get_shared_mem(),
         queue_size=1,
         ros_backend=ros_backend,
         node=node)
