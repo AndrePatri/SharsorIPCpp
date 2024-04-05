@@ -37,7 +37,7 @@ class SharedTWrapper:
 
         self.is_server = is_server 
 
-        self.shared_mem = None
+        self._shared_mem = None
         self._numpy_view = None
         self._torch_view = None
 
@@ -60,7 +60,7 @@ class SharedTWrapper:
             self.order = 'F' # 'F'
 
         if self.is_server:
-            self.shared_mem = ServerFactory(n_rows = n_rows, 
+            self._shared_mem = ServerFactory(n_rows = n_rows, 
                     n_cols = n_cols,
                     basename = self.basename,
                     namespace = self.namespace, 
@@ -71,7 +71,7 @@ class SharedTWrapper:
                     layout = self.layout,
                     safe = self.safe)
         else:
-            self.shared_mem = ClientFactory(
+            self._shared_mem = ClientFactory(
                     basename = self.basename,
                     namespace = self.namespace, 
                     verbose = self.verbose, 
@@ -129,7 +129,7 @@ class SharedTWrapper:
     def get_n_clients(self):
 
         if self.is_server:
-            return self.shared_mem.getNClients()
+            return self._shared_mem.getNClients()
         else:
             message = "Number of clients can be retrieved only if is_server = True!!"
             Logger.log(self.__class__.__name__,
@@ -147,14 +147,14 @@ class SharedTWrapper:
     
         if self.is_server:
 
-            self.shared_mem.run()
+            self._shared_mem.run()
         
         else:
             
-            self.shared_mem.attach()
+            self._shared_mem.attach()
 
-        self.n_rows = self.shared_mem.getNRows()
-        self.n_cols = self.shared_mem.getNCols()
+        self.n_rows = self._shared_mem.getNRows()
+        self.n_cols = self._shared_mem.getNCols()
 
         # we create views as big as the underlying shared memory
         # in case only a portion of it is needed, this is not optimal
@@ -163,12 +163,12 @@ class SharedTWrapper:
         if self.fill_value is not None:
             self._numpy_view = np.full((self.n_rows, self.n_cols),
                             self.fill_value,
-                            dtype=toNumpyDType(self.shared_mem.getScalarType()),
+                            dtype=toNumpyDType(self._shared_mem.getScalarType()),
                             order=self.order
                             )
         else:
             self._numpy_view = np.zeros((self.n_rows, self.n_cols),
-                                dtype=toNumpyDType(self.shared_mem.getScalarType()),
+                                dtype=toNumpyDType(self._shared_mem.getScalarType()),
                                 order=self.order 
                                 )
         
@@ -194,7 +194,7 @@ class SharedTWrapper:
             row_index: int, 
             col_index: int):
         
-        if not self.shared_mem.isRunning():
+        if not self._shared_mem.isRunning():
             message = "You can only call write() if the run() method was previously called!"
             Logger.log(self.__class__.__name__,
                 "write",
@@ -208,7 +208,7 @@ class SharedTWrapper:
             # write scalar into numpy view
             self._numpy_view[row_index, col_index] = data
             # write to shared memory
-            return self.shared_mem.write(self._numpy_view[row_index:row_index + 1, 
+            return self._shared_mem.write(self._numpy_view[row_index:row_index + 1, 
                                                         col_index:col_index + 1], 
                                         row_index, col_index)
         
@@ -234,7 +234,7 @@ class SharedTWrapper:
             self._numpy_view[row_index:row_index + input_rows, 
                     col_index:col_index + input_cols] = data
             # write corresponding part of numpy view to memory
-            return self.shared_mem.write(self._numpy_view[row_index:row_index + input_rows, 
+            return self._shared_mem.write(self._numpy_view[row_index:row_index + input_rows, 
                         col_index:col_index + input_cols], row_index, col_index)                
 
         # here reached only if not got one of the valid dtypes
@@ -264,7 +264,7 @@ class SharedTWrapper:
             col_index: int, 
             data = None):
         
-        if not self.shared_mem.isRunning():
+        if not self._shared_mem.isRunning():
             message = "You can only call read() if the run() method was previously called!"
             Logger.log(self.__class__.__name__,
                 "write",
@@ -274,7 +274,7 @@ class SharedTWrapper:
             
         if data is None:
             # we return a scalar reading of the underlying shared memory
-            success = self.shared_mem.read(self._numpy_view[row_index:row_index + 1, 
+            success = self._shared_mem.read(self._numpy_view[row_index:row_index + 1, 
                 col_index:col_index + 1], row_index, col_index)
             return self._numpy_view[row_index, 
                 col_index].item(), success
@@ -301,7 +301,7 @@ class SharedTWrapper:
                 input_rows, input_cols = data.shape
 
                 # update block of numpy view from shared memory
-                success = self.shared_mem.read(self._numpy_view[row_index:row_index + input_rows, 
+                success = self._shared_mem.read(self._numpy_view[row_index:row_index + input_rows, 
                         col_index:col_index + input_cols], row_index, col_index)
                 if not success:
                     return None, False
@@ -360,12 +360,12 @@ class SharedTWrapper:
             return False
         
         if read:
-            success = self.shared_mem.read(self._numpy_view[row_index:row_index + n_rows, 
+            success = self._shared_mem.read(self._numpy_view[row_index:row_index + n_rows, 
                     col_index:col_index + n_cols], row_index, col_index)
             
             return success
         else:
-            success = self.shared_mem.write(self._numpy_view[row_index:row_index + n_rows, 
+            success = self._shared_mem.write(self._numpy_view[row_index:row_index + n_rows, 
                     col_index:col_index + n_cols], row_index, col_index)
             
             return success
@@ -457,13 +457,13 @@ class SharedTWrapper:
                     timeout: float = None):
 
         if timeout is None:
-            self.shared_mem.dataSemAcquire()
+            self._shared_mem.dataSemAcquire()
         else:
-            self.shared_mem.dataSemAcquireDt(timeout)
+            self._shared_mem.dataSemAcquireDt(timeout)
 
     def data_sem_release(self):
 
-        self.shared_mem.dataSemRelease()
+        self._shared_mem.dataSemRelease()
     
     def to_zero(self):
 
@@ -472,8 +472,11 @@ class SharedTWrapper:
         self._numpy_view[:, :] = 0  # reset numpy view on CPU            
         self.synch_all(read=False, retry=True) # writes to shared mem
 
+    def get_shared_mem(self): # return low-level sharedmem client/server
+        return self._shared_mem
+    
     def close(self):
 
-        if self.shared_mem is not None:
+        if self._shared_mem is not None:
 
-            self.shared_mem.close()
+            self._shared_mem.close()

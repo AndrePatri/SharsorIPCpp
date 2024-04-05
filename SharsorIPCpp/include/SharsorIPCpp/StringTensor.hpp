@@ -100,6 +100,8 @@ namespace SharsorIPCpp {
 
             int getLength();
 
+            ShMemType getSharedMem();
+
             std::string getNamespace() const;
             std::string getBasename() const;
 

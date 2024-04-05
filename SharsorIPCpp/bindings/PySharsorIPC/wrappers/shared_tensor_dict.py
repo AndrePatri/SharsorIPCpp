@@ -129,7 +129,7 @@ class SharedTensorDict():
 
             if self.is_server:
 
-                dims = np.array(self.dims, dtype=toNumpyDType(self.shared_mem.getScalarType())).reshape((len(self.dims), 1))
+                dims = np.array(self.dims, dtype=toNumpyDType(self.get_shared_mem().getScalarType())).reshape((len(self.dims), 1))
 
                 self.write_retry(data = dims, row_index= 0,
                         col_index=0)

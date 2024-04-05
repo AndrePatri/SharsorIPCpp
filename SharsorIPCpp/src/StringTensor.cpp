@@ -119,6 +119,18 @@ namespace SharsorIPCpp {
         }
 
     }
+    
+    template <>
+    StrServer StringTensor<StrServer>::getSharedMem() {
+
+        return _sh_mem;
+    }
+
+    template <>
+    StrClient StringTensor<StrClient>::getSharedMem() {
+
+        return _sh_mem;
+    }
 
     // class specialization
     template class StringTensor<StrServer>;

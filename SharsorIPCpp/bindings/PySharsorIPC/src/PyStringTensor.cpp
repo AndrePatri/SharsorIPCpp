@@ -122,6 +122,14 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorServer(py::module &m) {
 
         })
 
+        .def("get_shared_mem", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrServer>& self) {
+            
+            SharsorIPCpp::StrServer str_server = self.getSharedMem();
+
+            return str_server;
+
+        })
+
         ;
 
 }
@@ -215,6 +223,14 @@ void PySharsorIPC::PyStringTensor::declare_StringTensorClient(py::module &m) {
             std::memcpy(result_ptr, buffer.data(), buffer.size() * sizeof(int));
 
             return buffer_copy;
+
+        })
+
+        .def("get_shared_mem", [](SharsorIPCpp::StringTensor<SharsorIPCpp::StrClient>& self) {
+            
+            SharsorIPCpp::StrClient str_server = self.getSharedMem();
+
+            return str_server;
 
         })
 
