@@ -184,7 +184,7 @@ class FromRos():
         
         return sub_success and self._is_running
 
-    def stop(self):
+    def close(self):
 
         self._server.close()
 

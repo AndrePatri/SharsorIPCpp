@@ -230,7 +230,7 @@ class ToRos():
         
         self._init_publisher()
     
-    def stop(self):
+    def close(self):
 
         self._client.close()
 
