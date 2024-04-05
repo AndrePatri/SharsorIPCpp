@@ -140,8 +140,8 @@ try:
                         warning,
                         LogType.WARN,
                         throw_when_excep = True)
-
-        perf_timer.thread_sleep(time_to_sleep_ns) 
+        else:
+            perf_timer.thread_sleep(time_to_sleep_ns) 
 
         actual_loop_dt = time.perf_counter() - start_time
 
