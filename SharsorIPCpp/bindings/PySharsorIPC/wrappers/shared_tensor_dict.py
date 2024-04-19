@@ -90,20 +90,13 @@ class SharedTensorDict():
             basename = "debug_data_dims"
 
             self.dims = dims
-            
-            n_dims = None
 
             if is_server:
-
-                n_dims = 0
-                for i in range(0, len(dims)):
-
-                    n_dims += dims[i]
                 
                 super().__init__(namespace = namespace,
                     basename = basename,
                     is_server = is_server, 
-                    n_rows = n_dims, 
+                    n_rows = len(self.dims), 
                     n_cols = 1, 
                     verbose = verbose, 
                     vlevel = vlevel,
@@ -224,7 +217,7 @@ class SharedTensorDict():
                 vlevel = vlevel,
                 safe = safe,
                 force_reconnection = force_reconnection)
-            
+
     def run(self):
         
         self.data.run()
@@ -242,6 +235,8 @@ class SharedTensorDict():
 
             self.dimensions = self.shared_dims.dims.flatten().tolist()
 
+            print("UUUUUUUUUUUUUUUUUUUUUU")
+            print(self.dimensions)
             self.n_dims = self.data.n_rows
             self.n_nodes = self.data.n_cols
 
@@ -300,7 +295,12 @@ class SharedTensorDict():
             starting_idx += self.dimensions[index]
 
         view = self.data.get_numpy_view()[starting_idx:starting_idx + self.dimensions[index], :]
-
+        print("IIIIIIIIII")
+        print(view.shape)
+        print(self.data.get_numpy_view().shape)
+        print(self.names)
+        print(self.dimensions)
+        print(len(self.dimensions))
         view_copy = view.copy()
 
         return view_copy
