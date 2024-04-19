@@ -235,8 +235,6 @@ class SharedTensorDict():
 
             self.dimensions = self.shared_dims.dims.flatten().tolist()
 
-            print("UUUUUUUUUUUUUUUUUUUUUU")
-            print(self.dimensions)
             self.n_dims = self.data.n_rows
             self.n_nodes = self.data.n_cols
 
@@ -289,18 +287,12 @@ class SharedTensorDict():
         # we sum dimensions up until the data we 
         # need to write to get the starting index
         # of the data block
-        starting_idx = - 1
-        for index in range(data_idx + 1):
-
+        starting_idx = 0
+        for index in range(data_idx):
             starting_idx += self.dimensions[index]
 
-        view = self.data.get_numpy_view()[starting_idx:starting_idx + self.dimensions[index], :]
-        print("IIIIIIIIII")
-        print(view.shape)
-        print(self.data.get_numpy_view().shape)
-        print(self.names)
-        print(self.dimensions)
-        print(len(self.dimensions))
+        view = self.data.get_numpy_view()[starting_idx:starting_idx + self.dimensions[data_idx], :]
+
         view_copy = view.copy()
 
         return view_copy
