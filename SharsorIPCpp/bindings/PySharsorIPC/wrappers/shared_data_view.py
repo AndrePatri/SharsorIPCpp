@@ -407,7 +407,7 @@ class SharedTWrapper:
 
         return self._gpu_mirror is not None
     
-    def get_torch_view(self, 
+    def get_torch_mirror(self, 
                 gpu: bool = False):
         
         if self._with_torch_view:
@@ -427,7 +427,7 @@ class SharedTWrapper:
                 LogType.EXCEP,
                 throw_when_excep = True)
             
-    def get_numpy_view(self):
+    def get_numpy_mirror(self):
 
         return self._numpy_view
     

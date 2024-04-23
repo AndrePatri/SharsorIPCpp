@@ -35,7 +35,7 @@ server = SharedTWrapper(namespace = "Prova",
 
 server.run()
 
-server.get_numpy_view()[:, :] = np.random.rand(server.n_rows, server.n_cols)
+server.get_numpy_mirror()[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
 update_dt = 0.001
 start_time = time.perf_counter() 
@@ -54,7 +54,7 @@ try:
 
         start_time = time.perf_counter() 
 
-        server.get_numpy_view()[:, :] = np.random.rand(server.n_rows, server.n_cols)
+        server.get_numpy_mirror()[:, :] = np.random.rand(server.n_rows, server.n_cols)
 
         server.synch_all(read=False, 
                     retry=True)

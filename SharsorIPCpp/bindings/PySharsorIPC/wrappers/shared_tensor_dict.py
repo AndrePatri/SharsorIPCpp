@@ -132,7 +132,7 @@ class SharedTensorDict():
                 # updates shared dims
                 self.synch_all(read=True, retry=True)
                 
-                self.dims = self.get_numpy_view()[:, :].copy()
+                self.dims = self.get_numpy_mirror()[:, :].copy()
 
                 self.n_dims = self.n_rows
                 self.n_nodes = self.n_cols
@@ -291,7 +291,7 @@ class SharedTensorDict():
         for index in range(data_idx):
             starting_idx += self.dimensions[index]
 
-        view = self.data.get_numpy_view()[starting_idx:starting_idx + self.dimensions[data_idx], :]
+        view = self.data.get_numpy_mirror()[starting_idx:starting_idx + self.dimensions[data_idx], :]
 
         view_copy = view.copy()
 
