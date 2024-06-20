@@ -194,15 +194,6 @@ class SharedTWrapper:
             row_index: int, 
             col_index: int):
         
-        if not self._shared_mem.isRunning():
-            message = "You can only call write() if the run() method was previously called!"
-            Logger.log(self.__class__.__name__,
-                "write",
-                message,
-                LogType.EXCEP,
-                throw_when_excep = False)
-            return False
-        
         if isinstance(data, (int, float, bool,
                             np.float32, np.float64)):  
             
@@ -254,7 +245,7 @@ class SharedTWrapper:
             col_index: int):
 
         # tries writing until success
-        while not self.write(data=data,
+        while self._shared_mem.isRunning() and not self.write(data=data,
                     row_index=row_index,
                     col_index=col_index):
             
@@ -264,14 +255,6 @@ class SharedTWrapper:
             row_index: int, 
             col_index: int, 
             data = None):
-        
-        if not self._shared_mem.isRunning():
-            message = "You can only call read() if the run() method was previously called!"
-            Logger.log(self.__class__.__name__,
-                "write",
-                message,
-                LogType.EXCEP,
-                throw_when_excep = True)
             
         if data is None:
             # we return a scalar reading of the underlying shared memory
@@ -330,7 +313,7 @@ class SharedTWrapper:
         
         # tries reading until success
         read_done = False
-        while not read_done: 
+        while self._shared_mem.isRunning() and not read_done: 
             data_read, read_done = self.read(
                                 row_index=row_index,
                                 col_index=col_index,
