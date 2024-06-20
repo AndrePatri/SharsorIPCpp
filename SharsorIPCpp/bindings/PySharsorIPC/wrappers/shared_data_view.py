@@ -200,7 +200,8 @@ class SharedTWrapper:
                 "write",
                 message,
                 LogType.EXCEP,
-                throw_when_excep = True)
+                throw_when_excep = False)
+            return False
         
         if isinstance(data, (int, float, bool,
                             np.float32, np.float64)):  
